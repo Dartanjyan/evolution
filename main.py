@@ -30,7 +30,10 @@ print("Seed:", seed)
 np.random.seed(seed)
 start = time.time()
 
-mut_alg = 2
+if "--mut-alg" in argv:
+    mut_alg = int(argv[argv.index("--mut-alg")+1])
+else:
+    mut_alg = 2
 
 user_name = os.getlogin()
 
@@ -463,7 +466,8 @@ FPS: """.split('\n')
 
     def load(self):
         if os.path.exists(save_path):
-            self.physics_thread.join()
+            if self.physics_thread.is_alive():
+                self.physics_thread.join()
             self.kill_all_creatures()
             with open(save_path, "rb") as f:
                 load_data = pickle.load(f)
@@ -477,7 +481,7 @@ FPS: """.split('\n')
             print("\nLoaded save")
             print("Layers: ", layers_config, ", Nodes: ", nodes, ", Generation: ", self.generation, sep="")
         else:
-            print("Save file not found!")
+            print(f"Save file {save_path} not found!")
 
     def get_layers_and_nodes(self):
         layers_config = []
