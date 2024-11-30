@@ -183,7 +183,7 @@ Returns:
 class App:
     def __init__(self):
         self.generation = 0
-        self.creatures_per_generation = 20
+        self.creatures_per_generation = 200
         self.new_random_creatures = 3
 
         self.chance_to_mutate = 10 / 100  # для алгоритма 0
@@ -204,10 +204,20 @@ class App:
 
         self.timer_for_fps_update = 0
         self.debug_draw = False
-        self.draw = False
+        self.draw = True
 
-        self.space = pymunk.Space()
-        self.space.gravity = GRAVITY
+        self.threads = os.cpu_count()
+        self.creatures_per_thread = math.ceil(self.creatures_per_generation / self.threads)
+        # Holds indexes of creatures to be distributed to spaces
+        # for example [[0, 3], [1, 4], [2]] for 5 creatures and 3 spaces
+        self.creature_idx_spaces = [[] for _ in range(min(self.threads, self.creatures_per_generation))]
+        for i in range(self.creatures_per_generation):
+            m = i % self.threads
+            self.creature_idx_spaces[m].append(i)
+
+        self.spaces = [pymunk.Space() for _ in range(self.threads)]
+        for space in self.spaces:
+            space.gravity = GRAVITY
 
         pygame.init()
         self.screen = pygame.display.set_mode([WIDTH, HEIGHT])
@@ -219,16 +229,17 @@ class App:
         self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
         self.running = True
 
-        floor_len = 2 ** 31 - 1
         self.floor_rect = pygame.Rect([0, HEIGHT // 3 * 2], [WIDTH, HEIGHT // 3])
-        self.floor = pymunk.Poly(self.space.static_body, [(-floor_len / 2, HEIGHT // 3 * 2),
-                                                          (floor_len / 2, HEIGHT // 3 * 2),
-                                                          (floor_len / 2, HEIGHT),
-                                                          (-floor_len / 2, HEIGHT)])
-        self.floor.friction = FLOOR_FRICTION
-        self.floor.elasticity = 0
-        self.floor.filter = pymunk.ShapeFilter(0)
-        self.space.add(self.floor)
+        floor_len = 2 ** 31 - 1
+        for space in self.spaces:
+            floor = pymunk.Poly(space.static_body, [(-floor_len / 2, HEIGHT // 3 * 2),
+                                                              (floor_len / 2, HEIGHT // 3 * 2),
+                                                              (floor_len / 2, HEIGHT),
+                                                              (-floor_len / 2, HEIGHT)])
+            floor.friction = FLOOR_FRICTION
+            floor.elasticity = 0
+            floor.filter = pymunk.ShapeFilter(0)
+            space.add(floor)
 
         self.my_creatures: list[myCreature.Creature] = []
         self.hidden_layers = [13]
@@ -236,13 +247,6 @@ class App:
 
         self.physics_thread = threading.Thread(target=self.run_simulation_physics)
         self.ai_calculating = False
-
-        self.threads = os.cpu_count()
-        self.creatures_per_thread = math.ceil(self.creatures_per_generation / self.threads)
-        self.creature_idx_threads = [[] for _ in range(min(self.threads, self.creatures_per_generation))]
-        for i in range(self.creatures_per_generation):
-            m = i % self.threads
-            self.creature_idx_threads[m].append(i)
 
         self.font = pygame.font.Font(None, 21)
         self.lines = """"D" to enable/disable rendering
@@ -697,6 +701,7 @@ FPS: """.split('\n')
             self.screen.fill(WHITE)
             if self.draw:
                 # s = time.perf_counter_ns()
+                # print(int((time.perf_counter_ns() - s) / 1e6), "ms")
                 if self.debug_draw:
                     self.space.debug_draw(self.draw_options)
                 else:
