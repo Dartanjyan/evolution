@@ -1,5 +1,6 @@
 import os
 import pickle
+import platform
 import random
 import sys
 import threading
@@ -29,14 +30,21 @@ print("Seed:", seed)
 np.random.seed(seed)
 start = time.time()
 
-mut_alg = int(argv[1]) or 2
+mut_alg = 2
+
+user_name = os.getlogin()
+
+if platform.system() == 'Windows':
+    save_dir = f'C:\\Users\\{user_name}\\evolutionByAlex\\saves'
+elif platform.system() == 'Linux':
+    save_dir = f'/home/{user_name}/evolutionByAlex/saves'
+else:
+    save_dir = "saves"
+if not os.path.exists(save_dir):
+    os.makedirs(save_dir)
+    print(f"Created saves folder {save_dir}")
 save_name = f"autosave{mut_alg}.save"
-save_path = f"saves/{save_name}"
-
-if not os.path.exists("saves/"):
-    os.mkdir("saves")
-    print("Created saves folder")
-
+save_path = os.path.join(save_dir, save_name)
 
 def smooth_curve_spline(points, smoothing_factor):
     x = np.arange(len(points))
@@ -493,6 +501,9 @@ FPS: """.split('\n')
 
         counter_for_nn_calc = NN_CALC_STEP
         generation_counter = 0
+
+        if "--load" in argv:
+            self.load()
 
         # Count amount of the nodes
         layers_config, nodes = self.get_layers_and_nodes()
