@@ -499,9 +499,7 @@ FPS: """.split('\n')
 
     def calc_all_creatures(self):
         for c in self.my_creatures:
-            # s = time.perf_counter_ns()
             self.calculate_creature_ai(c)
-            # print(round((time.perf_counter_ns() - s) / 1e6, 3), "ms")
 
     def run(self):
         for i in range(self.creatures_per_generation):
