@@ -183,7 +183,7 @@ Returns:
 class App:
     def __init__(self):
         self.generation = 0
-        self.creatures_per_generation = 10
+        self.creatures_per_generation = 20
         self.new_random_creatures = 3
 
         self.chance_to_mutate = 10 / 100  # для алгоритма 0
@@ -235,10 +235,14 @@ class App:
         self.best_x = [0]
 
         self.physics_thread = threading.Thread(target=self.run_simulation_physics)
-        self.calc_all_creatures_thread = None
         self.ai_calculating = False
+
         self.threads = os.cpu_count()
-        self.creatures_per_thread = np.ceil(self.creatures_per_generation / self.threads)
+        self.creatures_per_thread = math.ceil(self.creatures_per_generation / self.threads)
+        self.creature_idx_threads = [[] for _ in range(min(self.threads, self.creatures_per_generation))]
+        for i in range(self.creatures_per_generation):
+            m = i % self.threads
+            self.creature_idx_threads[m].append(i)
 
         self.font = pygame.font.Font(None, 21)
         self.lines = """"D" to enable/disable rendering
