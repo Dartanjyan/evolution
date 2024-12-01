@@ -182,11 +182,6 @@ Returns:
     return list(new_brain)
 
 
-def do_step(space):
-    for i in range(int(STEP_DIVIDER)):
-        space.step(PHYSICS_STEP)
-
-
 def start_task_execution(executor, func, args_list):
     """
     :param executor:
@@ -249,12 +244,17 @@ def find_index(lst, target):
     return None
 
 
+def do_step(space):
+    for i in range(int(STEP_DIVIDER)):
+        space.step(PHYSICS_STEP)
+
+
 class App:
     def __init__(self):
         self.futures = None
         self.calc_all_creatures_thread = None
         self.generation = 0
-        self.creatures_per_generation = 200
+        self.creatures_per_generation = 20
         self.new_random_creatures = 3
 
         self.chance_to_mutate = 10 / 100  # для алгоритма 0
@@ -326,7 +326,62 @@ Generation: 0
 FPS: """.split('\n')
         self.lines_of_text_to_blit = [self.font.render(line, True, BLACK) for line in self.lines]
 
-    def add_creature(self, space, brains_data=None, bias_layers=None):
+    def get_sorted_creatures(self):
+        creatures = sorted(self.my_creatures, key=lambda creature: creature.get_position().x)[::-1]
+        return creatures
+
+    def kill_all_creatures(self):
+        for c in self.my_creatures:
+            c.kill()
+        self.my_creatures: list[myCreature.Creature] = []
+
+    def save(self):
+        save_data = {
+            "generation": self.generation,
+            "current_brains": [{"brain": i.brains_data, "bias": i.bias_layers} for i in self.my_creatures],
+            "best_x": self.best_x,
+            "hidden_layers_config": self.hidden_layers
+        }
+        with open(save_path, "wb") as f:
+            pickle.dump(save_data, f)
+        print(f"Saved automatically. Generation: {self.generation}. Best x: {max(self.best_x)}")
+
+    def load(self):
+        if os.path.exists(save_path):
+            # Закомментил чтобы жёлтым не подсвечивалось
+            # if self.physics_thread.is_alive():
+            #     self.physics_thread.join()
+            tasks_join(self.futures)
+            self.kill_all_creatures()
+            with open(save_path, "rb") as f:
+                load_data = pickle.load(f)
+            self.generation = load_data["generation"]
+            self.best_x = load_data["best_x"]
+            for creature_load_data in load_data["current_brains"]:
+                self.add_creature(creature_load_data["brain"], creature_load_data["bias"])
+            self.hidden_layers = load_data["hidden_layers_config"]
+
+            layers_config, nodes = self.get_layers_and_nodes()
+            print("\nLoaded save")
+            print("Layers: ", layers_config, ", Nodes: ", nodes, ", Generation: ", self.generation, sep="")
+        else:
+            print(f"Save file {save_path} not found!")
+
+    def get_layers_and_nodes(self):
+        layers_config = []
+        nodes = 0
+        for i, matrix in enumerate(self.my_creatures[0].brains_data):
+            layers_config.append(matrix.shape[0])
+            nodes += matrix.size
+            if i == len(self.my_creatures[0].brains_data) - 1:
+                layers_config.append(matrix.shape[1])
+        return layers_config, nodes
+
+    def calc_all_creatures(self):
+        for c in self.my_creatures:
+            calculate_creature_ai(c)
+
+    def add_creature_to_space(self, space, brains_data=None, bias_layers=None):
         polies = []
         bones = []
         joints = []
@@ -410,73 +465,15 @@ FPS: """.split('\n')
         creature.move_to(bias_coordinates)
         self.my_creatures.append(creature)
 
-    def get_sorted_creatures(self):
-        creatures = sorted(self.my_creatures, key=lambda creature: creature.get_position().x)[::-1]
-        return creatures
-
-    def run_simulation_physics(self):
-        # todo здесь вызов пула потоков для просчёта физики для каждого space
-        do_step()
-        if self.draw:
-            self.physics_clock.tick(PHYSICS_IPS)
-
-    def kill_all_creatures(self):
-        for c in self.my_creatures:
-            c.kill()
-        self.my_creatures: list[myCreature.Creature] = []
-
-    def save(self):
-        save_data = {
-            "generation": self.generation,
-            "current_brains": [{"brain": i.brains_data, "bias": i.bias_layers} for i in self.my_creatures],
-            "best_x": self.best_x,
-            "hidden_layers_config": self.hidden_layers
-        }
-        with open(save_path, "wb") as f:
-            pickle.dump(save_data, f)
-        print(f"Saved automatically. Generation: {self.generation}. Best x: {max(self.best_x)}")
-
-    def load(self):
-        if os.path.exists(save_path):
-            # Закомментил чтобы жёлтым не подсвечивалось
-            # if self.physics_thread.is_alive():
-            #     self.physics_thread.join()
-            tasks_join(self.futures)
-            self.kill_all_creatures()
-            with open(save_path, "rb") as f:
-                load_data = pickle.load(f)
-            self.generation = load_data["generation"]
-            self.best_x = load_data["best_x"]
-            for creature_load_data in load_data["current_brains"]:
-                self.add_creature(creature_load_data["brain"], creature_load_data["bias"])
-            self.hidden_layers = load_data["hidden_layers_config"]
-
-            layers_config, nodes = self.get_layers_and_nodes()
-            print("\nLoaded save")
-            print("Layers: ", layers_config, ", Nodes: ", nodes, ", Generation: ", self.generation, sep="")
-        else:
-            print(f"Save file {save_path} not found!")
-
-    def get_layers_and_nodes(self):
-        layers_config = []
-        nodes = 0
-        for i, matrix in enumerate(self.my_creatures[0].brains_data):
-            layers_config.append(matrix.shape[0])
-            nodes += matrix.size
-            if i == len(self.my_creatures[0].brains_data) - 1:
-                layers_config.append(matrix.shape[1])
-        return layers_config, nodes
-
-    def calc_all_creatures(self):
-        for c in self.my_creatures:
-            calculate_creature_ai(c)
+    def add_creature(self, brains_data=None, bias_layers=None):
+        idx = find_index(self.creature_idx_spaces, len(self.my_creatures))
+        if isinstance(idx, list):
+            idx = idx[0]
+        self.add_creature_to_space(self.spaces[idx], brains_data, bias_layers)
 
     def run(self):
         for i in range(self.creatures_per_generation):
-            idx = find_index(self.creature_idx_spaces, i)
-            if isinstance(idx, list):
-                idx = idx[0]
-            self.add_creature(self.spaces[idx])
+            self.add_creature()
 
         counter_for_nn_calc = NN_CALC_STEP
         generation_counter = 0
@@ -493,10 +490,9 @@ FPS: """.split('\n')
             self.max_amount_of_mutated_weights = nodes
 
         while self.running:
-            executor = ThreadPoolExecutor(max_workers=self.threads)
-            start_task_execution(executor, do_step, self.spaces)
+            physics_executor = ThreadPoolExecutor(max_workers=self.threads)
+            self.futures = start_task_execution(physics_executor, do_step, self.spaces)
             self.calc_all_creatures_thread = threading.Thread(target=self.calc_all_creatures)
-
 
             # Events
             for event in pygame.event.get():
@@ -518,6 +514,64 @@ FPS: """.split('\n')
                         self.draw = not self.draw
                         self.screen.fill(WHITE)
                         pygame.display.flip()
+
+            # Rendering
+            self.screen.fill(WHITE)
+            if self.draw:
+                # s = time.perf_counter_ns()
+                # print(int((time.perf_counter_ns() - s) / 1e6), "ms")
+                pygame.draw.rect(self.screen, FLOOR_COLOR, self.floor_rect)
+                pygame.draw.line(self.screen, RED,
+                                 (max(self.best_x), self.floor_rect.y),
+                                 (max(self.best_x), self.floor_rect.y - 100),
+                                 1)
+
+                for i, creature in enumerate(self.my_creatures):
+                    polies = creature.polies
+                    bones = creature.bones
+                    for p in polies:
+                        points = []
+                        for v in p.shape.get_vertices():
+                            x = v.rotated(p.body.angle)[0] + p.body.position[0]
+                            y = v.rotated(p.body.angle)[1] + p.body.position[1]
+                            points.append((x, y))
+                        pygame.draw.polygon(self.screen, POLY_COLOR, points)
+                        pygame.draw.aalines(self.screen, BLACK, True, points)
+                    for b in bones:
+                        p1 = b.body.position + b.shape.a.rotated(b.body.angle)
+                        p2 = b.body.position + b.shape.b.rotated(b.body.angle)
+
+                        pygame.draw.line(self.screen, BLACK, p1, p2, BONE_DRAW_WIDTH + 2)
+                        pygame.draw.circle(self.screen, BLACK, p1, BONE_DRAW_WIDTH / 1.8 + 1)
+                        pygame.draw.circle(self.screen, BLACK, p2, BONE_DRAW_WIDTH / 1.8 + 1)
+                    for b in bones:
+                        p1 = b.body.position + b.shape.a.rotated(b.body.angle)
+                        p2 = b.body.position + b.shape.b.rotated(b.body.angle)
+
+                        pygame.draw.line(self.screen, BONE_COLOR, p1, p2, BONE_DRAW_WIDTH)
+                        pygame.draw.circle(self.screen, BONE_COLOR, p1, BONE_DRAW_WIDTH / 1.8)
+                        pygame.draw.circle(self.screen, BONE_COLOR, p2, BONE_DRAW_WIDTH / 1.8)
+
+                # print(int((time.perf_counter_ns() - s) / 1e6), "ms")
+                # return 0
+                self.fps_clock.tick(FPS)
+
+            # Update fps text on screen
+            if self.draw and time.time() - self.timer_for_fps_update > 1 / 5:
+                self.timer_for_fps_update = time.time()
+                _fps = str(round(self.fps_clock.get_fps(), 3)).ljust(6, '0')
+                self.lines_of_text_to_blit[-1] = self.font.render(
+                    f"FPS: {_fps} ({self.fps_clock.get_rawtime()}/{self.fps_clock.get_time()} ms)",
+                    True,
+                    pygame.Color("black")
+                )
+
+            # Blit all texts on screen
+            for i in range(len(self.lines_of_text_to_blit)):
+                self.screen.blit(self.lines_of_text_to_blit[i],
+                                 (5,
+                                  (self.lines_of_text_to_blit[
+                                       min(0, i - 1)].get_bounding_rect().bottom + 10) * i + 10))
 
             # Calculate every creature's NN
             counter_for_nn_calc += 1
@@ -664,78 +718,14 @@ FPS: """.split('\n')
                 if self.generation == 1001 and False:
                     break
 
-            # Rendering
-            self.screen.fill(WHITE)
-            if self.draw:
-                # s = time.perf_counter_ns()
-                # print(int((time.perf_counter_ns() - s) / 1e6), "ms")
-                pygame.draw.rect(self.screen, FLOOR_COLOR, self.floor_rect)
-                pygame.draw.line(self.screen, RED,
-                                 (max(self.best_x), self.floor_rect.y),
-                                 (max(self.best_x), self.floor_rect.y - 100),
-                                 1)
-
-                for i, creature in enumerate(self.my_creatures):
-                    polies = creature.polies
-                    bones = creature.bones
-                    old_id = self.creatures_per_generation - self.new_random_creatures - 1
-                    for p in polies:
-                        points = []
-                        for v in p.shape.get_vertices():
-                            x = v.rotated(p.body.angle)[0] + p.body.position[0]
-                            y = v.rotated(p.body.angle)[1] + p.body.position[1]
-                            points.append((x, y))
-                        pygame.draw.polygon(self.screen, POLY_COLOR, points)
-                        pygame.draw.aalines(self.screen, BLACK if i != old_id else RED, True, points)
-                    for b in bones:
-                        p1 = b.body.position + b.shape.a.rotated(b.body.angle)
-                        p2 = b.body.position + b.shape.b.rotated(b.body.angle)
-
-                        pygame.draw.line(self.screen, BLACK if i != old_id else RED, p1, p2, BONE_DRAW_WIDTH + 2)
-                        pygame.draw.circle(self.screen, BLACK if i != old_id else RED, p1, BONE_DRAW_WIDTH / 1.8 + 1)
-                        pygame.draw.circle(self.screen, BLACK if i != old_id else RED, p2, BONE_DRAW_WIDTH / 1.8 + 1)
-                    for b in bones:
-                        p1 = b.body.position + b.shape.a.rotated(b.body.angle)
-                        p2 = b.body.position + b.shape.b.rotated(b.body.angle)
-
-                        pygame.draw.line(self.screen, BONE_COLOR, p1, p2, BONE_DRAW_WIDTH)
-                        pygame.draw.circle(self.screen, BONE_COLOR, p1, BONE_DRAW_WIDTH / 1.8)
-                        pygame.draw.circle(self.screen, BONE_COLOR, p2, BONE_DRAW_WIDTH / 1.8)
-
-                select = False
-                if select:
-                    best = self.get_sorted_creatures()[0]
-                    pygame.draw.circle(self.screen, RED, best.get_position(), 10, 1)
-
-                # print(int((time.perf_counter_ns() - s) / 1e6), "ms")
-                # return 0
-                self.fps_clock.tick(FPS)
-
-            # Update fps text on screen
-            if self.draw and time.time() - self.timer_for_fps_update > 1 / 5:
-                self.timer_for_fps_update = time.time()
-                _fps = str(round(self.fps_clock.get_fps(), 3)).ljust(6, '0')
-                self.lines_of_text_to_blit[-1] = self.font.render(
-                    f"FPS: {_fps} ({self.fps_clock.get_rawtime()}/{self.fps_clock.get_time()} ms)",
-                    True,
-                    pygame.Color("black")
-                )
-
-            # Blit all texts on screen
-            for i in range(len(self.lines_of_text_to_blit)):
-                self.screen.blit(self.lines_of_text_to_blit[i],
-                                 (5,
-                                  (self.lines_of_text_to_blit[
-                                       min(0, i - 1)].get_bounding_rect().bottom + 10) * i + 10))
-
-            if self.draw:
-                pygame.display.flip()
-
             if self.ai_calculating:
                 self.calc_all_creatures_thread.join()
                 self.ai_calculating = False
 
-            # tasks_join(self.futures)
+            tasks_join(self.futures)
+            if self.draw:
+                pygame.display.flip()
+                self.physics_clock.tick(PHYSICS_IPS)
 
         pygame.quit()
 
