@@ -477,6 +477,12 @@ FPS: """.split('\n')
                 self.add_creature(creature_load_data["brain"], creature_load_data["bias"])
             self.hidden_layers = load_data["hidden_layers_config"]
 
+            self.lines_of_text_to_blit[-2] = self.font.render(
+                f"Generation: {self.generation}",
+                True,
+                pygame.Color("black")
+            )
+
             layers_config, nodes = self.get_layers_and_nodes()
             print("\nLoaded save")
             print("Layers: ", layers_config, ", Nodes: ", nodes, ", Generation: ", self.generation, sep="")
