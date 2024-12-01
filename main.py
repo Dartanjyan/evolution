@@ -104,6 +104,7 @@ def calc_nn(brains_data: List[np.ndarray],
             hidden_activation_func: int,
             out_activation_func: int):
     for i in range(len(brains_data)):
+        print(1)
         # Separate last layer from others to use different activation functions
         if i < len(brains_data) - 1:
             __current_data = calc_next_layer(__current_data, brains_data[i], bias_layers[i],
@@ -197,11 +198,6 @@ def start_task_execution(executor, func, args_list):
     return futures
 
 
-def tasks_join(futures):
-    if not futures is None:
-        return [future.result() for future in futures]
-
-
 def calculate_creature_ai(creature: myCreature.Creature):
     # На вход подаются:
     #   - Просто число из прошлого шага нейросети
@@ -222,9 +218,12 @@ def calculate_creature_ai(creature: myCreature.Creature):
     h_a, o_a = activation.sigmoid, activation.tanh
 
     # s = time.perf_counter_ns()
-    current_data = calc_nn(List(creature.brains_data), List(creature.bias_layers), current_data,
-                           h_a,
-                           o_a)
+    current_data = calc_nn(
+        creature.brains_data,
+        creature.bias_layers,
+        current_data,
+        h_a,
+        o_a)
     # print(round((time.perf_counter_ns() - s) / 1e6, 3), "ms")
 
     # Applying data to creature
@@ -244,17 +243,11 @@ def find_index(lst, target):
     return None
 
 
-def do_step(space):
-    for i in range(int(STEP_DIVIDER)):
-        space.step(PHYSICS_STEP)
-
-
 class App:
     def __init__(self):
-        self.futures = None
         self.calc_all_creatures_thread = None
         self.generation = 0
-        self.creatures_per_generation = 20
+        self.creatures_per_generation = 10
         self.new_random_creatures = 3
 
         self.chance_to_mutate = 10 / 100  # для алгоритма 0
@@ -275,7 +268,7 @@ class App:
 
         self.timer_for_fps_update = 0
         self.debug_draw = False
-        self.draw = True
+        self.draw = False
 
         self.threads = os.cpu_count()
         self.creatures_per_thread = math.ceil(self.creatures_per_generation / self.threads)
@@ -285,6 +278,11 @@ class App:
         for i in range(self.creatures_per_generation):
             m = i % self.threads
             self.creature_idx_spaces[m].append(i)
+
+        # If threads must calculate physics
+        self.physics_calculating = True
+        # Flags for threads to do a step. Also threads set their flags to False when ended.
+        self.start_physics_calculating_flag = np.array([False for _ in range(self.threads)])
 
         self.spaces = [pymunk.Space() for _ in range(self.threads)]
         for space in self.spaces:
@@ -348,10 +346,7 @@ FPS: """.split('\n')
 
     def load(self):
         if os.path.exists(save_path):
-            # Закомментил чтобы жёлтым не подсвечивалось
-            # if self.physics_thread.is_alive():
-            #     self.physics_thread.join()
-            tasks_join(self.futures)
+            self.tasks_join()
             self.kill_all_creatures()
             with open(save_path, "rb") as f:
                 load_data = pickle.load(f)
@@ -471,6 +466,20 @@ FPS: """.split('\n')
             idx = idx[0]
         self.add_creature_to_space(self.spaces[idx], brains_data, bias_layers)
 
+    def start_physics_calculating(self, space):
+        _idx = find_index(self.spaces, space)
+        if isinstance(_idx, list):
+            _idx = _idx[0]
+        while self.physics_calculating:
+            if self.start_physics_calculating_flag[_idx]:
+                for i in range(int(STEP_DIVIDER)):
+                    space.step(PHYSICS_STEP)
+                self.start_physics_calculating_flag[_idx] = False
+
+    def tasks_join(self):
+        while not np.all(self.start_physics_calculating_flag):
+            time.sleep(1e-1/FPS)
+
     def run(self):
         for i in range(self.creatures_per_generation):
             self.add_creature()
@@ -489,9 +498,10 @@ FPS: """.split('\n')
         if self.max_amount_of_mutated_weights is None:
             self.max_amount_of_mutated_weights = nodes
 
+        physics_executor = ThreadPoolExecutor(max_workers=self.threads)
+        start_task_execution(physics_executor, self.start_physics_calculating, self.spaces)
+
         while self.running:
-            physics_executor = ThreadPoolExecutor(max_workers=self.threads)
-            self.futures = start_task_execution(physics_executor, do_step, self.spaces)
             self.calc_all_creatures_thread = threading.Thread(target=self.calc_all_creatures)
 
             # Events
@@ -500,7 +510,7 @@ FPS: """.split('\n')
                     self.save()
                     self.running = False
                     self.kill_all_creatures()
-                    tasks_join(self.futures)
+                    self.tasks_join()
                     break
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_l:
@@ -722,10 +732,9 @@ FPS: """.split('\n')
                 self.calc_all_creatures_thread.join()
                 self.ai_calculating = False
 
-            tasks_join(self.futures)
+            self.tasks_join()
             if self.draw:
                 pygame.display.flip()
-                self.physics_clock.tick(PHYSICS_IPS)
 
         pygame.quit()
 

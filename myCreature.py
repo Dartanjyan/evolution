@@ -1,5 +1,6 @@
 import numpy as np
 import pymunk  # as pymunk
+from numba.typed import List
 from pymunk import Vec2d as vec2d
 from settings import *
 import math
@@ -110,8 +111,8 @@ class Creature:
                  joints: list[Joint],
                  root_part: PolySegment | Bone,
                  sight_part: PolySegment | Bone = None,
-                 brains_data: list[np.ndarray] = None,
-                 bias_layers: list = None,
+                 brains_data: List[np.ndarray] = None,
+                 bias_layers: List = None,
                  memory_number: float | np.float32 = None,
                  immunity_gens: int = 0
                  ):
@@ -138,8 +139,8 @@ class Creature:
             self.sight_part = self.root_part
         else:
             self.sight_part = sight_part
-        self.brains_data: list[np.ndarray] = brains_data
-        self.bias_layers: list = bias_layers
+        self.brains_data: List[np.ndarray] = brains_data
+        self.bias_layers: List = bias_layers
 
         self.root_part.is_root_part = True
         self.sight_part.is_sight_part = True
