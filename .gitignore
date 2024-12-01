@@ -2,6 +2,10 @@
 pkill.sh
 run_simulations.sh
 
+# profilers
+*.prof
+*.lprof
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
