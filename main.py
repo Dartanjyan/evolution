@@ -505,6 +505,14 @@ FPS: """.split('\n')
             self.calculate_creature_ai(c)
             # print(round((time.perf_counter_ns() - s) / 1e6, 3), "ms")
 
+    def blit_all_texts(self):
+        # Blit all texts on screen
+        for i in range(len(self.lines_of_text_to_blit)):
+            self.screen.blit(self.lines_of_text_to_blit[i],
+                             (5,
+                              (self.lines_of_text_to_blit[
+                                   min(0, i - 1)].get_bounding_rect().bottom + 10) * i + 10))
+
     def run(self):
         for i in range(self.creatures_per_generation):
             self.add_creature()
@@ -574,6 +582,9 @@ FPS: """.split('\n')
                     True,
                     pygame.Color("black")
                 )
+
+                self.blit_all_texts()
+                pygame.display.flip()
 
                 __best_x = -float('inf')
                 for i in self.my_creatures:
@@ -692,8 +703,6 @@ FPS: """.split('\n')
                 if self.generation % 100 == 0:
                     self.save()
 
-                pygame.display.flip()
-
                 if self.generation == 1001 and False:
                     break
 
@@ -757,11 +766,7 @@ FPS: """.split('\n')
                 )
 
             # Blit all texts on screen
-            for i in range(len(self.lines_of_text_to_blit)):
-                self.screen.blit(self.lines_of_text_to_blit[i],
-                                 (5,
-                                  (self.lines_of_text_to_blit[
-                                       min(0, i - 1)].get_bounding_rect().bottom + 10) * i + 10))
+            self.blit_all_texts()
 
             if self.draw:
                 pygame.display.flip()
