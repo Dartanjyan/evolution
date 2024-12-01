@@ -10,7 +10,6 @@ class PolySegment:
     If given another_body is None then will be created new Body"""
 
     def __init__(self,
-                 space: pymunk.Space,
                  segment_id: int,
                  another_body: pymunk.Body | None,
                  vertices,
@@ -23,9 +22,11 @@ class PolySegment:
         self.is_sight_part = is_sight_part
         self.is_root_part = is_root_part
         self.id = segment_id
+        self.is_body_original = another_body is None
+
         self.vertices = vertices
 
-        if another_body is None:
+        if self.is_body_original:
             self.body = pymunk.Body()
             self.body.position = (0, 0)
         else:
@@ -49,14 +50,9 @@ class PolySegment:
         self.shape.elasticity = elasticity
         self.shape.filter = pymunk.ShapeFilter(1)
 
-        if is_body_new:
-            space.add(self.body)
-        space.add(self.shape)
-
 
 class Joint:
     def __init__(self,
-                 space: pymunk.Space,
                  joint_id: int,
                  body_a: pymunk.Body,
                  body_b: pymunk.Body,
@@ -80,12 +76,9 @@ class Joint:
         self.damped_joint.collide_bodies = collide_bodies
         self.damped_joint.max_force = 0.1
 
-        space.add(self.pin_joint, self.damped_joint)
-
 
 class Bone:
     def __init__(self,
-                 space: pymunk.Space,
                  bone_id: int,
                  pos1: pymunk.Vec2d,
                  pos2: pymunk.Vec2d,
@@ -108,9 +101,6 @@ class Bone:
         self.shape.density = density
         self.shape.friction = friction
         self.shape.filter = pymunk.ShapeFilter(1)
-
-        # Add segment and body to the space
-        space.add(self.body, self.shape)
 
 
 class Creature:
@@ -138,6 +128,8 @@ class Creature:
         # TODO потом сделать так чтобы одно существо могло жить несколько поколений подряд
         self.immunity_gens: int = immunity_gens
 
+        self.space = None
+
         self.polies: list[PolySegment] = polies
         self.bones: list[Bone] = bones
         self.joints: list[Joint] = joints
@@ -152,14 +144,27 @@ class Creature:
         self.root_part.is_root_part = True
         self.sight_part.is_sight_part = True
 
-    @property
-    def creature_bb(self):
-        return pymunk.bb.BB(
-            min([i.shape.bb.left for i in self.bones + self.polies]),  # left
-            max([i.shape.bb.top for i in self.bones + self.polies]),  # bottom
-            max([i.shape.bb.right for i in self.bones + self.polies]),  # right
-            min([i.shape.bb.bottom for i in self.bones + self.polies])  # top
-        )
+    def add_to_space(self,
+                     space: pymunk.Space):
+        self.space = space
+        for poly in self.polies:
+            if poly.is_body_original:
+                self.space.add(poly.body)
+            self.space.add(poly.shape)
+        for bone in self.bones:
+            self.space.add(bone.body, bone.shape)
+        for joint in self.joints:
+            self.space.add(joint.pin_joint, joint.damped_joint)
+
+    def kill(self):
+        for poly in self.polies:
+            if poly.is_body_original:
+                self.space.remove(poly.body)
+            self.space.remove(poly.shape)
+        for bone in self.bones:
+            self.space.remove(bone.body, bone.shape)
+        for joint in self.joints:
+            self.space.remove(joint.pin_joint, joint.damped_joint)
 
     def move_to(self, pos: pymunk.Vec2d | tuple[float, float]):
         for part in self.bones + self.polies:
