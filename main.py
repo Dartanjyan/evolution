@@ -183,7 +183,7 @@ Returns:
 class App:
     def __init__(self):
         self.generation = 0
-        self.creatures_per_generation = 10
+        self.creatures_per_generation = 50
         self.new_random_creatures = 3
 
         self.chance_to_mutate = 10 / 100  # для алгоритма 0
@@ -382,23 +382,24 @@ FPS: """.split('\n')
             h1 = myCreature.Bone(self.space, 8, pymunk.Vec2d(140, 20),
                                  pymunk.Vec2d(160, 0))
 
-            stiffness = 9e5
+            stiffness = 8e5
+            damping = 4e4
             j1 = myCreature.Joint(self.space, 1, p1.body, ll1.body, pymunk.Vec2d(40, 20),
-                                  pymunk.Vec2d(40, 20), stiffness=stiffness)
+                                  pymunk.Vec2d(40, 20), stiffness=stiffness, damping=damping)
             j2 = myCreature.Joint(self.space, 2, ll1.body, ll2.body, pymunk.Vec2d(80, 40),
-                                  pymunk.Vec2d(80, 40), stiffness=stiffness)
+                                  pymunk.Vec2d(80, 40), stiffness=stiffness, damping=damping)
             j3 = myCreature.Joint(self.space, 3, ll2.body, ll3.body, pymunk.Vec2d(40, 60),
-                                  pymunk.Vec2d(40, 60), stiffness=stiffness)
+                                  pymunk.Vec2d(40, 60), stiffness=stiffness, damping=damping)
             j4 = myCreature.Joint(self.space, 4, p1.body, rl1.body, pymunk.Vec2d(140, 20),
-                                  pymunk.Vec2d(140, 20), stiffness=stiffness)
+                                  pymunk.Vec2d(140, 20), stiffness=stiffness, damping=damping)
             j5 = myCreature.Joint(self.space, 5, rl1.body, rl2.body, pymunk.Vec2d(160, 40),
-                                  pymunk.Vec2d(160, 40), stiffness=stiffness)
+                                  pymunk.Vec2d(160, 40), stiffness=stiffness, damping=damping)
             j6 = myCreature.Joint(self.space, 6, rl2.body, rl3.body, pymunk.Vec2d(140, 60),
-                                  pymunk.Vec2d(140, 60), stiffness=stiffness)
+                                  pymunk.Vec2d(140, 60), stiffness=stiffness, damping=damping)
             j7 = myCreature.Joint(self.space, 7, p1.body, t1.body, pymunk.Vec2d(40, 20),
-                                  pymunk.Vec2d(40, 20), stiffness=stiffness)
+                                  pymunk.Vec2d(40, 20), stiffness=stiffness, damping=damping)
             j8 = myCreature.Joint(self.space, 8, p1.body, h1.body, pymunk.Vec2d(140, 20),
-                                  pymunk.Vec2d(140, 20), stiffness=stiffness)
+                                  pymunk.Vec2d(140, 20), stiffness=stiffness, damping=damping)
 
             polies.extend([p1])
             bones.extend([ll1, ll2, ll3, rl1, rl2, rl3, t1, h1])

@@ -7,7 +7,7 @@ STEP_DIVIDER = 5
 PHYSICS_STEP = 0.01 / STEP_DIVIDER
 PHYSICS_IPS = 120  # Iterations per second
 
-NN_CALC_STEP = 60//5  # Количество кадров между каждой обработкой нейросети
+NN_CALC_STEP = 60//6  # Количество кадров между каждой обработкой нейросети. 60//вызовы-в-секунду
 GENERATION_TIME = 10*FPS  # 10 сек
 
 GRAVITY = 0, 981
