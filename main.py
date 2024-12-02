@@ -17,6 +17,7 @@ import pygame.locals
 import pymunk
 import pymunk.pygame_util
 from numba import njit
+from numba.cuda import profile_start
 from numba.typed import List
 from scipy.interpolate import UnivariateSpline
 
@@ -104,7 +105,6 @@ def calc_nn(brains_data: List[np.ndarray],
             hidden_activation_func: int,
             out_activation_func: int):
     for i in range(len(brains_data)):
-        print(1)
         # Separate last layer from others to use different activation functions
         if i < len(brains_data) - 1:
             __current_data = calc_next_layer(__current_data, brains_data[i], bias_layers[i],
@@ -218,12 +218,7 @@ def calculate_creature_ai(creature: myCreature.Creature):
     h_a, o_a = activation.sigmoid, activation.tanh
 
     # s = time.perf_counter_ns()
-    current_data = calc_nn(
-        creature.brains_data,
-        creature.bias_layers,
-        current_data,
-        h_a,
-        o_a)
+    current_data = calc_nn(creature.brains_data, creature.bias_layers, current_data, h_a, o_a)
     # print(round((time.perf_counter_ns() - s) / 1e6, 3), "ms")
 
     # Applying data to creature
@@ -270,7 +265,7 @@ class App:
         self.debug_draw = False
         self.draw = False
 
-        self.threads = os.cpu_count()
+        self.threads = math.ceil(os.cpu_count()/2)*0+1
         self.creatures_per_thread = math.ceil(self.creatures_per_generation / self.threads)
         # Holds indexes of creatures to be distributed to spaces
         # for example [[0, 3], [1, 4], [2]] for 5 creatures and 3 spaces
@@ -278,6 +273,7 @@ class App:
         for i in range(self.creatures_per_generation):
             m = i % self.threads
             self.creature_idx_spaces[m].append(i)
+        self.lock = threading.Lock()
 
         # If threads must calculate physics
         self.physics_calculating = True
@@ -474,11 +470,15 @@ FPS: """.split('\n')
             if self.start_physics_calculating_flag[_idx]:
                 for i in range(int(STEP_DIVIDER)):
                     space.step(PHYSICS_STEP)
-                self.start_physics_calculating_flag[_idx] = False
+                with self.lock:
+                    self.start_physics_calculating_flag[_idx] = False
 
     def tasks_join(self):
-        while not np.all(self.start_physics_calculating_flag):
-            time.sleep(1e-1/FPS)
+        while np.any(self.start_physics_calculating_flag):
+            continue
+
+    def start_physics(self):
+        self.start_physics_calculating_flag = np.array([True for _ in range(self.threads)])
 
     def run(self):
         for i in range(self.creatures_per_generation):
@@ -504,6 +504,8 @@ FPS: """.split('\n')
         while self.running:
             self.calc_all_creatures_thread = threading.Thread(target=self.calc_all_creatures)
 
+            self.start_physics()
+
             # Events
             for event in pygame.event.get():
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
@@ -522,6 +524,7 @@ FPS: """.split('\n')
                         self.debug_draw = not self.debug_draw
                     elif event.key == pygame.K_d:
                         self.draw = not self.draw
+                        self.timer_for_fps_update = time.time()+1
                         self.screen.fill(WHITE)
                         pygame.display.flip()
 
@@ -567,7 +570,7 @@ FPS: """.split('\n')
                 self.fps_clock.tick(FPS)
 
             # Update fps text on screen
-            if self.draw and time.time() - self.timer_for_fps_update > 1 / 5:
+            if self.draw and ((time.time() - self.timer_for_fps_update) > (1 / 5)):
                 self.timer_for_fps_update = time.time()
                 _fps = str(round(self.fps_clock.get_fps(), 3)).ljust(6, '0')
                 self.lines_of_text_to_blit[-1] = self.font.render(
@@ -736,6 +739,8 @@ FPS: """.split('\n')
             if self.draw:
                 pygame.display.flip()
 
+        self.physics_calculating = False
+        physics_executor.shutdown()
         pygame.quit()
 
         if len(self.best_x) > 0:
@@ -763,4 +768,4 @@ FPS: """.split('\n')
 
 
 if __name__ == "__main__":
-    sys.exit(App().run())
+    App().run()
