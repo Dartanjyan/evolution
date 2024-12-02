@@ -263,7 +263,7 @@ class App:
         self.debug_draw = False
         self.draw = False
 
-        self.threads_amount = int(math.ceil(os.cpu_count() / 2))
+        self.threads_amount = int(math.ceil(os.cpu_count()))
         self.creatures_per_thread = math.ceil(self.creatures_per_generation / self.threads_amount)
         # Holds indexes of creatures to be distributed to spaces
         # for example [[0, 3], [1, 4], [2]] for 5 creatures and 3 spaces
