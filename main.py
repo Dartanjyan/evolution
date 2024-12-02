@@ -2,7 +2,6 @@ import os
 import pickle
 import platform
 import random
-import sys
 import threading
 import time
 from copy import deepcopy
@@ -48,6 +47,7 @@ if not os.path.exists(save_dir):
     print(f"Created saves folder {save_dir}")
 save_name = f"autosave{mut_alg}.save"
 save_path = os.path.join(save_dir, save_name)
+
 
 def smooth_curve_spline(points, smoothing_factor):
     x = np.arange(len(points))
@@ -180,10 +180,67 @@ Returns:
     return list(new_brain)
 
 
+def start_task_execution(threads: list[threading.Thread]):
+    for thread in threads:
+        thread.start()
+
+
+def join_threads(threads: list[threading.Thread]):
+    for thread in threads:
+        thread.join()
+
+
+def wait_events_to_end(events: list[threading.Event]):
+    for event in events:
+        event.wait()
+        event.clear()
+
+
+def calculate_creature_ai(creature: myCreature.Creature):
+    # На вход подаются:
+    #   - Просто число из прошлого шага нейросети
+    #   - Угол поворота root_part
+    #   - Угол поворота каждой части тела относительно угла поворота root_part
+
+    # На выходе:
+    #   - просто число для следующей итерации
+    #   - rest_angle для каждого joint
+
+    current_data = np.array([creature.memory_number, creature.root_part.body.angle / (2 * np.pi)])
+    for part in creature.polies + creature.bones:
+        if not part.is_root_part:
+            # Рассчитать угол поворота части тела относительно коренной, в пределе [0; 1]
+            normalized_angle = ((creature.root_part.body.angle - part.body.angle) % (2 * np.pi)) / (2 * np.pi)
+            current_data = np.append(current_data, normalized_angle)
+
+    h_a, o_a = activation.sigmoid, activation.tanh
+
+    # s = time.perf_counter_ns()
+    current_data = calc_nn(creature.brains_data, creature.bias_layers, current_data, h_a, o_a)
+    # print(round((time.perf_counter_ns() - s) / 1e6, 3), "ms")
+
+    # Applying data to creature
+    creature.memory_number = current_data[0]
+    for i in range(1, len(creature.joints)):
+        creature.joints[i].damped_joint.rest_angle = np.pi * 0.3 * (current_data[i] * 1 - 0)
+
+
+def find_index(lst, target):
+    for i, item in enumerate(lst):
+        if isinstance(item, list):
+            index = find_index(item, target)
+            if index is not None:
+                return [i] + index
+        elif item == target:
+            return [i]
+    return None
+
+
 class App:
     def __init__(self):
+        self.calc_all_creatures_thread = None
         self.generation = 0
-        self.creatures_per_generation = 50
+        self.creatures_per_generation = 10
         self.new_random_creatures = 3
 
         self.chance_to_mutate = 10 / 100  # для алгоритма 0
@@ -206,8 +263,26 @@ class App:
         self.debug_draw = False
         self.draw = False
 
-        self.space = pymunk.Space()
-        self.space.gravity = GRAVITY
+        self.threads_amount = int(math.ceil(os.cpu_count()))
+        self.creatures_per_thread = math.ceil(self.creatures_per_generation / self.threads_amount)
+        # Holds indexes of creatures to be distributed to spaces
+        # for example [[0, 3], [1, 4], [2]] for 5 creatures and 3 spaces
+        self.creature_idx_spaces = [[] for _ in range(min(self.threads_amount, self.creatures_per_generation))]
+        for i in range(self.creatures_per_generation):
+            m = i % self.threads_amount
+            self.creature_idx_spaces[m].append(i)
+        self.lock = threading.Lock()
+        self.threads = [threading.Thread(target=self.start_physics_calculating, args=(i,)) for i in range(self.threads_amount)]
+
+        # If threads must calculate physics
+        self.physics_calculating = True
+        self.start_physics_event = threading.Event()
+        self.end_physics_event = threading.Event()
+        self.ended_physics_events = [threading.Event() for _ in range(self.threads_amount)]
+
+        self.spaces = [pymunk.Space() for _ in range(self.threads_amount)]
+        for space in self.spaces:
+            space.gravity = GRAVITY
 
         pygame.init()
         self.screen = pygame.display.set_mode([WIDTH, HEIGHT])
@@ -219,26 +294,23 @@ class App:
         self.draw_options = pymunk.pygame_util.DrawOptions(self.screen)
         self.running = True
 
-        floor_len = 2 ** 31 - 1
         self.floor_rect = pygame.Rect([0, HEIGHT // 3 * 2], [WIDTH, HEIGHT // 3])
-        self.floor = pymunk.Poly(self.space.static_body, [(-floor_len / 2, HEIGHT // 3 * 2),
-                                                          (floor_len / 2, HEIGHT // 3 * 2),
-                                                          (floor_len / 2, HEIGHT),
-                                                          (-floor_len / 2, HEIGHT)])
-        self.floor.friction = FLOOR_FRICTION
-        self.floor.elasticity = 0
-        self.floor.filter = pymunk.ShapeFilter(0)
-        self.space.add(self.floor)
+        floor_len = 2 ** 31 - 1
+        for space in self.spaces:
+            floor = pymunk.Poly(space.static_body, [(-floor_len / 2, HEIGHT // 3 * 2),
+                                                              (floor_len / 2, HEIGHT // 3 * 2),
+                                                              (floor_len / 2, HEIGHT),
+                                                              (-floor_len / 2, HEIGHT)])
+            floor.friction = FLOOR_FRICTION
+            floor.elasticity = 0
+            floor.filter = pymunk.ShapeFilter(0)
+            space.add(floor)
 
         self.my_creatures: list[myCreature.Creature] = []
         self.hidden_layers = [13]
         self.best_x = [0]
 
-        self.physics_thread = threading.Thread(target=self.run_simulation_physics)
-        self.calc_all_creatures_thread = None
         self.ai_calculating = False
-        self.threads = os.cpu_count()
-        self.creatures_per_thread = np.ceil(self.creatures_per_generation / self.threads)
 
         self.font = pygame.font.Font(None, 21)
         self.lines = """"D" to enable/disable rendering
@@ -248,162 +320,111 @@ Generation: 0
 FPS: """.split('\n')
         self.lines_of_text_to_blit = [self.font.render(line, True, BLACK) for line in self.lines]
 
-    def calculate_creature_ai(self, creature: myCreature.Creature):
-        save = False
-        # На вход подаются:
-        #   - Просто число из прошлого шага нейросети
-        #   - Угол поворота root_part
-        #   - Угол поворота каждой части тела относительно угла поворота root_part
+    def get_sorted_creatures(self):
+        creatures = sorted(self.my_creatures, key=lambda creature: creature.get_position().x)[::-1]
+        return creatures
 
-        # На выходе:
-        #   - просто число для следующей итерации
-        #   - rest_angle для каждого joint
+    def kill_all_creatures(self):
+        for c in self.my_creatures:
+            c.kill()
+        self.my_creatures: list[myCreature.Creature] = []
 
-        current_data = np.array([creature.memory_number, creature.root_part.body.angle / (2 * np.pi)])
-        for part in creature.polies + creature.bones:
-            if not part.is_root_part:
-                # Рассчитать угол поворота части тела относительно коренной, в пределе [0; 1]
-                normalized_angle = ((creature.root_part.body.angle - part.body.angle) % (2 * np.pi)) / (2 * np.pi)
-                current_data = np.append(current_data, normalized_angle)
+    def save(self):
+        save_data = {
+            "generation": self.generation,
+            "current_brains": [{"brain": i.brains_data, "bias": i.bias_layers} for i in self.my_creatures],
+            "best_x": self.best_x,
+            "hidden_layers_config": self.hidden_layers
+        }
+        with open(save_path, "wb") as f:
+            pickle.dump(save_data, f)
+        print(f"Saved automatically. Generation: {self.generation}. Best x: {max(self.best_x)}")
 
-        h_a, o_a = activation.sigmoid, activation.tanh
+    def load(self):
+        if os.path.exists(save_path):
+            self.kill_all_creatures()
+            with open(save_path, "rb") as f:
+                load_data = pickle.load(f)
+            self.generation = load_data["generation"]
+            self.best_x = load_data["best_x"]
+            for creature_load_data in load_data["current_brains"]:
+                self.add_creature(creature_load_data["brain"], creature_load_data["bias"])
+            self.hidden_layers = load_data["hidden_layers_config"]
 
-        if save:
-            f = open("out.txt", "w")
-            f.write("Input data:\n" + str(current_data))
-            __current_data = deepcopy(current_data)
+            layers_config, nodes = self.get_layers_and_nodes()
+            print("\nLoaded save")
+            print("Layers: ", layers_config, ", Nodes: ", nodes, ", Generation: ", self.generation, sep="")
+        else:
+            print(f"Save file {save_path} not found!")
 
-        # s = time.perf_counter_ns()
-        current_data = calc_nn(List(creature.brains_data), List(creature.bias_layers), current_data,
-                               h_a,
-                               o_a)
-        # print(round((time.perf_counter_ns() - s) / 1e6, 3), "ms")
+    def get_layers_and_nodes(self):
+        layers_config = []
+        nodes = 0
+        for i, matrix in enumerate(self.my_creatures[0].brains_data):
+            layers_config.append(matrix.shape[0])
+            nodes += matrix.size
+            if i == len(self.my_creatures[0].brains_data) - 1:
+                layers_config.append(matrix.shape[1])
+        return layers_config, nodes
 
-        if save:
-            f.write("\n\nOutput data:\n" + str(current_data))
-            f.write("\n\n" + "-" * 30 + "\n\nCalculations:\n")
-            brains_data = creature.brains_data
-            bias_layers = creature.bias_layers
+    def calc_all_creatures(self):
+        for c in self.my_creatures:
+            calculate_creature_ai(c)
 
-            for i in range(len(brains_data)):
-                f.write(f"Iteration {i}: {__current_data} -> ")
-                # Separate last layer from others to use different activation functions
-                if i < len(brains_data) - 1:
-                    __current_data = calc_next_layer(__current_data, brains_data[i], bias_layers[i],
-                                                     h_a)
-                else:
-                    __current_data = calc_next_layer(__current_data, brains_data[i], bias_layers[i],
-                                                     o_a)
-                f.write(str(__current_data) + "\n")
-                """
-            f.write("\n\n" + "-" * 30 + "\n\nWeights:\n")
-            for i in range(len(creature.brains_data)):
-                f.write(f"Layer {i}: {creature.brains_data[i]} {creature.bias_layers[i]}\n")
-                """
-            f.close()
-
-        # Applying data to creature
-        creature.memory_number = current_data[0]
-        for i in range(1, len(creature.joints)):
-            creature.joints[i].damped_joint.rest_angle = np.pi * 0.3 * (current_data[i] * 1 - 0)
-
-    def do_step(self):
-        for i in range(int(STEP_DIVIDER)):
-            self.space.step(PHYSICS_STEP)
-
-    def add_creature(self, brains_data=None, bias_layers=None):
-        creature_id = 2
-
+    def add_creature_to_space(self, space, brains_data=None, bias_layers=None):
         polies = []
         bones = []
         joints = []
 
         bias_coordinates = (0, HEIGHT / 2)
 
-        if creature_id == 1:
-            poly_body = myCreature.PolySegment(
-                self.space, 1, None,
-                (
-                    pymunk.Vec2d(150, 105),
-                    pymunk.Vec2d(250, 105),
-                    pymunk.Vec2d(250, 125),
-                    pymunk.Vec2d(150, 125)
-                )
+        p1 = myCreature.PolySegment(
+            1, None,
+            (
+                pymunk.Vec2d(40, 20),
+                pymunk.Vec2d(140, 20),
+                pymunk.Vec2d(120, 50)
             )
+        )
 
-            lleg1 = myCreature.Bone(self.space, 1, pymunk.Vec2d(150, 120),
-                                    pymunk.Vec2d(130, 140))
-            lleg2 = myCreature.Bone(self.space, 2, pymunk.Vec2d(130, 140),
-                                    pymunk.Vec2d(150, 160))
-            rleg1 = myCreature.Bone(self.space, 3, pymunk.Vec2d(250, 120),
-                                    pymunk.Vec2d(230, 140))
-            rleg2 = myCreature.Bone(self.space, 4, pymunk.Vec2d(230, 140),
-                                    pymunk.Vec2d(250, 160))
+        ll1 = myCreature.Bone(1, pymunk.Vec2d(40, 20),
+                              pymunk.Vec2d(80, 40))
+        ll2 = myCreature.Bone(2, pymunk.Vec2d(80, 40),
+                              pymunk.Vec2d(40, 60))
+        ll3 = myCreature.Bone(3, pymunk.Vec2d(40, 60),
+                              pymunk.Vec2d(60, 80))
+        rl1 = myCreature.Bone(4, pymunk.Vec2d(140, 20),
+                              pymunk.Vec2d(160, 40))
+        rl2 = myCreature.Bone(5, pymunk.Vec2d(160, 40),
+                              pymunk.Vec2d(140, 60))
+        rl3 = myCreature.Bone(6, pymunk.Vec2d(140, 60),
+                              pymunk.Vec2d(160, 60))
+        t1 = myCreature.Bone(7, pymunk.Vec2d(40, 20),
+                             pymunk.Vec2d(0, 0))
+        h1 = myCreature.Bone(8, pymunk.Vec2d(140, 20),
+                             pymunk.Vec2d(160, 0))
 
-            ljoint1 = myCreature.Joint(self.space, 1, poly_body.body, lleg1.body,
-                                       pymunk.Vec2d(150, 120),
-                                       pymunk.Vec2d(150, 120))
-            ljoint2 = myCreature.Joint(self.space, 2, lleg1.body, lleg2.body, pymunk.Vec2d(130, 140),
-                                       pymunk.Vec2d(130, 140))
-            rjoint1 = myCreature.Joint(self.space, 3, poly_body.body, rleg1.body,
-                                       pymunk.Vec2d(250, 120),
-                                       pymunk.Vec2d(250, 120))
-            rjoint2 = myCreature.Joint(self.space, 4, rleg1.body, rleg2.body, pymunk.Vec2d(230, 140),
-                                       pymunk.Vec2d(230, 140))
+        stiffness = 9e5
+        j1 = myCreature.Joint(1, p1.body, ll1.body, pymunk.Vec2d(40, 20),
+                              pymunk.Vec2d(40, 20), stiffness=stiffness)
+        j2 = myCreature.Joint(2, ll1.body, ll2.body, pymunk.Vec2d(80, 40),
+                              pymunk.Vec2d(80, 40), stiffness=stiffness)
+        j3 = myCreature.Joint(3, ll2.body, ll3.body, pymunk.Vec2d(40, 60),
+                              pymunk.Vec2d(40, 60), stiffness=stiffness)
+        j4 = myCreature.Joint(4, p1.body, rl1.body, pymunk.Vec2d(140, 20),
+                              pymunk.Vec2d(140, 20), stiffness=stiffness)
+        j5 = myCreature.Joint(5, rl1.body, rl2.body, pymunk.Vec2d(160, 40),
+                              pymunk.Vec2d(160, 40), stiffness=stiffness)
+        j6 = myCreature.Joint(6, rl2.body, rl3.body, pymunk.Vec2d(140, 60),
+                              pymunk.Vec2d(140, 60), stiffness=stiffness)
+        j7 = myCreature.Joint(7, p1.body, t1.body, pymunk.Vec2d(40, 20),
+                              pymunk.Vec2d(40, 20), stiffness=stiffness)
+        j8 = myCreature.Joint(8, p1.body, h1.body, pymunk.Vec2d(140, 20),
+                              pymunk.Vec2d(140, 20), stiffness=stiffness)
 
-            polies.extend([poly_body])
-            bones.extend([lleg1, lleg2, rleg1, rleg2])
-            joints.extend([ljoint1, ljoint2, rjoint1, rjoint2])
-
-        elif creature_id == 2:
-            p1 = myCreature.PolySegment(
-                self.space, 1, None,
-                (
-                    pymunk.Vec2d(40, 20),
-                    pymunk.Vec2d(140, 20),
-                    pymunk.Vec2d(120, 50)
-                )
-            )
-
-            ll1 = myCreature.Bone(self.space, 1, pymunk.Vec2d(40, 20),
-                                  pymunk.Vec2d(80, 40))
-            ll2 = myCreature.Bone(self.space, 2, pymunk.Vec2d(80, 40),
-                                  pymunk.Vec2d(40, 60))
-            ll3 = myCreature.Bone(self.space, 3, pymunk.Vec2d(40, 60),
-                                  pymunk.Vec2d(60, 80))
-            rl1 = myCreature.Bone(self.space, 4, pymunk.Vec2d(140, 20),
-                                  pymunk.Vec2d(160, 40))
-            rl2 = myCreature.Bone(self.space, 5, pymunk.Vec2d(160, 40),
-                                  pymunk.Vec2d(140, 60))
-            rl3 = myCreature.Bone(self.space, 6, pymunk.Vec2d(140, 60),
-                                  pymunk.Vec2d(160, 60))
-            t1 = myCreature.Bone(self.space, 7, pymunk.Vec2d(40, 20),
-                                 pymunk.Vec2d(0, 0))
-            h1 = myCreature.Bone(self.space, 8, pymunk.Vec2d(140, 20),
-                                 pymunk.Vec2d(160, 0))
-
-            stiffness = 8e5
-            damping = 4e4
-            j1 = myCreature.Joint(self.space, 1, p1.body, ll1.body, pymunk.Vec2d(40, 20),
-                                  pymunk.Vec2d(40, 20), stiffness=stiffness, damping=damping)
-            j2 = myCreature.Joint(self.space, 2, ll1.body, ll2.body, pymunk.Vec2d(80, 40),
-                                  pymunk.Vec2d(80, 40), stiffness=stiffness, damping=damping)
-            j3 = myCreature.Joint(self.space, 3, ll2.body, ll3.body, pymunk.Vec2d(40, 60),
-                                  pymunk.Vec2d(40, 60), stiffness=stiffness, damping=damping)
-            j4 = myCreature.Joint(self.space, 4, p1.body, rl1.body, pymunk.Vec2d(140, 20),
-                                  pymunk.Vec2d(140, 20), stiffness=stiffness, damping=damping)
-            j5 = myCreature.Joint(self.space, 5, rl1.body, rl2.body, pymunk.Vec2d(160, 40),
-                                  pymunk.Vec2d(160, 40), stiffness=stiffness, damping=damping)
-            j6 = myCreature.Joint(self.space, 6, rl2.body, rl3.body, pymunk.Vec2d(140, 60),
-                                  pymunk.Vec2d(140, 60), stiffness=stiffness, damping=damping)
-            j7 = myCreature.Joint(self.space, 7, p1.body, t1.body, pymunk.Vec2d(40, 20),
-                                  pymunk.Vec2d(40, 20), stiffness=stiffness, damping=damping)
-            j8 = myCreature.Joint(self.space, 8, p1.body, h1.body, pymunk.Vec2d(140, 20),
-                                  pymunk.Vec2d(140, 20), stiffness=stiffness, damping=damping)
-
-            polies.extend([p1])
-            bones.extend([ll1, ll2, ll3, rl1, rl2, rl3, t1, h1])
-            joints.extend([j1, j2, j3, j4, j5, j6, j7, j8])
+        polies.extend([p1])
+        bones.extend([ll1, ll2, ll3, rl1, rl2, rl3, t1, h1])
+        joints.extend([j1, j2, j3, j4, j5, j6, j7, j8])
 
         if brains_data is None:
             brains_data = []
@@ -424,87 +445,35 @@ FPS: """.split('\n')
 
             for i in range(len(brains_data)):
                 brains_data[i] = np.asarray(brains_data[i])
-            # print(brains_data)
         if bias_layers is None:
             a, b = self.random_brains_uniform
             bias_layers = np.random.uniform(a, b, size=len(brains_data))
-            # print(bias_layers)
 
         creature = myCreature.Creature(polies=polies, bones=bones, joints=joints, root_part=polies[0],
                                        brains_data=brains_data, bias_layers=bias_layers)
+        creature.add_to_space(space)
         creature.move_to(bias_coordinates)
         self.my_creatures.append(creature)
 
-    def get_sorted_creatures(self):
-        creatures = sorted(self.my_creatures, key=lambda creature: creature.get_position().x)[::-1]
-        return creatures
+    def add_creature(self, brains_data=None, bias_layers=None):
+        idx = find_index(self.creature_idx_spaces, len(self.my_creatures))
+        if isinstance(idx, list):
+            idx = idx[0]
+        self.add_creature_to_space(self.spaces[idx], brains_data, bias_layers)
 
-    def run_simulation_physics(self):
-        self.do_step()
-        if self.draw:
-            self.physics_clock.tick(PHYSICS_IPS)
+    def start_physics_calculating(self, _idx):
+        space = self.spaces[_idx]
+        event = self.ended_physics_events[_idx]
+        while self.physics_calculating:
+            self.start_physics_event.wait()
+            for i in range(int(STEP_DIVIDER)):
+                space.step(PHYSICS_STEP)
+            event.set()
+            self.end_physics_event.wait()
 
-    def kill_all_creatures(self):
-        for c in self.my_creatures:
-            for p in c.polies:
-                self.space.remove(p.body, p.shape)
-            for b in c.bones:
-                self.space.remove(b.body, b.shape)
-            for j in c.joints:
-                self.space.remove(j.damped_joint, j.pin_joint)
-        self.my_creatures: list[myCreature.Creature] = []
-
-    def save(self):
-        save_data = {
-            "generation": self.generation,
-            "current_brains": [{"brain": i.brains_data, "bias": i.bias_layers} for i in self.my_creatures],
-            "best_x": self.best_x,
-            "hidden_layers_config": self.hidden_layers
-        }
-        with open(save_path, "wb") as f:
-            pickle.dump(save_data, f)
-        print(f"Saved automatically. Generation: {self.generation}. Best x: {max(self.best_x)}")
-
-    def load(self):
-        if os.path.exists(save_path):
-            if self.physics_thread.is_alive():
-                self.physics_thread.join()
-            self.kill_all_creatures()
-            with open(save_path, "rb") as f:
-                load_data = pickle.load(f)
-            self.generation = load_data["generation"]
-            self.best_x = load_data["best_x"]
-            for creature_load_data in load_data["current_brains"]:
-                self.add_creature(creature_load_data["brain"], creature_load_data["bias"])
-            self.hidden_layers = load_data["hidden_layers_config"]
-
-            self.lines_of_text_to_blit[-2] = self.font.render(
-                f"Generation: {self.generation}",
-                True,
-                pygame.Color("black")
-            )
-
-            layers_config, nodes = self.get_layers_and_nodes()
-            print("\nLoaded save")
-            print("Layers: ", layers_config, ", Nodes: ", nodes, ", Generation: ", self.generation, sep="")
-        else:
-            print(f"Save file {save_path} not found!")
-
-    def get_layers_and_nodes(self):
-        layers_config = []
-        nodes = 0
-        for i, matrix in enumerate(self.my_creatures[0].brains_data):
-            layers_config.append(matrix.shape[0])
-            nodes += matrix.size
-            if i == len(self.my_creatures[0].brains_data) - 1:
-                layers_config.append(matrix.shape[1])
-        return layers_config, nodes
-
-    def calc_all_creatures(self):
-        for c in self.my_creatures:
-            # s = time.perf_counter_ns()
-            self.calculate_creature_ai(c)
-            # print(round((time.perf_counter_ns() - s) / 1e6, 3), "ms")
+    def start_physics(self):
+        self.end_physics_event.clear()
+        self.start_physics_event.set()
 
     def blit_all_texts(self):
         # Blit all texts on screen
@@ -532,10 +501,12 @@ FPS: """.split('\n')
         if self.max_amount_of_mutated_weights is None:
             self.max_amount_of_mutated_weights = nodes
 
+        start_task_execution(self.threads)
+
         while self.running:
-            self.physics_thread = threading.Thread(target=self.do_step)
-            self.physics_thread.start()
             self.calc_all_creatures_thread = threading.Thread(target=self.calc_all_creatures)
+
+            self.start_physics()
 
             # Events
             for event in pygame.event.get():
@@ -543,7 +514,6 @@ FPS: """.split('\n')
                     self.save()
                     self.running = False
                     self.kill_all_creatures()
-                    self.physics_thread.join()
                     break
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_l:
@@ -551,15 +521,71 @@ FPS: """.split('\n')
                         self.load()
                         counter_for_nn_calc = NN_CALC_STEP
                         generation_counter = 0
-                    elif event.key == pygame.K_SPACE:
-                        """Пробел - удалить все существа"""
-                        # self.kill_all_creatures()
                     elif event.key == pygame.K_p:
                         self.debug_draw = not self.debug_draw
                     elif event.key == pygame.K_d:
                         self.draw = not self.draw
+                        self.timer_for_fps_update = time.time()+1
                         self.screen.fill(WHITE)
                         pygame.display.flip()
+
+            # Rendering
+            self.screen.fill(WHITE)
+            if self.draw:
+                # s = time.perf_counter_ns()
+                # print(int((time.perf_counter_ns() - s) / 1e6), "ms")
+                pygame.draw.rect(self.screen, FLOOR_COLOR, self.floor_rect)
+                pygame.draw.line(self.screen, RED,
+                                 (max(self.best_x), self.floor_rect.y),
+                                 (max(self.best_x), self.floor_rect.y - 100),
+                                 1)
+
+                for i, creature in enumerate(self.my_creatures):
+                    polies = creature.polies
+                    bones = creature.bones
+                    for p in polies:
+                        points = []
+                        for v in p.shape.get_vertices():
+                            x = v.rotated(p.body.angle)[0] + p.body.position[0]
+                            y = v.rotated(p.body.angle)[1] + p.body.position[1]
+                            points.append((x, y))
+                        pygame.draw.polygon(self.screen, POLY_COLOR, points)
+                        pygame.draw.aalines(self.screen, BLACK, True, points)
+                    for b in bones:
+                        p1 = b.body.position + b.shape.a.rotated(b.body.angle)
+                        p2 = b.body.position + b.shape.b.rotated(b.body.angle)
+
+                        pygame.draw.line(self.screen, BLACK, p1, p2, BONE_DRAW_WIDTH + 2)
+                        pygame.draw.circle(self.screen, BLACK, p1, BONE_DRAW_WIDTH / 1.8 + 1)
+                        pygame.draw.circle(self.screen, BLACK, p2, BONE_DRAW_WIDTH / 1.8 + 1)
+                    for b in bones:
+                        p1 = b.body.position + b.shape.a.rotated(b.body.angle)
+                        p2 = b.body.position + b.shape.b.rotated(b.body.angle)
+
+                        pygame.draw.line(self.screen, BONE_COLOR, p1, p2, BONE_DRAW_WIDTH)
+                        pygame.draw.circle(self.screen, BONE_COLOR, p1, BONE_DRAW_WIDTH / 1.8)
+                        pygame.draw.circle(self.screen, BONE_COLOR, p2, BONE_DRAW_WIDTH / 1.8)
+
+                # print(int((time.perf_counter_ns() - s) / 1e6), "ms")
+                # return 0
+                self.fps_clock.tick(FPS)
+
+            # Update fps text on screen
+            if self.draw and ((time.time() - self.timer_for_fps_update) > (1 / 5)):
+                self.timer_for_fps_update = time.time()
+                _fps = str(round(self.fps_clock.get_fps(), 3)).ljust(6, '0')
+                self.lines_of_text_to_blit[-1] = self.font.render(
+                    f"FPS: {_fps} ({self.fps_clock.get_rawtime()}/{self.fps_clock.get_time()} ms)",
+                    True,
+                    pygame.Color("black")
+                )
+
+            # Blit all texts on screen
+            for i in range(len(self.lines_of_text_to_blit)):
+                self.screen.blit(self.lines_of_text_to_blit[i],
+                                 (5,
+                                  (self.lines_of_text_to_blit[
+                                       min(0, i - 1)].get_bounding_rect().bottom + 10) * i + 10))
 
             # Calculate every creature's NN
             counter_for_nn_calc += 1
@@ -711,50 +737,47 @@ FPS: """.split('\n')
             self.screen.fill(WHITE)
             if self.draw:
                 # s = time.perf_counter_ns()
-                if self.debug_draw:
-                    self.space.debug_draw(self.draw_options)
-                else:
-                    pygame.draw.rect(self.screen, FLOOR_COLOR, self.floor_rect)
-                    pygame.draw.line(self.screen, RED,
-                                     (max(self.best_x), self.floor_rect.y),
-                                     (max(self.best_x), self.floor_rect.y - 100),
-                                     1)
+                pygame.draw.rect(self.screen, FLOOR_COLOR, self.floor_rect)
+                pygame.draw.line(self.screen, RED,
+                                 (max(self.best_x), self.floor_rect.y),
+                                 (max(self.best_x), self.floor_rect.y - 100),
+                                 1)
 
-                    for i, creature in enumerate(self.my_creatures):
-                        polies = creature.polies
-                        bones = creature.bones
-                        old_id = self.creatures_per_generation - self.new_random_creatures - 1
-                        for p in polies:
-                            points = []
-                            for v in p.shape.get_vertices():
-                                x = v.rotated(p.body.angle)[0] + p.body.position[0]
-                                y = v.rotated(p.body.angle)[1] + p.body.position[1]
-                                points.append((x, y))
-                            pygame.draw.polygon(self.screen, POLY_COLOR, points)
-                            pygame.draw.aalines(self.screen, BLACK if i != old_id else RED, True, points)
-                        for b in bones:
-                            p1 = b.body.position + b.shape.a.rotated(b.body.angle)
-                            p2 = b.body.position + b.shape.b.rotated(b.body.angle)
+                for i, creature in enumerate(self.my_creatures):
+                    polies = creature.polies
+                    bones = creature.bones
+                    old_id = self.creatures_per_generation - self.new_random_creatures - 1
+                    for p in polies:
+                        points = []
+                        for v in p.shape.get_vertices():
+                            x = v.rotated(p.body.angle)[0] + p.body.position[0]
+                            y = v.rotated(p.body.angle)[1] + p.body.position[1]
+                            points.append((x, y))
+                        pygame.draw.polygon(self.screen, POLY_COLOR, points)
+                        pygame.draw.aalines(self.screen, BLACK if i != old_id else RED, True, points)
+                    for b in bones:
+                        p1 = b.body.position + b.shape.a.rotated(b.body.angle)
+                        p2 = b.body.position + b.shape.b.rotated(b.body.angle)
 
-                            pygame.draw.line(self.screen, BLACK if i != old_id else RED, p1, p2, BONE_DRAW_WIDTH + 2)
-                            pygame.draw.circle(self.screen, BLACK if i != old_id else RED, p1, BONE_DRAW_WIDTH / 1.8 + 1)
-                            pygame.draw.circle(self.screen, BLACK if i != old_id else RED, p2, BONE_DRAW_WIDTH / 1.8 + 1)
-                        for b in bones:
-                            p1 = b.body.position + b.shape.a.rotated(b.body.angle)
-                            p2 = b.body.position + b.shape.b.rotated(b.body.angle)
+                        pygame.draw.line(self.screen, BLACK if i != old_id else RED, p1, p2, BONE_DRAW_WIDTH + 2)
+                        pygame.draw.circle(self.screen, BLACK if i != old_id else RED, p1, BONE_DRAW_WIDTH / 1.8 + 1)
+                        pygame.draw.circle(self.screen, BLACK if i != old_id else RED, p2, BONE_DRAW_WIDTH / 1.8 + 1)
+                    for b in bones:
+                        p1 = b.body.position + b.shape.a.rotated(b.body.angle)
+                        p2 = b.body.position + b.shape.b.rotated(b.body.angle)
 
-                            pygame.draw.line(self.screen, BONE_COLOR, p1, p2, BONE_DRAW_WIDTH)
-                            pygame.draw.circle(self.screen, BONE_COLOR, p1, BONE_DRAW_WIDTH / 1.8)
-                            pygame.draw.circle(self.screen, BONE_COLOR, p2, BONE_DRAW_WIDTH / 1.8)
+                        pygame.draw.line(self.screen, BONE_COLOR, p1, p2, BONE_DRAW_WIDTH)
+                        pygame.draw.circle(self.screen, BONE_COLOR, p1, BONE_DRAW_WIDTH / 1.8)
+                        pygame.draw.circle(self.screen, BONE_COLOR, p2, BONE_DRAW_WIDTH / 1.8)
 
-                    select = False
-                    if select:
-                        best = self.get_sorted_creatures()[0]
-                        pygame.draw.circle(self.screen, RED, best.get_position(), 10, 1)
+                select = False
+                if select:
+                    best = self.get_sorted_creatures()[0]
+                    pygame.draw.circle(self.screen, RED, best.get_position(), 10, 1)
 
-                # print(int((time.perf_counter_ns() - s) / 1e6), "ms")
-                # return 0
-                self.fps_clock.tick(FPS)
+            # print(int((time.perf_counter_ns() - s) / 1e6), "ms")
+            # return 0
+            self.fps_clock.tick(FPS)
 
             # Update fps text on screen
             if self.draw and time.time() - self.timer_for_fps_update > 1 / 5:
@@ -772,11 +795,18 @@ FPS: """.split('\n')
             if self.draw:
                 pygame.display.flip()
 
-            self.physics_thread.join()
             if self.ai_calculating:
                 self.calc_all_creatures_thread.join()
                 self.ai_calculating = False
 
+            wait_events_to_end(self.ended_physics_events)
+            self.start_physics_event.clear()
+            self.end_physics_event.set()
+            if self.draw:
+                pygame.display.flip()
+
+        self.physics_calculating = False
+        join_threads(self.threads)
         pygame.quit()
 
         if len(self.best_x) > 0:
@@ -804,4 +834,4 @@ FPS: """.split('\n')
 
 
 if __name__ == "__main__":
-    sys.exit(App().run())
+    App().run()
