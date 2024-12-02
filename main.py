@@ -2,10 +2,8 @@ import os
 import pickle
 import platform
 import random
-import sys
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from sys import argv
 import math
@@ -17,7 +15,6 @@ import pygame.locals
 import pymunk
 import pymunk.pygame_util
 from numba import njit
-from numba.cuda import profile_start
 from numba.typed import List
 from scipy.interpolate import UnivariateSpline
 
@@ -183,19 +180,20 @@ Returns:
     return list(new_brain)
 
 
-def start_task_execution(executor, func, args_list):
-    """
-    :param executor:
-    :param func: функция, выполняемая потоками
-    :param args_list: список аргументов для вызова функции (список кортежей)
+def start_task_execution(threads: list[threading.Thread]):
+    for thread in threads:
+        thread.start()
 
-    :returns: futures - список потоков
-    """
-    futures = []
-    for args in args_list:
-        # Отправляем задачу на выполнение в пул
-        futures.append(executor.submit(func, args))
-    return futures
+
+def join_threads(threads: list[threading.Thread]):
+    for thread in threads:
+        thread.join()
+
+
+def wait_events_to_end(events: list[threading.Event]):
+    for event in events:
+        event.wait()
+        event.clear()
 
 
 def calculate_creature_ai(creature: myCreature.Creature):
@@ -242,7 +240,7 @@ class App:
     def __init__(self):
         self.calc_all_creatures_thread = None
         self.generation = 0
-        self.creatures_per_generation = 10
+        self.creatures_per_generation = 200
         self.new_random_creatures = 3
 
         self.chance_to_mutate = 10 / 100  # для алгоритма 0
@@ -265,22 +263,24 @@ class App:
         self.debug_draw = False
         self.draw = False
 
-        self.threads = math.ceil(os.cpu_count()/2)*0+1
-        self.creatures_per_thread = math.ceil(self.creatures_per_generation / self.threads)
+        self.threads_amount = int(math.ceil(os.cpu_count() / 2))
+        self.creatures_per_thread = math.ceil(self.creatures_per_generation / self.threads_amount)
         # Holds indexes of creatures to be distributed to spaces
         # for example [[0, 3], [1, 4], [2]] for 5 creatures and 3 spaces
-        self.creature_idx_spaces = [[] for _ in range(min(self.threads, self.creatures_per_generation))]
+        self.creature_idx_spaces = [[] for _ in range(min(self.threads_amount, self.creatures_per_generation))]
         for i in range(self.creatures_per_generation):
-            m = i % self.threads
+            m = i % self.threads_amount
             self.creature_idx_spaces[m].append(i)
         self.lock = threading.Lock()
+        self.threads = [threading.Thread(target=self.start_physics_calculating, args=(i,)) for i in range(self.threads_amount)]
 
         # If threads must calculate physics
         self.physics_calculating = True
-        # Flags for threads to do a step. Also threads set their flags to False when ended.
-        self.start_physics_calculating_flag = np.array([False for _ in range(self.threads)])
+        self.start_physics_event = threading.Event()
+        self.end_physics_event = threading.Event()
+        self.ended_physics_events = [threading.Event() for _ in range(self.threads_amount)]
 
-        self.spaces = [pymunk.Space() for _ in range(self.threads)]
+        self.spaces = [pymunk.Space() for _ in range(self.threads_amount)]
         for space in self.spaces:
             space.gravity = GRAVITY
 
@@ -342,7 +342,6 @@ FPS: """.split('\n')
 
     def load(self):
         if os.path.exists(save_path):
-            self.tasks_join()
             self.kill_all_creatures()
             with open(save_path, "rb") as f:
                 load_data = pickle.load(f)
@@ -462,23 +461,19 @@ FPS: """.split('\n')
             idx = idx[0]
         self.add_creature_to_space(self.spaces[idx], brains_data, bias_layers)
 
-    def start_physics_calculating(self, space):
-        _idx = find_index(self.spaces, space)
-        if isinstance(_idx, list):
-            _idx = _idx[0]
+    def start_physics_calculating(self, _idx):
+        space = self.spaces[_idx]
+        event = self.ended_physics_events[_idx]
         while self.physics_calculating:
-            if self.start_physics_calculating_flag[_idx]:
-                for i in range(int(STEP_DIVIDER)):
-                    space.step(PHYSICS_STEP)
-                with self.lock:
-                    self.start_physics_calculating_flag[_idx] = False
-
-    def tasks_join(self):
-        while np.any(self.start_physics_calculating_flag):
-            continue
+            self.start_physics_event.wait()
+            for i in range(int(STEP_DIVIDER)):
+                space.step(PHYSICS_STEP)
+            event.set()
+            self.end_physics_event.wait()
 
     def start_physics(self):
-        self.start_physics_calculating_flag = np.array([True for _ in range(self.threads)])
+        self.end_physics_event.clear()
+        self.start_physics_event.set()
 
     def run(self):
         for i in range(self.creatures_per_generation):
@@ -498,8 +493,7 @@ FPS: """.split('\n')
         if self.max_amount_of_mutated_weights is None:
             self.max_amount_of_mutated_weights = nodes
 
-        physics_executor = ThreadPoolExecutor(max_workers=self.threads)
-        start_task_execution(physics_executor, self.start_physics_calculating, self.spaces)
+        start_task_execution(self.threads)
 
         while self.running:
             self.calc_all_creatures_thread = threading.Thread(target=self.calc_all_creatures)
@@ -512,7 +506,6 @@ FPS: """.split('\n')
                     self.save()
                     self.running = False
                     self.kill_all_creatures()
-                    self.tasks_join()
                     break
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_l:
@@ -735,12 +728,14 @@ FPS: """.split('\n')
                 self.calc_all_creatures_thread.join()
                 self.ai_calculating = False
 
-            self.tasks_join()
+            wait_events_to_end(self.ended_physics_events)
+            self.start_physics_event.clear()
+            self.end_physics_event.set()
             if self.draw:
                 pygame.display.flip()
 
         self.physics_calculating = False
-        physics_executor.shutdown()
+        join_threads(self.threads)
         pygame.quit()
 
         if len(self.best_x) > 0:
