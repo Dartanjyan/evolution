@@ -2,8 +2,7 @@ import numpy as np
 import pymunk  # as pymunk
 from numba.typed import List
 from pymunk import Vec2d as vec2d
-from settings import *
-import math
+from frameworks_drivers.config import *
 
 
 class PolySegment:
