@@ -18,7 +18,7 @@ from numba import njit
 from numba.typed import List
 from scipy.interpolate import UnivariateSpline
 
-from entities import myCreature
+from entities.creature import myCreature
 from frameworks_drivers.config import *
 
 np.set_printoptions(precision=8, suppress=True, formatter={'all': lambda x: f'{x:0.2f}'}, linewidth=100)
