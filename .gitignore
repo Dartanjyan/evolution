@@ -41,7 +41,7 @@ MANIFEST
 *.spec
 
 # VSCode
-./.vscode
+./.vscode/*
 
 # Installer logs
 pip-log.txt
