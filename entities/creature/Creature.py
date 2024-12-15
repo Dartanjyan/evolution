@@ -2,7 +2,7 @@ from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
-from entities.brain import BrainData
+from entities.creature.brain import BrainData
 from interface_adapters.ibodyparts import IBodyPart, IJoint
 from interface_adapters.ispace import ISpace
 

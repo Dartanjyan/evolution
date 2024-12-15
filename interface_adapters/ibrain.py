@@ -1,9 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import List
 
-import numpy as np
-
-from entities.brain import BrainData
+from entities.creature.brain import BrainData
 
 
 class IBrain(ABC):

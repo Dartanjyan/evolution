@@ -16,7 +16,7 @@ from typing import Tuple
 
 import numpy as np
 
-from entities.brain import BrainData
+from entities.creature.brain import BrainData
 
 
 def mutate_with_chance(brain: BrainData, chance_to_mutate: float, mutation_range: Tuple[float, float]) -> BrainData:

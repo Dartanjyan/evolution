@@ -1,9 +1,9 @@
 # A function to generate random brain
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 import numpy as np
 
-from entities.brain import BrainData
+from entities.creature.brain import BrainData
 
 
 def generate_brain(layers_sizes: List[int], weights_range: Tuple[float, float]) -> BrainData:
