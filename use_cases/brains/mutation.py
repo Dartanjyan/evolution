@@ -33,9 +33,24 @@ def mutate_with_chance(brain: BrainData, chance_to_mutate: float, mutation_range
     return mutated_brain  # Возвращаем новый экземпляр
 
 
-def mutate_n_weights(brain: BrainData, max_amount_of_mutated_weights: int, mutation_range: Tuple[float, float]):
+
+def mutate_n_weights(brain: BrainData, num_weights_to_mutate: int, mutation_range: Tuple[float, float]) -> BrainData:
     # Изменить N весов
-    pass
+    mutated_brain = deepcopy(brain)
+
+    # Flatten weights and biases into a single list of references to mutate
+    all_weights = [(layer, idx) for layer in mutated_brain.weights for idx in range(len(layer))]
+    all_biases = [(mutated_brain.bias_weights, idx) for idx in range(len(mutated_brain.bias_weights))]
+    all_parameters = all_weights + all_biases
+
+    # Randomly select indices to mutate
+    indices_to_mutate = np.random.choice(len(all_parameters), size=num_weights_to_mutate, replace=False)
+
+    for idx in indices_to_mutate:
+        param_list, param_idx = all_parameters[idx]
+        param_list[param_idx] += np.random.uniform(mutation_range[0], mutation_range[1])
+
+    return mutated_brain
 
 """
 if self.mutation_algorithm == 0:
