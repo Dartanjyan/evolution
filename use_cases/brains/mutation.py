@@ -11,24 +11,33 @@
 # Новый мозг сначала - это копия лучшего родителя. Потом по каждому весу пройтись и с шансом 50%
 # заменить его весом другого родителя по этому же адресу. Затем с шансом self.chance_to_mutate изменить
 # его на случайное число из промежутка self.mutation_range.
+from copy import deepcopy
 from typing import Tuple
 
+import numpy as np
 
-class MutationAlgorithm0:
-    def execute(self, chance_to_mutate: float, mutation_range: Tuple[float, float]):
-        pass
-
-
-class MutationAlgorithm1:
-    def execute(self, max_amount_of_mutated_weights: int, mutation_range: Tuple[float, float]):
-        pass
+from entities.brain import BrainData
 
 
-class MutationAlgorithm2:
-    def execute(self, max_amount_of_mutated_weights: int, mutation_range: Tuple[float, float]):
-        pass
+def mutate_with_chance(brain: BrainData, chance_to_mutate: float, mutation_range: Tuple[float, float]) -> BrainData:
+    # С шансом каждый вес изменить
+    mutated_brain = deepcopy(brain)  # Создаем копию
+    for i, layer in enumerate(mutated_brain.weights):
+        for j in range(len(layer)):
+            if np.random.random() < chance_to_mutate:
+                layer[j] += np.random.uniform(mutation_range[0], mutation_range[1])
+    # Обрабатываем bias_weights
+    for k in range(len(mutated_brain.bias_weights)):
+        if np.random.random() < chance_to_mutate:
+            mutated_brain.bias_weights[k] += np.random.uniform(mutation_range[0], mutation_range[1])
+    return mutated_brain  # Возвращаем новый экземпляр
 
 
+def mutate_n_weights(brain: BrainData, max_amount_of_mutated_weights: int, mutation_range: Tuple[float, float]):
+    # Изменить N весов
+    pass
+
+"""
 if self.mutation_algorithm == 0:
     # Выбрать лучший мозг и на его основе создать новых существ
     best_creature = deepcopy(self.get_sorted_creatures()[0])
@@ -117,3 +126,4 @@ elif self.mutation_algorithm == 2:
     # Add the best creatures from previous generation
     for i in range(self.amount_of_best_creatures):
         self.add_creature(best_brains[i], best_brains_bias_layers[i])
+"""
