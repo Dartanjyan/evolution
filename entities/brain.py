@@ -1,10 +1,10 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 
 
 @dataclass
 class BrainData:
-    weights: List[np.ndarray]
-    bias_weights: List[float]
+    weights: Optional[List[np.ndarray | List[float]]]
+    bias_weights: Optional[List[float]]

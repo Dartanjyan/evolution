@@ -1,11 +1,11 @@
 import numpy as np
-
-from entities.brain import BrainData
+from use_cases.brains import random_brain
 
 np.set_printoptions(precision=8, suppress=True, formatter={'all': lambda x: f'{x:0.2f}'}, linewidth=100)
 
-layers = [3, 3, 1]
-a = BrainData([np.random.uniform(-1, 1, (layers[i], layers[i+1])) for i in range(len(layers)-1)],
-              [np.random.uniform(-3, 3) for _ in range(len(layers)-1)])
+layers = [1, 2, 1]
 
-print(a.weights)
+a = random_brain.generate_brain(layers, (-1, 1))
+
+for w in a.bias_weights:
+    print(w)
