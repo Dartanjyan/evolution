@@ -48,6 +48,7 @@ class IJoint(ABC):
                  stiffness: float,
                  damping: float,
                  rest: float = 0.0,
+                 rest_limits: Optional[Tuple[float]] = None,
                  collide_bodies: bool = False) -> None:
         self.joint_id = joint_id
         self.part_a = part_a
@@ -59,6 +60,7 @@ class IJoint(ABC):
         self.stiffness = stiffness
         self.damping = damping
         self.rest = rest
+        self.rest_limits = rest_limits
         self.collide_bodies = collide_bodies
 
     @abstractmethod
