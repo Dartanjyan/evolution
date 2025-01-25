@@ -1,11 +1,181 @@
 {
   "main_menu": {
-    "title": "Main Menu",
-    "objects": [
+    "title": "Main menu",
+    "items": [
       {
-        "type": "image",
-        "x": "50%",
-        "y": 
+        "type": "label",
+        "id": "title",
+        "text": "Evolution by Alex",
+        "text-size": "10%",
+        "item-align-x": "center",
+        "item-align-y": "center",
+        "text-align-x": "center",
+        "text-align-y": "center",
+        "position": {
+          "x": "50%",
+          "y": "10%",
+          "anchor": "center"
+        }
+      },
+      {
+        "type": "press-button",
+        "id": "load",
+        "text": "Load simulation",
+        "text-size": "5%",
+        "item-align-x": "center",
+        "item-align-y": "center",
+        "text-align-x": "center",
+        "text-align-y": "center",
+        "position": {
+          "x": "50%",
+          "y": "30%",
+          "anchor": "center"
+        }
+      },
+      {
+        "type": "press-button",
+        "id": "editor",
+        "text": "Editor",
+        "text-size": "5%",
+        "item-align-x": "center",
+        "item-align-y": "center",
+        "text-align-x": "center",
+        "text-align-y": "center",
+        "position": {
+          "x": "50%",
+          "y": "40%",
+          "anchor": "center"
+        }
+      },
+      {
+        "type": "press-button",
+        "id": "settings",
+        "text": "Settings",
+        "text-size": "5%",
+        "item-align-x": "center",
+        "item-align-y": "center",
+        "text-align-x": "center",
+        "text-align-y": "center",
+        "position": {
+          "x": "50%",
+          "y": "50%",
+          "anchor": "center"
+        }
+      },
+      {
+        "type": "press-button",
+        "id": "exit",
+        "text": "Exit",
+        "text-size": "5%",
+        "item-align-x": "center",
+        "item-align-y": "center",
+        "text-align-x": "center",
+        "text-align-y": "center",
+        "position": {
+          "x": "50%",
+          "y": "60%",
+          "anchor": "center"
+        }
+      }
+    ]
+  },
+  "creature_editor": {
+    "title": "Creature editor",
+    "items": [
+      {
+        "type": "label",
+        "id": "title",
+        "text": "WIP",
+        "text-size": "10%",
+        "item-align-x": "center",
+        "item-align-y": "center",
+        "text-align-x": "center",
+        "text-align-y": "center",
+        "position": {
+          "x": "50%",
+          "y": "10%",
+          "anchor": "center"
+        }
+      }
+    ]
+  },
+  "simulation": {
+    "title": "Simulation",
+    "items": [
+      {
+        "type": "label",
+        "id": "title",
+        "text": "WIP",
+        "text-size": "10%",
+        "item-align-x": "center",
+        "item-align-y": "center",
+        "text-align-x": "center",
+        "text-align-y": "center",
+        "position": {
+          "x": "50%",
+          "y": "10%",
+          "anchor": "center"
+        }
+      }
+    ]
+  },
+  "load_simulation": {
+    "title": "Load saved simulation",
+    "items": [
+      {
+        "type": "label",
+        "id": "title",
+        "text": "WIP",
+        "text-size": "10%",
+        "item-align-x": "center",
+        "item-align-y": "center",
+        "text-align-x": "center",
+        "text-align-y": "center",
+        "position": {
+          "x": "50%",
+          "y": "10%",
+          "anchor": "center"
+        }
+      }
+    ]
+  },
+  "app_settings": {
+    "title": "Settings",
+    "items": [
+      {
+        "type": "label",
+        "id": "title",
+        "text": "WIP",
+        "text-size": "10%",
+        "item-align-x": "center",
+        "item-align-y": "center",
+        "text-align-x": "center",
+        "text-align-y": "center",
+        "position": {
+          "x": "50%",
+          "y": "10%",
+          "anchor": "center"
+        }
+      }
+    ]
+  },
+  "simulation_settings": {
+    "title": "Simulation settings",
+    "items": [
+      {
+        "type": "label",
+        "id": "title",
+        "text": "WIP",
+        "text-size": "10%",
+        "item-align-x": "center",
+        "item-align-y": "center",
+        "text-align-x": "center",
+        "text-align-y": "center",
+        "position": {
+          "x": "50%",
+          "y": "10%",
+          "anchor": "center"
+        }
       }
     ]
   }
