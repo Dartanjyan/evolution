@@ -1,0 +1,12 @@
+{
+  "main_menu": {
+    "title": "Main Menu",
+    "objects": [
+      {
+        "type": "image",
+        "x": "50%",
+        "y": 
+      }
+    ]
+  }
+}
