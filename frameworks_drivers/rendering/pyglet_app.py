@@ -3,23 +3,18 @@ import os
 
 import pyglet
 
-from typing import List
-
 from entities.gui.appstate import AppState
-from entities.gui.font_size_from_config import procent_to_px
+from use_cases.gui.font_size_from_config import procent_to_px
 from entities.gui.layouts import GuiLayouts
 from frameworks_drivers.database.json_reader import JsonReader
 from frameworks_drivers.rendering.button_img_generator import generate_image
-from interface_adapters.label_presenter import LabelPresenter
 from interface_adapters.pil_to_pyglet_image import pil_to_pyglet_image
 from use_cases.gui.layout_manager import LayoutGetter
 
 
 class PygletApp:
     def __init__(self):
-        self.presenter = LabelPresenter()
         self.window = pyglet.window.Window(width=800, height=600)
-        self.label = None
         self.batch = pyglet.graphics.Batch()
         self.all_gui_items = []
 
@@ -96,18 +91,12 @@ class PygletApp:
                     button.push_handlers(self.window)
                     self.all_gui_items.append(button)
 
-    def update_label(self):
-        """Обновить текст метки."""
-        self.presenter.update_label()
-        self.label.text = self.presenter.get_label()
-
     def run(self):
         """Запустить графический интерфейс."""
-
         @self.window.event
         def on_draw():
             self.window.clear()
             self.batch.draw()
 
         self.setup()
-        pyglet.app.run()
+        pyglet.app.run(1/30)
