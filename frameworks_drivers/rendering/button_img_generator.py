@@ -1,4 +1,4 @@
-from typing import Union, Tuple
+from typing import Union, Tuple, Optional
 from PIL import Image, ImageFont, ImageDraw
 
 
@@ -7,10 +7,10 @@ def generate_image(text: str,
                    width: int,
                    height: int,
                    font_name: str = "arial.ttf",
-                   font_color: Union[str, float, Tuple[int]] = "black",
-                   background_color: Union[str, float, Tuple[int]] = "white",
+                   font_color: Union[str, float, Tuple] = "black",
+                   background_color: Union[str, float, Tuple] = "white",
                    border_width: int = 2,
-                   border_color: Union[str, float, Tuple[int]] = "black"
+                   border_color: Union[str, float, Tuple] = "black"
                     ) -> Image.Image:
     """
     This function was created generally for the pyglet buttons

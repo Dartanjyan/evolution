@@ -1,5 +1,6 @@
 # frameworks_drivers/pyglet_renderer.py
 import os
+from typing import List
 
 import pyglet
 
@@ -14,9 +15,10 @@ from use_cases.gui.layout_manager import LayoutGetter
 
 class PygletApp:
     def __init__(self):
-        self.window = pyglet.window.Window(width=800, height=600)
-        self.batch = pyglet.graphics.Batch()
-        self.all_gui_items = []
+        self.window = pyglet.window.Window(width=800, height=600, resizable=True)
+        self.gui_batch = pyglet.graphics.Batch()
+        self.all_labels: List[pyglet.text.Label] = []
+        self.all_buttons: List[pyglet.gui.PushButton] = []
 
         self.layout_getter = LayoutGetter(JsonReader())
 
@@ -28,13 +30,17 @@ class PygletApp:
     def setup(self):
         """Подготовить интерфейс для отображения."""
 
+        self.gui_batch = pyglet.graphics.Batch()
+        self.all_labels: List[pyglet.text.Label] = []
+        self.all_buttons: List[pyglet.gui.PushButton] = []
+
         main_menu_layout = self.get_layout(self.current_layout.get_layout())
 
         if title := main_menu_layout["title"]:
             self.window.set_caption(f"Evolution: {title}")
         if items := main_menu_layout["items"]:
             for item in items:
-                print(item)
+                # print(item)
 
                 font_size = None
                 pos = item["position"]
@@ -48,8 +54,8 @@ class PygletApp:
                                               x=procent_to_px(pos["x"], self.window.width),
                                               y=procent_to_px(pos["y"], self.window.height),
                                               anchor_x=pos["anchor-x"], anchor_y=pos["anchor-x"],
-                                              batch=self.batch)
-                    self.all_gui_items.append(label)
+                                              batch=self.gui_batch)
+                    self.all_labels.append(label)
                 elif item["type"] == "press-button":
                     font_path = "resources"
                     unpressed = generate_image(
@@ -68,7 +74,7 @@ class PygletApp:
                         height=procent_to_px(item["height"], self.window.height),
                         font_name=os.path.join(font_path, item["text-font"] + "_Bold"),
                         font_color="black",
-                        background_color="grey"
+                        background_color="white"
                     )
                     pressed = generate_image(
                         text=item["text"],
@@ -77,7 +83,7 @@ class PygletApp:
                         height=procent_to_px(item["height"], self.window.height),
                         font_name=os.path.join(font_path, item["text-font"] + "_Bold"),
                         font_color="black",
-                        background_color="grey"
+                        background_color="lightgray"
                     )
 
                     button = pyglet.gui.PushButton(
@@ -86,17 +92,22 @@ class PygletApp:
                         pressed=pil_to_pyglet_image(pressed),
                         unpressed=pil_to_pyglet_image(unpressed),
                         hover=pil_to_pyglet_image(hover),
-                        batch=self.batch
+                        batch=self.gui_batch
                     )
-                    button.push_handlers(self.window)
-                    self.all_gui_items.append(button)
+                    self.window.push_handlers(button)
+                    self.all_buttons.append(button)
 
     def run(self):
         """Запустить графический интерфейс."""
+
+        @self.window.event
+        def on_resize(width, height):
+            self.setup()
+
         @self.window.event
         def on_draw():
             self.window.clear()
-            self.batch.draw()
+            self.gui_batch.draw()
 
         self.setup()
         pyglet.app.run(1/30)
