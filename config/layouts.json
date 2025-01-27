@@ -94,13 +94,14 @@
         "type": "label",
         "id": "title",
         "text": "WIP",
+        "font-color": [255, 0, 0, 255],
         "text-size": "6%",
         "text-font": "Arial",
         "text-align-x": "center",
         "text-align-y": "center",
         "position": {
           "x": "50%",
-          "y": "10%",
+          "y": "90%",
           "anchor-x": "center",
           "anchor-y": "center"
         }
@@ -114,13 +115,14 @@
         "type": "label",
         "id": "title",
         "text": "WIP",
+        "font-color": [255, 0, 0, 255],
         "text-size": "6%",
         "text-font": "Arial",
         "text-align-x": "center",
         "text-align-y": "center",
         "position": {
           "x": "50%",
-          "y": "10%",
+          "y": "90%",
           "anchor-x": "center",
           "anchor-y": "center"
         }
@@ -134,13 +136,14 @@
         "type": "label",
         "id": "title",
         "text": "WIP",
+        "font-color": [255, 0, 0, 255],
         "text-size": "6%",
         "text-font": "Arial",
         "text-align-x": "center",
         "text-align-y": "center",
         "position": {
           "x": "50%",
-          "y": "10%",
+          "y": "90%",
           "anchor-x": "center",
           "anchor-y": "center"
         }
@@ -154,13 +157,14 @@
         "type": "label",
         "id": "title",
         "text": "WIP",
+        "font-color": [255, 0, 0, 255],
         "text-size": "6%",
         "text-font": "Arial",
         "text-align-x": "center",
         "text-align-y": "center",
         "position": {
           "x": "50%",
-          "y": "10%",
+          "y": "90%",
           "anchor-x": "center",
           "anchor-y": "center"
         }
@@ -174,13 +178,14 @@
         "type": "label",
         "id": "title",
         "text": "WIP",
+        "font-color": [255, 0, 0, 255],
         "text-size": "6%",
         "text-font": "Arial",
         "text-align-x": "center",
         "text-align-y": "center",
         "position": {
           "x": "50%",
-          "y": "10%",
+          "y": "90%",
           "anchor-x": "center",
           "anchor-y": "center"
         }

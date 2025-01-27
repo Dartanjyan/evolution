@@ -8,3 +8,6 @@ class AppState:
 
     def get_layout(self) -> GuiLayouts:
         return self.__current_layout
+
+    def set_layout(self, layout: GuiLayouts) -> None:
+        self.__current_layout = layout
