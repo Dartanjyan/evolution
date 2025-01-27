@@ -6,75 +6,83 @@
         "type": "label",
         "id": "title",
         "text": "Evolution by Alex",
-        "text-size": "10%",
-        "item-align-x": "center",
-        "item-align-y": "center",
+        "text-size": "6%",
+        "text-font": "Arial",
         "text-align-x": "center",
         "text-align-y": "center",
         "position": {
           "x": "50%",
-          "y": "10%",
-          "anchor": "center"
+          "y": "90%",
+          "anchor-x": "center",
+          "anchor-y": "center"
         }
       },
       {
         "type": "press-button",
         "id": "load",
         "text": "Load simulation",
-        "text-size": "5%",
-        "item-align-x": "center",
-        "item-align-y": "center",
+        "text-size": "3%",
+        "text-font": "Arial",
         "text-align-x": "center",
         "text-align-y": "center",
+        "width": "30%",
+        "height": "10%",
         "position": {
           "x": "50%",
-          "y": "30%",
-          "anchor": "center"
+          "y": "50%",
+          "anchor-x": "center",
+          "anchor-y": "center"
         }
       },
       {
         "type": "press-button",
         "id": "editor",
         "text": "Editor",
-        "text-size": "5%",
-        "item-align-x": "center",
-        "item-align-y": "center",
+        "text-size": "3%",
+        "text-font": "Arial",
         "text-align-x": "center",
         "text-align-y": "center",
+        "width": "30%",
+        "height": "10%",
         "position": {
           "x": "50%",
           "y": "40%",
-          "anchor": "center"
+          "anchor-x": "center",
+          "anchor-y": "center"
         }
       },
       {
         "type": "press-button",
         "id": "settings",
         "text": "Settings",
-        "text-size": "5%",
-        "item-align-x": "center",
-        "item-align-y": "center",
+        "text-size": "3%",
+        "text-font": "Arial",
         "text-align-x": "center",
         "text-align-y": "center",
+        "width": "30%",
+        "height": "10%",
         "position": {
           "x": "50%",
-          "y": "50%",
-          "anchor": "center"
+          "y": "30%",
+          "anchor-x": "center",
+          "anchor-y": "center"
         }
       },
       {
         "type": "press-button",
         "id": "exit",
         "text": "Exit",
-        "text-size": "5%",
-        "item-align-x": "center",
-        "item-align-y": "center",
+        "text-size": "3%",
+        "text-font": "Arial",
         "text-align-x": "center",
         "text-align-y": "center",
+        "width": "30%",
+        "height": "10%",
         "position": {
           "x": "50%",
-          "y": "60%",
-          "anchor": "center"
+          "y": "10%",
+          "anchor-x": "center",
+          "anchor-y": "center"
         }
       }
     ]
@@ -86,15 +94,15 @@
         "type": "label",
         "id": "title",
         "text": "WIP",
-        "text-size": "10%",
-        "item-align-x": "center",
-        "item-align-y": "center",
+        "text-size": "6%",
+        "text-font": "Arial",
         "text-align-x": "center",
         "text-align-y": "center",
         "position": {
           "x": "50%",
           "y": "10%",
-          "anchor": "center"
+          "anchor-x": "center",
+          "anchor-y": "center"
         }
       }
     ]
@@ -106,15 +114,15 @@
         "type": "label",
         "id": "title",
         "text": "WIP",
-        "text-size": "10%",
-        "item-align-x": "center",
-        "item-align-y": "center",
+        "text-size": "6%",
+        "text-font": "Arial",
         "text-align-x": "center",
         "text-align-y": "center",
         "position": {
           "x": "50%",
           "y": "10%",
-          "anchor": "center"
+          "anchor-x": "center",
+          "anchor-y": "center"
         }
       }
     ]
@@ -126,15 +134,15 @@
         "type": "label",
         "id": "title",
         "text": "WIP",
-        "text-size": "10%",
-        "item-align-x": "center",
-        "item-align-y": "center",
+        "text-size": "6%",
+        "text-font": "Arial",
         "text-align-x": "center",
         "text-align-y": "center",
         "position": {
           "x": "50%",
           "y": "10%",
-          "anchor": "center"
+          "anchor-x": "center",
+          "anchor-y": "center"
         }
       }
     ]
@@ -146,15 +154,15 @@
         "type": "label",
         "id": "title",
         "text": "WIP",
-        "text-size": "10%",
-        "item-align-x": "center",
-        "item-align-y": "center",
+        "text-size": "6%",
+        "text-font": "Arial",
         "text-align-x": "center",
         "text-align-y": "center",
         "position": {
           "x": "50%",
           "y": "10%",
-          "anchor": "center"
+          "anchor-x": "center",
+          "anchor-y": "center"
         }
       }
     ]
@@ -166,15 +174,15 @@
         "type": "label",
         "id": "title",
         "text": "WIP",
-        "text-size": "10%",
-        "item-align-x": "center",
-        "item-align-y": "center",
+        "text-size": "6%",
+        "text-font": "Arial",
         "text-align-x": "center",
         "text-align-y": "center",
         "position": {
           "x": "50%",
           "y": "10%",
-          "anchor": "center"
+          "anchor-x": "center",
+          "anchor-y": "center"
         }
       }
     ]
