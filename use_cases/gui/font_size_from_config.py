@@ -5,4 +5,4 @@ def procent_to_px(from_val: str, window_height: int) -> int:
         font_size = int(float(from_val.replace("%", "")) / 100 * window_height)
     else:
         font_size = 16
-    return font_size
+    return max(font_size, 1)

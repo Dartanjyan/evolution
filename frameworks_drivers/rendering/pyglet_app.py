@@ -14,13 +14,11 @@ from interface_adapters.pil_to_pyglet_image import pil_to_pyglet_image
 from use_cases.gui.layout_manager import LayoutGetter
 
 
-def exit_app(widget):
-    pyglet.app.exit()
-
-
 class PygletApp:
     def __init__(self):
         self.window = pyglet.window.Window(width=800, height=600, resizable=True)
+        self.window.set_minimum_size(320, 200)
+
         self.gui_batch = pyglet.graphics.Batch()
         self.all_labels: List[pyglet.text.Label] = []
         self.all_buttons: List[pyglet.gui.PushButton] = []
@@ -45,7 +43,7 @@ class PygletApp:
             self.window.set_caption(f"Evolution: {title}")
         if items := main_menu_layout["items"]:
             for item in items:
-                print(item)
+                # print(item)
 
                 font_size = None
                 pos = item["position"]
@@ -105,16 +103,20 @@ class PygletApp:
                         batch=self.gui_batch
                     )
 
-                    try:
-                        button.on_press = get_button_handler(item["id"], self.app_state, self.setup)
-                    except KeyError:
-                        button.on_press = lambda widget: print(f"This button does not have handler.")
-
-                    if item["id"] == "exit":
-                        button.on_press = exit_app
-
                     self.window.push_handlers(button)
                     self.all_buttons.append(button)
+
+                    has_no_id = False
+                    try:
+                        item["id"]
+                    except KeyError:
+                        has_no_id = True
+
+                    try:
+                        button.on_release = get_button_handler(item["id"], self.app_state, self.setup)
+                    except KeyError:
+                        button.on_release = lambda widget: print(f"This button does not have {'ID' if has_no_id else 'handler'}.")
+
 
     def run(self):
         """Запустить графический интерфейс."""
@@ -128,5 +130,5 @@ class PygletApp:
             self.window.clear()
             self.gui_batch.draw()
 
-        self.setup()
+
         pyglet.app.run(1/30)
