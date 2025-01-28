@@ -18,7 +18,7 @@
 - Add reward/punishment system. For example, a little punishment for every muscle action, a big punishment for touching the ~~grass~~ ground with the specified body parts, and a dynamic award for the distance they have crossed
 ### Application
 - Add GUI: main menu, load menu, application and simulation settings, etc.
-- Add GUI editor to create, save and load creatures or at least readable text way to save creatures anywhere but not in the code
+- Add GUI editor to create, save and load creatures or at least readable text way to save creatures anywhere but not hard-coded
 - Add zoom
 - Optimize calculating: use c++ libraries, effectively use threading, use GPU for faster AI computing
 - Eventually refactor the whole `main.py`
