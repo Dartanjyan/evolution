@@ -130,5 +130,9 @@ class PygletApp:
             self.window.clear()
             self.gui_batch.draw()
 
+        def update(dt):
+            pass
 
-        pyglet.app.run(1/30)
+
+        pyglet.clock.schedule_interval(update, 1/60)
+        pyglet.app.run()
