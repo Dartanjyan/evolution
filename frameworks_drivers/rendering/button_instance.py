@@ -5,7 +5,7 @@ from interface_adapters.pil_to_pyglet_image import pil_to_pyglet_image
 
 
 def get_button(text: str, w_px: int, h_px: int, font_size: int, unpressed_font: str, hover_font: str, pressed_font: str,
-               but_x: int, but_y: int, batch: pyglet.graphics.Batch):
+               but_x: int, but_y: int, batch: pyglet.graphics.Batch, border_width: int = 2):
     unpressed = generate_image(
         text=text,
         font_size=font_size,
@@ -13,7 +13,8 @@ def get_button(text: str, w_px: int, h_px: int, font_size: int, unpressed_font: 
         height=h_px,
         font_name=unpressed_font,
         font_color="black",
-        background_color="white"
+        background_color="white",
+        border_width=border_width
     )
     hover = generate_image(
         text=text,
@@ -22,7 +23,8 @@ def get_button(text: str, w_px: int, h_px: int, font_size: int, unpressed_font: 
         height=h_px,
         font_name=hover_font,
         font_color="black",
-        background_color="white"
+        background_color="white",
+        border_width=border_width*2
     )
     pressed = generate_image(
         text=text,
@@ -31,7 +33,8 @@ def get_button(text: str, w_px: int, h_px: int, font_size: int, unpressed_font: 
         height=h_px,
         font_name=pressed_font,
         font_color="black",
-        background_color="lightgray"
+        background_color="lightgray",
+        border_width=border_width*4
     )
 
     button = pyglet.gui.PushButton(

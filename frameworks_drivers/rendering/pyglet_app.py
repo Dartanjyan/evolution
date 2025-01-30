@@ -18,6 +18,10 @@ class PygletApp:
         self.window.set_minimum_size(320, 200)
 
         self.gui_batch = pyglet.graphics.Batch()
+        self.background_group = pyglet.graphics.Group(-1)
+
+        self.background = None
+
         self.all_labels: List[pyglet.text.Label] = []
         self.all_buttons: List[pyglet.gui.PushButton] = []
 
@@ -37,6 +41,8 @@ class PygletApp:
 
         main_menu_layout = self.get_layout(self.app_state.get_layout())
 
+        self.background = pyglet.shapes.Rectangle(0, 0, self.window.width, self.window.height, (0, 0, 0, 255), batch=self.gui_batch, group=self.background_group)
+
         if title := main_menu_layout["title"]:
             self.window.set_caption(f"Evolution: {title}")
         if items := main_menu_layout["items"]:
@@ -44,15 +50,15 @@ class PygletApp:
                 # print(item)
 
                 font_size = None
-                pos = item["position"]
-                try:
-                    color = item["font-color"]
-                except KeyError:
-                    color = (255, 255, 255, 255)
+                pos = item["position"] if "position" in item.keys() else None
+                color = item["font-color"] if "font-color" in item.keys() else (255, 255, 255, 255)
 
-                if item["text"]:
+                if "text" in item.keys():
                     font_size = procent_to_px(item["text-size"], self.window.height)
-                if item["type"] == "label":
+                if item["type"] == "background":
+                    if "color" in item.keys():
+                        self.background.color = item["color"]
+                elif item["type"] == "label":
                     label = pyglet.text.Label(text=item["text"],
                                               font_name=item["text-font"],
                                               font_size=font_size,

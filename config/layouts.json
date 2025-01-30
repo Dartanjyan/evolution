@@ -91,6 +91,10 @@
     "title": "Creature editor",
     "items": [
       {
+        "type": "background",
+        "color": [255, 255, 255, 255]
+      },
+      {
         "type": "label",
         "id": "title",
         "text": "WIP",

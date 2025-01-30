@@ -32,7 +32,7 @@ def generate_image(text: str,
     font = ImageFont.truetype(font_name, font_size)
     image = Image.new("RGB", (width, height), border_color)
     draw = ImageDraw.Draw(image)
-    draw.rectangle([(border_width, border_width), (width-border_width, height-border_width)], fill=background_color)
+    draw.rectangle([(border_width, border_width), (width-border_width-1, height-border_width-1)], fill=background_color)
     text_width = draw.textlength(text, font)
     text_height = font_size
     x = (width - text_width) // 2
