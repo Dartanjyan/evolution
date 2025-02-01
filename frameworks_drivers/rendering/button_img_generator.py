@@ -1,6 +1,8 @@
 from typing import Union, Tuple, Optional
 from PIL import Image, ImageFont, ImageDraw
 
+from use_cases.gui.font_size_from_config import procent_to_px
+
 
 def generate_image(text: str,
                    font_size: int,

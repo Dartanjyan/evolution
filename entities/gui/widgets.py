@@ -46,7 +46,7 @@ class Label:
         self.position = position
 
 
-class PressButton:
+class PushButton:
     __slots__ = ('id', 'text', 'x', 'y',
                  'text_align_x', 'text_align_y', 'width', 'height', 'position',
                  'text_size', 'hover_text_size', 'pressed_text_size',
@@ -62,29 +62,29 @@ class PressButton:
                  text: str,
                  x: int,
                  y: int,
-                 width: Union[str, int],
-                 height: Union[str, int],
+                 width: int,
+                 height: int,
                  hover_text: Optional[str] = None,
                  pressed_text: Optional[str] = None,
-                 text_align_x: str = "center",
-                 text_align_y: str = "center",
+                 text_align_x: Optional[str] = None,
+                 text_align_y: Optional[str] = None,
                  position: Position = Position(),
-                 font_color: Union[Tuple[int, int, int, int], Tuple[int, int, int], str] = "black",
+                 font_color: Optional[Union[Tuple[int, int, int, int], Tuple[int, int, int], str]] = None,
                  hover_font_color: Optional[Union[Tuple[int, int, int, int], Tuple[int, int, int], str]] = None,
                  pressed_font_color: Optional[Union[Tuple[int, int, int, int], Tuple[int, int, int], str]] = None,
-                 text_size: Union[int, str] = "20px",
+                 text_size: Optional[Union[int, str]] = None,
                  hover_text_size: Optional[Union[int, str]] = None,
                  pressed_text_size: Optional[Union[int, str]] = None,
-                 text_font: str = "Arial",
+                 text_font: Optional[str] = None,
                  hover_text_font: Optional[str] = None,
                  pressed_text_font: Optional[str] = None,
-                 background_color: Union[Tuple[int, int, int, int], Tuple[int, int, int], str] = "white",
+                 background_color: Optional[Union[Tuple[int, int, int, int], Tuple[int, int, int], str]] = None,
                  hover_background_color: Optional[Union[Tuple[int, int, int, int], Tuple[int, int, int], str]] = None,
                  pressed_background_color: Optional[Union[Tuple[int, int, int, int], Tuple[int, int, int], str]] = None,
-                 border_width: int = 0,
+                 border_width: Optional[int] = None,
                  hover_border_width: Optional[int] = None,
                  pressed_border_width: Optional[int] = None,
-                 border_color: Union[Tuple[int, int, int, int], Tuple[int, int, int], str] = "black",
+                 border_color: Optional[Union[Tuple[int, int, int, int], Tuple[int, int, int], str]] = None,
                  hover_border_color: Optional[Union[Tuple[int, int, int, int], Tuple[int, int, int], str]] = None,
                  pressed_border_color: Optional[Union[Tuple[int, int, int, int], Tuple[int, int, int], str]] = None,
                  ) -> None:
@@ -95,34 +95,34 @@ class PressButton:
         self.width = width
         self.height = height
 
-        self.hover_text = hover_text or text
-        self.pressed_text = pressed_text or hover_text
+        self.hover_text = hover_text or self.text
+        self.pressed_text = pressed_text or self.hover_text
 
-        self.text_align_x = text_align_x
-        self.text_align_y = text_align_y
+        self.text_align_x = text_align_x or "center"
+        self.text_align_y = text_align_y or "center"
         self.position = position
 
-        self.font_color = font_color
-        self.hover_font_color = hover_font_color or font_color
-        self.pressed_font_color = pressed_font_color or hover_font_color
+        self.font_color = font_color or "black"
+        self.hover_font_color = hover_font_color or self.font_color
+        self.pressed_font_color = pressed_font_color or self.hover_font_color
 
-        self.text_size = text_size
-        self.hover_text_size = hover_text_size or text_size
-        self.pressed_text_size = pressed_text_size or hover_text_size
+        self.text_size = text_size or "20px"
+        self.hover_text_size = hover_text_size or self.text_size
+        self.pressed_text_size = pressed_text_size or self.hover_text_size
 
-        self.text_font = text_font
-        self.hover_text_font = hover_text_font or text_font
-        self.pressed_text_font = pressed_text_font or hover_text_font
+        self.text_font = text_font or "Arial"
+        self.hover_text_font = hover_text_font or self.text_font
+        self.pressed_text_font = pressed_text_font or self.hover_text_font
 
-        self.background_color = background_color
-        self.hover_background_color = hover_background_color or background_color
-        self.pressed_background_color = pressed_background_color or hover_background_color
+        self.background_color = background_color or "white"
+        self.hover_background_color = hover_background_color or self.background_color
+        self.pressed_background_color = pressed_background_color or self.hover_background_color
 
-        self.border_width = border_width
-        self.hover_border_width = hover_border_width or border_width
-        self.pressed_border_width = pressed_border_width or hover_border_width
+        self.border_width = border_width or 0
+        self.hover_border_width = hover_border_width or self.border_width
+        self.pressed_border_width = pressed_border_width or self.hover_border_width
 
-        self.border_color = border_color
-        self.hover_border_color = hover_border_color or border_color
-        self.pressed_border_color = pressed_border_color or hover_border_color
+        self.border_color = border_color or "black"
+        self.hover_border_color = hover_border_color or self.border_color
+        self.pressed_border_color = pressed_border_color or self.hover_border_color
 

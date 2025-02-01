@@ -1,5 +1,4 @@
 # frameworks_drivers/pyglet_renderer.py
-import os
 from typing import List
 
 import pyglet
@@ -7,6 +6,7 @@ import pyglet
 from entities.gui.appstate import AppState
 from frameworks_drivers.rendering.button_instance import get_button
 from frameworks_drivers.rendering.buttons_handlers import get_button_handler
+from interface_adapters.dict_to_widget import push_button
 from use_cases.gui.font_size_from_config import procent_to_px
 from entities.gui.layouts import GuiLayouts
 from frameworks_drivers.database.json_reader import JsonReader
@@ -39,7 +39,7 @@ class PygletApp:
         self.all_labels: List[pyglet.text.Label] = []
         self.all_buttons: List[pyglet.gui.PushButton] = []
 
-        main_menu_layout = self.get_layout(self.app_state.get_layout())
+        main_menu_layout: dict = self.get_layout(self.app_state.get_layout())
 
         self.background = pyglet.shapes.Rectangle(0, 0, self.window.width, self.window.height, (0, 0, 0, 255), batch=self.gui_batch, group=self.background_group)
 
@@ -68,20 +68,13 @@ class PygletApp:
                                               color=color,
                                               batch=self.gui_batch)
                     self.all_labels.append(label)
-                elif item["type"] == "press-button":
+                elif item["type"] == "push-button":
                     font_path = "resources"
 
                     button = get_button(
-                        item["text"],
-                        procent_to_px(item["width"], self.window.width),
-                        procent_to_px(item["height"], self.window.height),
-                        procent_to_px(item["text-size"], self.window.height),
-                        os.path.join(font_path, "Arial.ttf"),
-                        os.path.join(font_path, "Arial_Bold.ttf"),
-                        os.path.join(font_path, "Arial_Bold.ttf"),
-                        procent_to_px(pos["x"], self.window.width) - (procent_to_px(item["width"], self.window.width) // 2),
-                        procent_to_px(pos["y"], self.window.height) - (procent_to_px(item["height"], self.window.height) // 2),
-                        self.gui_batch
+                        push_button(item, self.window.height),
+                        self.gui_batch,
+                        font_path
                     )
 
                     self.window.push_handlers(button)
