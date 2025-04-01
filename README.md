@@ -21,4 +21,4 @@
 - Add GUI editor to create, save and load creatures or at least readable text way to save creatures anywhere but not hard-coded
 - Add zoom
 - Optimize calculating: use c++ libraries, effectively use threading, use GPU for faster AI computing
-- Eventually refactor the whole `main.py`
+- Eventually refactor the whole `main.py`.
