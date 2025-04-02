@@ -1,23 +1,35 @@
 cmake_minimum_required(VERSION 3.10)
-project(evolution VERSION 0.1.0 LANGUAGES C CXX)
+project(evolution1 VERSION 0.1.0 LANGUAGES C CXX)
 
-# Найти wxWidgets
+set(3RD_PARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party")
+
+include(ExternalProject)
+ExternalProject_Add(
+    wxWidgets_external
+    GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git
+    GIT_TAG        v3.2.6
+    PREFIX         ${3RD_PARTY_DIR}/wxWidgets
+    DOWNLOAD_DIR   ${CMAKE_BINARY_DIR}/downloads
+    CONFIGURE_COMMAND cd ${3RD_PARTY_DIR}/wxWidgets/src/wxWidgets_external/ && ./configure --prefix=${3RD_PARTY_DIR}/wxWidgets/install && cd ${3RD_PARTY_DIR}/../
+    BUILD_COMMAND make -C ${3RD_PARTY_DIR}/wxWidgets/src/wxWidgets_external/
+    INSTALL_COMMAND make -C ${3RD_PARTY_DIR}/wxWidgets/src/wxWidgets_external/ install
+)
+set(wxWidgets_ROOT_DIR "${3RD_PARTY_DIR}/wxWidgets/install")
 find_package(wxWidgets REQUIRED COMPONENTS core base)
-
-# Включить файлы wxWidgets
 include(${wxWidgets_USE_FILE})
 
-# Рекурсивный поиск всех .cpp файлов
+
+# Recursively find all .cpp files
 file(GLOB_RECURSE SRC_FILES "src/*.cpp")
 
-# Добавить исполняемый файл
-add_executable(evolution ${SRC_FILES})
+# Add executable target
+add_executable(evolution1 ${SRC_FILES})
 
-# Подключить библиотеки wxWidgets
-target_link_libraries(evolution ${wxWidgets_LIBRARIES})
+# Include wxWidgets libs
+target_link_libraries(evolution1 ${wxWidgets_LIBRARIES})
 
-# Установить пути для заголовочных файлов
-target_include_directories(evolution PRIVATE
+# Set header files directories
+target_include_directories(evolution1 PRIVATE
     src/entities
     src/use_cases
     src/interfaces
