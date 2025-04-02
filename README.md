@@ -1,21 +1,26 @@
 # evolution
 ## Launch
 ### Build
-1. Install wxWidgets 3.2
-2. ```bash
+1. You can `export MAKEFLAGS=-j8` before building, where 8 means amount of parallel processes `make` will use. But I'd not recommend you to set it to an amount of cpu threads you have because while building wxWidgets it'll eat your entire RAM and crave twice more... Don't do it.\
+\
+Due to git security policy it is just going to fail building wxWidgets. That's why you should execute `git config --global --add safe.directory $(pwd)/3rd_party/wxWidgets/src/wxWidgets_external`
+
+    ```shell
     git clone https://github.com/Dartanjyan/evolution.git
     cd evolution
+    git checkout cpp-recode -f
     cmake -B build -DCMAKE_BUILD_TYPE=Release
-    make -C build -j$(nproc)
+    git config --global --add safe.directory $(pwd)/3rd_party/wxWidgets/src/wxWidgets_external
+    make -C build
     ```
-3. Launch: 
-    ```bash
+2. Launch: 
+    ```shell
     ./build/evolution
     ```
 
 ## Plans
 ### Application
-- **Working on:** Recoding on c++ with wxWidgets
+- **WIP:** Recoding on c++ with wxWidgets
 ### Creatures
 - Add joint angle limits
 - Add muscles (just like at the *Evolution by Keiwan Donyagard*)
