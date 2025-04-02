@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(evolution1 VERSION 0.1.0 LANGUAGES C CXX)
+project(evolution VERSION 0.1.0 LANGUAGES C CXX)
 
 set(3RD_PARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party")
 
@@ -23,13 +23,13 @@ include(${wxWidgets_USE_FILE})
 file(GLOB_RECURSE SRC_FILES "src/*.cpp")
 
 # Add executable target
-add_executable(evolution1 ${SRC_FILES})
+add_executable(evolution ${SRC_FILES})
 
 # Include wxWidgets libs
-target_link_libraries(evolution1 ${wxWidgets_LIBRARIES})
+target_link_libraries(evolution ${wxWidgets_LIBRARIES})
 
 # Set header files directories
-target_include_directories(evolution1 PRIVATE
+target_include_directories(evolution PRIVATE
     src/entities
     src/use_cases
     src/interfaces
