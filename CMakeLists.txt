@@ -6,7 +6,8 @@ set(3RD_PARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party")
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
 
-include(ExternalProject)                                ExternalProject_Add(
+include(ExternalProject)
+ExternalProject_Add(
     wxWidgets_external
     GIT_REPOSITORY https://github.com/wxWidgets/wxWidgets.git                                                       GIT_TAG        v3.2.6
     PREFIX         ${3RD_PARTY_DIR}/wxWidgets
