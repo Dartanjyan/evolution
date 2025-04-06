@@ -21,5 +21,6 @@ fi
 cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} -DwxBUILD_CMAKE_SUPPORT=ON --fresh
 cmake --build build --config Release
 cmake --install build
+rm -rf ${SRC_DIR}
 
 echo "wxWidgets built and installed to ${INSTALL_DIR}"
