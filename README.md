@@ -11,7 +11,7 @@ Due to git security policy it is just going to fail building wxWidgets. That's w
     git checkout cpp-recode -f
     cmake -B build -DCMAKE_BUILD_TYPE=Release
     git config --global --add safe.directory $(pwd)/3rd_party/wxWidgets/src/wxWidgets_external
-    make -C build
+    cmake --build build
     ```
 2. Launch: 
     ```shell
