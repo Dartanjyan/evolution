@@ -1,22 +1,57 @@
 # evolution
 ## Launch
 ### Build
-1. You can `export MAKEFLAGS=-j8` before building, where 8 means amount of parallel processes `make` will use. But I'd not recommend you to set it to an amount of cpu threads you have because while building wxWidgets it'll eat your entire RAM and crave twice more... Don't do it.\
-\
-Due to git security policy it is just going to fail building wxWidgets. That's why you should execute `git config --global --add safe.directory $(pwd)/3rd_party/wxWidgets/src/wxWidgets_external`
+#### Install dependencies
+- Debian
+```shell
+sudo apt install libgtk-3-dev cmake make gcc git
+```
+- Fedora
+```shell
+sudo dnf install gtk3-devel cmake make gcc git
+```
+- Arch
+```shell
+sudo pacman -S gtk3 cmake make gcc git
+```
+#### Build project
+You can `export MAKEFLAGS=-j8` before building, where 8 means amount of parallel processes `make` will use. But I'd not recommend you to set it to an amount of cpu threads you have because while building wxWidgets it'll eat your entire RAM and crave twice more... Don't do it.
 
-    ```shell
-    git clone https://github.com/Dartanjyan/evolution.git
-    cd evolution
-    git checkout cpp-recode -f
-    cmake -B build -DCMAKE_BUILD_TYPE=Release
-    git config --global --add safe.directory $(pwd)/3rd_party/wxWidgets/src/wxWidgets_external
-    cmake --build build
-    ```
-2. Launch: 
-    ```shell
-    ./build/evolution
-    ```
+```shell
+git clone https://github.com/Dartanjyan/evolution.git
+cd evolution
+git checkout cpp-recode -f
+```
+
+Now you have two options:
+1. Build wxWidgets:
+  ```shell
+  bash ./scripts/build_wx.sh
+  ```
+2. Instal wxWidgets with your package manager
+  - Debian
+  ```shell
+  sudo apt install libwxgtk3.2-dev
+  ```
+  - Fedora
+  ```shell
+  sudo dnf install wxGTk3-devel
+  ```
+  - Arch
+  ```shell
+  sudo pacman -S wxgtk
+  ```
+  
+
+If you installed wxWidgets with your package manager, then add the argument `-DUSE_SYSTEM_WX=ON` at the end of the first line
+```shell
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+```
+Launch
+```shell
+./build/evolution
+```
 
 ## Plans
 ### Application
