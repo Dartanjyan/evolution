@@ -18,18 +18,8 @@ else
     cd "${SRC_DIR}/wxWidgets_external"
 fi
 
-./configure --prefix="${INSTALL_DIR}"
-if [ -f make.flag ]; then
-    rm make.flag
-fi
-if [ -f make\ install.flag ]; then
-    rm make\ install.flag
-fi
-touch make.flag
-make
-rm make.flag
-touch make\ install.flag
-make install
-rm make\ install.flag
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} --fresh
+cmake --build build --config Release
+cmake --build build --config Release --target install
 
 echo "wxWidgets built and installed to ${INSTALL_DIR}"
