@@ -12,16 +12,35 @@ if(USE_SYSTEM_WX)
     include(${wxWidgets_USE_FILE})
 else()
     set(wxWidgets_ROOT_DIR "${3RD_PARTY_DIR}/wxWidgets/install")
-    set(wxWidgets_DIR "${wxWidgets_ROOT_DIR}/lib/cmake/wxWidgets")
-    set(wxWidgets_USE_FILE "${wxWidgets_ROOT_DIR}/lib/cmake/wxWidgets/wxWidgetsConfig.cmake")
+    #set(wxWidgets_DIR "${wxWidgets_ROOT_DIR}/lib/cmake/wxWidgets")
+    #set(wxWidgets_USE_FILE "${wxWidgets_ROOT_DIR}/lib/cmake/wxWidgets/wxWidgetsConfig.cmake")
+    #find_package(wxWidgets REQUIRED COMPONENTS core base NO_DEFAULT_PATH)
+    #include(${wxWidgets_USE_FILE})
 
-    message(STATUS "Using wxWidgets from ${wxWidgets_ROOT_DIR}")
-    find_package(wxWidgets REQUIRED COMPONENTS core base NO_DEFAULT_PATH)
+    # Trying to link wxWidgets just to work
+    set(wxWidgets_ROOT_DIR "${3RD_PARTY_DIR}/wxWidgets/install")
+    # Убедитесь, что в wxWidgets_ROOT_DIR/include находится подкаталог wx-3.2 или аналогичный
+    list(APPEND CMAKE_PREFIX_PATH "${wxWidgets_ROOT_DIR}")
+    find_package(wxWidgets REQUIRED COMPONENTS core base)
     include(${wxWidgets_USE_FILE})
 endif()
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
+
+# Setting Chipmunk2D
+set(CHIPMUNK_ROOT "${3RD_PARTY_DIR}/Chipmunk2D/install")
+message(STATUS "Using Chipmunk2D from ${CHIPMUNK_ROOT}")
+set(CHIPMUNK_LIB "${CHIPMUNK_ROOT}/lib/libchipmunk.so")
+if(EXISTS ${CHIPMUNK_LIB} AND EXISTS "${CHIPMUNK_ROOT}/include")
+    include_directories(${CHIPMUNK_ROOT}/include)
+    add_library(chipmunk STATIC IMPORTED)
+    set_target_properties(chipmunk PROPERTIES
+        IMPORTED_LOCATION ${CHIPMUNK_LIB}
+    )
+else()
+    message(FATAL_ERROR "${CHIPMUNK_LIB} not found")
+endif()
 
 file(GLOB_RECURSE SRC_FILES "src/*.cpp")
 
