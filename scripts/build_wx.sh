@@ -19,11 +19,10 @@ cmake -B build \
     -DwxBUILD_SHARED=ON \
     -DwxBUILD_TESTS=OFF \
     -DwxBUILD_EXAMPLES=OFF \
-    -DwxBUILD_MONOLITHIC=ON \
     -DwxBUILD_COMPONENTS="core;base"
 cmake --build build --config Release
 cmake --install build
-#rm -rf ${SRC_DIR}
+rm -rf ${SRC_DIR}
 
 echo ------------------------------------------------------------
 echo "wxWidgets built and installed to ${INSTALL_DIR}"

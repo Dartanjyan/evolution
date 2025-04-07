@@ -4,6 +4,8 @@
 class Creature {
 public:
     Creature();
+    Creature(const Creature&);
+    ~Creature();
 };
 
 #endif

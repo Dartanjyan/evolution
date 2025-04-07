@@ -5,7 +5,7 @@
 
 class WxFrame : public wxFrame {
 public:
-    WxFrame();
+    WxFrame(const wxString &title, const wxPoint &pos, const wxSize &size);
 private:
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);

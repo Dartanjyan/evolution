@@ -11,7 +11,6 @@ if(USE_SYSTEM_WX)
     find_package(wxWidgets REQUIRED COMPONENTS core base)
     include(${wxWidgets_USE_FILE})
 else()
-    set(wxWidgets_ROOT_DIR "${3RD_PARTY_DIR}/wxWidgets/install")
     #set(wxWidgets_DIR "${wxWidgets_ROOT_DIR}/lib/cmake/wxWidgets")
     #set(wxWidgets_USE_FILE "${wxWidgets_ROOT_DIR}/lib/cmake/wxWidgets/wxWidgetsConfig.cmake")
     #find_package(wxWidgets REQUIRED COMPONENTS core base NO_DEFAULT_PATH)
@@ -19,7 +18,6 @@ else()
 
     # Trying to link wxWidgets just to work
     set(wxWidgets_ROOT_DIR "${3RD_PARTY_DIR}/wxWidgets/install")
-    # Убедитесь, что в wxWidgets_ROOT_DIR/include находится подкаталог wx-3.2 или аналогичный
     list(APPEND CMAKE_PREFIX_PATH "${wxWidgets_ROOT_DIR}")
     find_package(wxWidgets REQUIRED COMPONENTS core base)
     include(${wxWidgets_USE_FILE})

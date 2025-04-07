@@ -16,6 +16,6 @@ cmake -B build \
     -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR}
 cmake --build build --config Release
 cmake --install build
-#rm -rf ${SRC_DIR}
+rm -rf ${SRC_DIR}
 echo ------------------------------------------------------------
 echo "Chipmunk2D built and installed to ${INSTALL_DIR}"
