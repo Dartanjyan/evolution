@@ -35,7 +35,7 @@ Now you have two options:
   ```
   - Fedora
   ```shell
-  sudo dnf install wxGTk3-devel
+  sudo dnf install wxGTK-devel
   ```
   - Arch
   ```shell
