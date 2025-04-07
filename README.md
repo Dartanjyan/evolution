@@ -39,7 +39,7 @@ Now you have two options:
   ```
   - Arch
   ```shell
-  sudo pacman -S wxgtk
+  sudo pacman -S wxwidgets-gtk3
   ```
   
 
