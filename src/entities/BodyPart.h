@@ -1,16 +1,42 @@
 #ifndef BODYPART_H
 #define BODYPART_H
 
+#include <vector>
+#include "Vector2.h"
+
 class BodyPart {
+private:
+    // Parent means only that new object won't have it's own new physics body
+    // but only shape that'll connect to the parent's body.
+    // Creature class object has vector of BodyParts
+    // std::vector<BodyPart*> parts;
+    BodyPart* parent = nullptr;
+
+    unsigned id;
+    float density;
+    float friction;
+    float mass;
+    float elasticity;
+    bool isRootPart;
+    bool isSensorPart;
+    std::vector<Vector2> vertices;
+    std::vector<BodyPart*> children;
+
+    static unsigned last_id;
+    static unsigned newId();
+    static void resetId();
+    
 public:
-    BodyPart(unsigned int id, 
-        float density, 
-        float friction, 
-        float mass, 
-        float elasticity, 
-        bool isRootPart, 
-        bool isSensorPart);
-    BodyPart(const BodyPart&);
+    BodyPart();
+    BodyPart(BodyPart* parent,
+            std::vector<Vector2> vertices,
+            bool isRootPart = false,
+            bool isSensorPart = false,
+            float density = 1.0f, 
+            float friction = 0.5f, 
+            float mass = 1.0f, 
+            float elasticity = 0.5f);
+    BodyPart(const BodyPart &other);
     ~BodyPart();
 
     // getters
@@ -21,33 +47,27 @@ public:
     float getElasticity() const { return elasticity; }
     bool isRoot() const { return isRootPart; }
     bool isSensor() const { return isSensorPart; }
+    std::vector<Vector2> getVertices() const { return vertices; }
+
     // setters
-    void setId(unsigned int id) { this->id = id; }
     void setDensity(float density) { this->density = density; }
     void setFriction(float friction) { this->friction = friction; }
     void setMass(float mass) { this->mass = mass; }
     void setElasticity(float elasticity) { this->elasticity = elasticity; }
+
+    /* Warning: may be insecure */
     void setRoot(bool isRoot) { this->isRootPart = isRoot; }
+    
     void setSensor(bool isSensor) { this->isSensorPart = isSensor; }
+    void setVertices(const std::vector<Vector2>& vertices) { this->vertices = vertices; }
+    void setParent(BodyPart* new_parent) { this->parent = new_parent; }
 
-    // setters for vertices and connected_to
-    // void setVertices(const std::vector<Vertex>& vertices) { this->vertices = vertices; }
-    // void setConnectedTo(const std::vector<unsigned int>& connected_to) { this->connected_to = connected_to; }
-    // getters for vertices and connected_to
-    // std::vector<Vertex> getVertices() const { return vertices; }
-    // std::vector<unsigned int> getConnectedTo() const { return connected_to; }
-
-private:
-    unsigned int id;
-    float density;
-    float friction;
-    float mass;
-    float elasticity;
-    bool isRootPart;
-    bool isSensorPart;
-
-    // vertices
-    // connected_to
+    // Parents and children stuff
+    void addChild(BodyPart* child);
+    void removeChild(BodyPart* child);
+    std::vector<BodyPart*>::iterator getChildIter(BodyPart* child);
+    BodyPart* getParent() const { return this->parent; };
+    BodyPart* getRootParent() const;
 };
 
 #endif
