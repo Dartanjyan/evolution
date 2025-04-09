@@ -1,5 +1,4 @@
 #include "Creature.h"
-#include "print.h"
 #include <queue>
 #include <algorithm>
 
@@ -7,98 +6,90 @@ unsigned Creature::last_id = 0;
 
 Creature::Creature() 
     : id(Creature::newId()),
-      rootPart(nullptr), 
       bodyParts(std::vector<BodyPart*> {}),
       joints(std::vector<Joint*> {}),
       fitness(0.0f)
 {
-    print("Creature created");
+    std::cout << "Creating empty Creature, id = " << id << "\n";
 }
 
-Creature::Creature(BodyPart* rootPart, 
-                std::vector<BodyPart*> bodyParts, 
+Creature::Creature(std::vector<BodyPart*> bodyParts, 
                 std::vector<Joint*> joints, 
                 unsigned immunity): 
     id(Creature::newId()), 
-    rootPart(rootPart),
     bodyParts(bodyParts),
     joints(joints),
     fitness(0.0f),
     immunity(immunity)
 {
-    rootPart->setRoot(true);
+    std::cout << "Creating Creature, id = " << id << "\n";
 }
 
-Creature::Creature(const Creature &other): 
+Creature::Creature(const Creature &other):
     id(Creature::newId()),
     fitness(other.fitness),
-    bodyParts(other.bodyParts),
-    joints(other.joints),
     immunity(other.immunity)
 {
-    for (BodyPart* bodyPart: other.bodyParts) {
-        BodyPart* new_part = new BodyPart(*bodyPart);
-        this->bodyParts.push_back(new_part);
+    std::cout << "Copying Creature, id "<<other.id<<"->"<<id<< "\n";
 
-        if (new_part->isRoot()) { 
-            this->setRootPart(new_part);
-        }
+    std::map<BodyPart*, BodyPart*> partMapping;
+
+    for (BodyPart* oldPart : other.bodyParts) {
+        BodyPart* newPart = new BodyPart(*oldPart, nullptr);
+        bodyParts.push_back(newPart);
+
+        partMapping[oldPart] = newPart;
+
+        std::function<void(BodyPart*, BodyPart*)> mapBodyPartsRecursively =
+            [&partMapping, &mapBodyPartsRecursively](BodyPart* oldPart, BodyPart* newPart) {
+                partMapping[oldPart] = newPart;
+
+                if (oldPart->getChildren().size() != newPart->getChildren().size()) {
+                    return;
+                }
+
+                for (size_t i = 0; i < oldPart->getChildren().size(); ++i) {
+                    mapBodyPartsRecursively(oldPart->getChildren()[i], newPart->getChildren()[i]);
+                }
+            };
+
+        mapBodyPartsRecursively(oldPart, newPart);
     }
 
-    for (Joint* joint : other.joints) {
-        // TODO 
-        /*
-        При копировании Сустава копируется и ссылка на СТАРОЕ тело.
-        Если ссылка на телоА у сустава равна первому телу у Старого существа, то установить ссылку на первое тело this существа.
-        */
-        Joint* new_joint = new Joint(*joint);
-        this->joints.push_back(new_joint);
-        
-        auto itA = std::find(other.bodyParts.begin(), other.bodyParts.end(), joint->getBodyA());
-        if (itA != other.bodyParts.end()) {
-            size_t idxA = std::distance(other.bodyParts.begin(), itA);
-            BodyPart* ptrBodyA = bodyParts[idxA];
-            joint->setBodyA(ptrBodyA);
-        }
+    for (Joint* oldJoint : other.joints) {
+        BodyPart* oldBodyA = oldJoint->getBodyA();
+        BodyPart* oldBodyB = oldJoint->getBodyB();
 
-        auto itB = std::find(other.bodyParts.begin(), other.bodyParts.end(), joint->getBodyB());
-        if (itB != other.bodyParts.end()) {
-            size_t idxB = std::distance(other.bodyParts.begin(), itB);
-            BodyPart* ptrBodyB = bodyParts[idxB];
-            joint->setBodyA(ptrBodyB);
-        }
+        auto itA = partMapping.find(oldBodyA);
+        auto itB = partMapping.find(oldBodyB);
 
+        if (itA != partMapping.end() && itB != partMapping.end()) {
+            BodyPart* newBodyA = itA->second;
+            BodyPart* newBodyB = itB->second;
+
+            Joint* newJoint = new Joint(
+                newBodyA, newBodyB,
+                oldJoint->getAnchorA(), oldJoint->getAnchorB(),
+                oldJoint->getRest(), oldJoint->getStiffness(),
+                oldJoint->getDamping(), oldJoint->getCollideConnected()
+            );
+            joints.push_back(newJoint);
+        }
     }
 }
 
 Creature::~Creature()
 {
-    // TODO
-    // Освобождаем память соединений
+    std::cout << "Deleting BodyPart, id = "<<id<<"\n";
     for (Joint* joint : joints) {
         delete joint;
     }
     joints.clear();
-    
-    // Удаляем корневую часть (она удалит все свои дочерние части)
-    if (rootPart) {
-        delete rootPart;
-        rootPart = nullptr;
-    }
-    
-    print("Creature destroyed");
-}
 
-void Creature::setRootPart(BodyPart* part)
-{
-    if (rootPart) {
-        rootPart->setRoot(false);
+    for (BodyPart* part : bodyParts) {
+        delete part;
     }
-
-    rootPart = part;
-    if (part) {
-        part->setRoot(true);
-    }
+    joints.clear();
 }
 
 void Creature::addJoint(Joint* joint)
@@ -114,75 +105,65 @@ void Creature::removeJoint(Joint* joint)
     
     auto it = std::find(joints.begin(), joints.end(), joint);
     if (it != joints.end()) {
-        joints.erase(it);
         delete *it;
+        joints.erase(it);
     }
 }
 
-/*
 std::vector<BodyPart*> Creature::getAllBodyParts() const
 {
-    // TODO
     std::vector<BodyPart*> allParts;
     
-    // Используем обход в ширину для сбора всех частей
-    std::queue<BodyPart*> queue;
-    queue.push(rootPart);
-    
-    while (!queue.empty()) {
-        BodyPart* current = queue.front();
-        queue.pop();
+    std::function<void(BodyPart*)> collectParts = [&allParts, &collectParts](BodyPart* part) {
+        allParts.push_back(part);
         
-        allParts.push_back(current);
-        
-        // Добавляем всех детей в очередь
-        for (BodyPart* child : current->getChildren()) {
-            queue.push(child);
+        for (BodyPart* child : part->getChildren()) {
+            collectParts(child);
         }
+    };
+    
+    for (BodyPart* rootPart : bodyParts) {
+        collectParts(rootPart);
     }
     
-    return allParts;
+    return std::vector<BodyPart*>(allParts);
 }
-*/
 
-/*
 Creature* Creature::createBasicCreature()
 {
-    // TODO
-    // Создаем простейшее существо - тело и 4 конечности
-    BodyPart* body = new BodyPart();
-    body->setRoot(true);
+    std::vector<Vector2> bodyVertices = {
+        Vector2(-1.0f, -1.0f),
+        Vector2( 1.0f, -1.0f),
+        Vector2( 1.0f,  1.0f),
+        Vector2(-1.0f,  1.0f)
+    };
+    BodyPart* body = new BodyPart(nullptr, bodyVertices);
     
-    // Создаем 4 конечности (примитивные)
-    BodyPart* limb1 = new BodyPart(body, std::vector<Vector2>{});
-    BodyPart* limb2 = new BodyPart(body, std::vector<Vector2>{});
-    BodyPart* limb3 = new BodyPart(body, std::vector<Vector2>{});
-    BodyPart* limb4 = new BodyPart(body, std::vector<Vector2>{});
+    std::vector<Vector2> limbVertices = {
+        Vector2(0.0f, 0.0f),
+        Vector2(0.5f, -1.0f),
+        Vector2(-0.5f, -1.0f)
+    };
     
-    // Добавляем конечности как дочерние части к телу
-    body->addChild(limb1);
-    body->addChild(limb2);
-    body->addChild(limb3);
-    body->addChild(limb4);
+    BodyPart* limb1 = new BodyPart(nullptr, limbVertices);
+    BodyPart* limb2 = new BodyPart(nullptr, limbVertices);
+    BodyPart* limb3 = new BodyPart(nullptr, limbVertices);
+    BodyPart* limb4 = new BodyPart(nullptr, limbVertices);
     
-    // Создаем существо
-    Creature* creature = new Creature(body);
+    std::vector<BodyPart*> bodyParts = {body, limb1, limb2, limb3, limb4};
     
-    // Создаем соединения между частями
-    Joint* joint1 = new Joint(body, limb1);
-    Joint* joint2 = new Joint(body, limb2);
-    Joint* joint3 = new Joint(body, limb3);
-    Joint* joint4 = new Joint(body, limb4);
+    Joint* joint1 = new Joint(body, limb1, Vector2(0.0f, -1.0f), Vector2(0.0f, 0.0f));
+    Joint* joint2 = new Joint(body, limb2, Vector2(1.0f, 0.0f), Vector2(0.0f, 0.0f));
+    Joint* joint3 = new Joint(body, limb3, Vector2(0.0f, 1.0f), Vector2(0.0f, 0.0f));
+    Joint* joint4 = new Joint(body, limb4, Vector2(-1.0f, 0.0f), Vector2(0.0f, 0.0f));
     
-    // Добавляем соединения к существу
-    creature->addJoint(joint1);
-    creature->addJoint(joint2);
-    creature->addJoint(joint3);
-    creature->addJoint(joint4);
+    std::vector<Joint*> joints = {joint1, joint2, joint3, joint4};
+    
+    Creature* creature = new Creature(bodyParts, joints);
     
     return creature;
 }
-*/
-unsigned Creature::newId() { return Creature::last_id++; }
+
+unsigned Creature::newId() { return ++Creature::last_id; }
 
 void Creature::resetId() { Creature::last_id = 0; }

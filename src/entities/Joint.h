@@ -1,6 +1,7 @@
 #ifndef JOINT_H
 #define JOINT_H
 #include "BodyPart.h"
+#include <iostream>
 
 class Joint {
 private:

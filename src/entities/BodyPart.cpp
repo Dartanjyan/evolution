@@ -6,12 +6,12 @@ BodyPart::BodyPart():
     BodyPart::BodyPart(nullptr, std::vector<Vector2>{})
 {
     id = BodyPart::newId();
+    std::cout << "Created empty BodyPart with id="<<id<< "\n";
 }
 
 BodyPart::BodyPart(
     BodyPart* parent,
     std::vector<Vector2> vertices,
-    bool isRootPart,
     bool isSensorPart,
     float density, 
     float friction, 
@@ -21,46 +21,55 @@ BodyPart::BodyPart(
     id(BodyPart::newId()),
     parent(parent),
     vertices(vertices),
-    isRootPart(isRootPart), 
     isSensorPart(isSensorPart),
     density(density),
     friction(friction), 
     mass(mass), 
-    elasticity(elasticity) {}
+    elasticity(elasticity)
+{
+    std::cout << "Creating BodyPart, id="<<id<< "\n";
+}
 
-BodyPart::BodyPart(const BodyPart &other):
+BodyPart::BodyPart(const BodyPart &other, BodyPart* parent):
     id(BodyPart::newId()),
-    parent(other.parent),
+    parent(parent),
     vertices(other.vertices),
     density(other.density), 
     friction(other.friction),
     mass(other.mass),
     elasticity(other.elasticity),
-    isRootPart(other.isRootPart), 
-    isSensorPart(other.isSensorPart) {}
+    isSensorPart(other.isSensorPart)
+{
+    std::cout << "Copying BodyPart, id "<<other.id<<"->"<<id<< "\n";
+
+    for(auto child : other.children) {
+        children.push_back(new BodyPart(*child));
+    }
+}
 
 BodyPart::~BodyPart()
 {
+    std::cout << "Deleting BodyPart, id = "<<id<<", which has ";
+    if (children.size() > 0) { 
+        std::cout << children.size(); 
+        if (children.size()%10 == 1) { 
+            std::cout << " child"; 
+        } else {
+            std::cout << " children";
+        }
+    } else {
+        std::cout << "no children";
+    }
+    std::cout << "\n";
+
+
     for(auto* child: children) {
         delete child;
     }
 }
 
 void BodyPart::addChild(BodyPart* child) { children.push_back(child); }
-void BodyPart::removeChild(BodyPart *child) { children.erase(this->getChildIter(child)); }
-
-std::vector<BodyPart*>::iterator BodyPart::getChildIter(BodyPart *child)
-{
-    for (auto it = this->children.begin(); it != this->children.end(); ++it) {
-        if (*it == child) {
-            return it;
-        }
-    }
-    // If not found, return end iterator
-    // This is a bit of a hack, but we need to return an iterator
-    // TODO throw exception if child not found
-    return std::vector<BodyPart*>::iterator();
-}
+void BodyPart::removeChild(BodyPart *child) { children.erase(std::find(children.begin(), children.end(), child)); }
 
 BodyPart *BodyPart::getRootParent() const
 {
@@ -74,5 +83,5 @@ BodyPart *BodyPart::getRootParent() const
     }
 }
 
-unsigned BodyPart::newId() { return BodyPart::last_id++; }
+unsigned BodyPart::newId() { return ++BodyPart::last_id; }
 void BodyPart::resetId() { BodyPart::last_id = 0; }
