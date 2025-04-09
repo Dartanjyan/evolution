@@ -55,6 +55,8 @@ Launch
 
 ## Plans
 ### Application
+- Pre-increment static id in Creature, BodyPart, Joint
+- Remove isRootPart attribute in BodyPart class
 - **WIP:** Recoding on c++ with wxWidgets
 ### Creatures
 - Add joint angle limits
