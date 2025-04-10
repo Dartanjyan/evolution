@@ -1,10 +1,10 @@
-// src/frameworks/ChipmunkPhysicsEngine.h
 #ifndef CHIPMUNKPHYSICSENGINE_H
 #define CHIPMUNKPHYSICSENGINE_H
 
 #include "IPhysicsEngine.h"
 #include <unordered_map>
 #include <map>
+#include <chipmunk/chipmunk.h>
 
 // Forward declarations to avoid header conflicts
 struct cpSpace;

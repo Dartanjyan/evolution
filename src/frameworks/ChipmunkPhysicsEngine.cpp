@@ -1,4 +1,3 @@
-// src/frameworks/ChipmunkPhysicsEngine.cpp
 #include "ChipmunkPhysicsEngine.h"
 #include <chipmunk/chipmunk.h>
 #include <iostream>

@@ -45,8 +45,10 @@ public:
     
     // Return all the body parts recursevely
     std::vector<BodyPart*> getAllBodyParts() const;
+    // Return all the body parts that are not children of other parts
+    std::vector<BodyPart*> getMainBodyParts() const { return bodyParts; }
     
-    // static Creature* createBasicCreature();
+    static Creature* createBasicCreature();
     
     static unsigned newId();
     static void resetId();

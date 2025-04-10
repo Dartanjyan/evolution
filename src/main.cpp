@@ -1,2 +1,2 @@
-#include "frameworks/WxApp.h"
+#include "WxApp.h"
 wxIMPLEMENT_APP(WxApp);

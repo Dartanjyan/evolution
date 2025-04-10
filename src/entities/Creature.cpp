@@ -94,6 +94,8 @@ Creature::~Creature()
         delete part;
     }
     joints.clear();
+
+    delete brain;
 }
 
 void Creature::replaceBrain(Brain *new_brain)
@@ -137,6 +139,48 @@ std::vector<BodyPart*> Creature::getAllBodyParts() const
     }
     
     return std::vector<BodyPart*>(allParts);
+}
+
+Creature* Creature::createBasicCreature()
+{
+    std::vector<Vector2> bodyVertices = {
+        Vector2(-1.0f, -1.0f),
+        Vector2( 1.0f, -1.0f),
+        Vector2( 1.0f,  1.0f),
+        Vector2(-1.0f,  1.0f)
+    };
+    BodyPart* body = new BodyPart(nullptr, bodyVertices);
+    
+    std::vector<Vector2> limbVertices = {
+        Vector2(0.0f, 0.0f),
+        Vector2(0.5f, -1.0f),
+        Vector2(-0.5f, -1.0f)
+    };
+    
+    BodyPart* limb1 = new BodyPart(nullptr, limbVertices);
+    BodyPart* limb2 = new BodyPart(nullptr, limbVertices);
+    BodyPart* limb3 = new BodyPart(nullptr, limbVertices);
+    BodyPart* limb4 = new BodyPart(nullptr, limbVertices);
+    
+    std::vector<BodyPart*> bodyParts = {body, limb1, limb2, limb3, limb4};
+    
+    Joint* joint1 = new Joint(body, limb1, Vector2(0.0f, -1.0f), Vector2(0.0f, 0.0f));
+    Joint* joint2 = new Joint(body, limb2, Vector2(1.0f, 0.0f), Vector2(0.0f, 0.0f));
+    Joint* joint3 = new Joint(body, limb3, Vector2(0.0f, 1.0f), Vector2(0.0f, 0.0f));
+    Joint* joint4 = new Joint(body, limb4, Vector2(-1.0f, 0.0f), Vector2(0.0f, 0.0f));
+    
+    std::vector<Joint*> joints = {joint1, joint2, joint3, joint4};
+    
+    Brain* brain = new Brain(std::vector<unsigned short>{1}, std::vector<std::vector<double>>{
+        {0.5, 0.5, 0.5, 0.5},
+        {0.5, 0.5, 0.5, 0.5},
+        {0.5, 0.5, 0.5, 0.5},
+        {0.5, 0.5, 0.5, 0.5}
+    }, std::vector<double>{0.5, 0.5, 0.5, 0.5});
+
+    Creature* creature = new Creature(bodyParts, joints, brain);
+    
+    return creature;
 }
 
 unsigned Creature::newId() { return ++Creature::last_id; }

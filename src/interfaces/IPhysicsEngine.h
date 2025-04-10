@@ -1,10 +1,9 @@
-// src/interfaces/IPhysicsEngine.h
 #ifndef IPHYSICSENGINE_H
 #define IPHYSICSENGINE_H
 
-#include "../entities/BodyPart.h"
-#include "../entities/Joint.h"
-#include "../entities/Creature.h"
+#include "BodyPart.h"
+#include "Joint.h"
+#include "Creature.h"
 #include <vector>
 
 class IPhysicsEngine {
