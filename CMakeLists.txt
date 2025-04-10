@@ -32,7 +32,7 @@ message(STATUS "Using Chipmunk2D from ${CHIPMUNK_ROOT}")
 set(CHIPMUNK_LIB "${CHIPMUNK_ROOT}/lib/libchipmunk.so")
 if(EXISTS ${CHIPMUNK_LIB} AND EXISTS "${CHIPMUNK_ROOT}/include")
     include_directories(${CHIPMUNK_ROOT}/include)
-    add_library(chipmunk STATIC IMPORTED)
+    add_library(chipmunk SHARED IMPORTED)
     set_target_properties(chipmunk PROPERTIES
         IMPORTED_LOCATION ${CHIPMUNK_LIB}
     )
@@ -43,7 +43,7 @@ endif()
 file(GLOB_RECURSE SRC_FILES "src/*.cpp")
 
 add_executable(evolution ${SRC_FILES})
-target_link_libraries(evolution ${wxWidgets_LIBRARIES})
+target_link_libraries(evolution ${wxWidgets_LIBRARIES} chipmunk)
 target_include_directories(evolution PRIVATE
     src/entities
     src/use_cases
