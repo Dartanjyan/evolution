@@ -56,7 +56,7 @@ public:
     void setElasticity(float elasticity) { this->elasticity = elasticity; }
 
     void setSensor(bool isSensor) { this->isSensorPart = isSensor; }
-    void setVertices(const std::vector<Vector2>& vertices) { this->vertices = vertices; }
+    void setVertices(const std::vector<Vector2>& new_vertices) { this->vertices = new_vertices; }
     void setParent(BodyPart* new_parent) { this->parent = new_parent; }
 
     // Parents and children stuff

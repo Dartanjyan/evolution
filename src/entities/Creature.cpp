@@ -14,10 +14,12 @@ Creature::Creature()
 }
 
 Creature::Creature(std::vector<BodyPart*> bodyParts, 
-                std::vector<Joint*> joints, 
+                std::vector<Joint*> joints,
+                Brain* brain,
                 unsigned immunity): 
     id(Creature::newId()), 
     bodyParts(bodyParts),
+    brain(brain),
     joints(joints),
     fitness(0.0f),
     immunity(immunity)
@@ -76,11 +78,13 @@ Creature::Creature(const Creature &other):
             joints.push_back(newJoint);
         }
     }
+    
+    brain = new Brain(*other.brain);
 }
 
 Creature::~Creature()
 {
-    std::cout << "Deleting BodyPart, id = "<<id<<"\n";
+    std::cout << "Deleting Creature, id = "<<id<<"\n";
     for (Joint* joint : joints) {
         delete joint;
     }
@@ -92,7 +96,13 @@ Creature::~Creature()
     joints.clear();
 }
 
-void Creature::addJoint(Joint* joint)
+void Creature::replaceBrain(Brain *new_brain)
+{
+    delete brain;
+    brain = new_brain;
+}
+
+void Creature::addJoint(Joint *joint)
 {
     if (joint) {
         joints.push_back(joint);
@@ -127,41 +137,6 @@ std::vector<BodyPart*> Creature::getAllBodyParts() const
     }
     
     return std::vector<BodyPart*>(allParts);
-}
-
-Creature* Creature::createBasicCreature()
-{
-    std::vector<Vector2> bodyVertices = {
-        Vector2(-1.0f, -1.0f),
-        Vector2( 1.0f, -1.0f),
-        Vector2( 1.0f,  1.0f),
-        Vector2(-1.0f,  1.0f)
-    };
-    BodyPart* body = new BodyPart(nullptr, bodyVertices);
-    
-    std::vector<Vector2> limbVertices = {
-        Vector2(0.0f, 0.0f),
-        Vector2(0.5f, -1.0f),
-        Vector2(-0.5f, -1.0f)
-    };
-    
-    BodyPart* limb1 = new BodyPart(nullptr, limbVertices);
-    BodyPart* limb2 = new BodyPart(nullptr, limbVertices);
-    BodyPart* limb3 = new BodyPart(nullptr, limbVertices);
-    BodyPart* limb4 = new BodyPart(nullptr, limbVertices);
-    
-    std::vector<BodyPart*> bodyParts = {body, limb1, limb2, limb3, limb4};
-    
-    Joint* joint1 = new Joint(body, limb1, Vector2(0.0f, -1.0f), Vector2(0.0f, 0.0f));
-    Joint* joint2 = new Joint(body, limb2, Vector2(1.0f, 0.0f), Vector2(0.0f, 0.0f));
-    Joint* joint3 = new Joint(body, limb3, Vector2(0.0f, 1.0f), Vector2(0.0f, 0.0f));
-    Joint* joint4 = new Joint(body, limb4, Vector2(-1.0f, 0.0f), Vector2(0.0f, 0.0f));
-    
-    std::vector<Joint*> joints = {joint1, joint2, joint3, joint4};
-    
-    Creature* creature = new Creature(bodyParts, joints);
-    
-    return creature;
 }
 
 unsigned Creature::newId() { return ++Creature::last_id; }

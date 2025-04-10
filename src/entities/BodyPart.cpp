@@ -6,7 +6,7 @@ BodyPart::BodyPart():
     BodyPart::BodyPart(nullptr, std::vector<Vector2>{})
 {
     id = BodyPart::newId();
-    std::cout << "Created empty BodyPart with id="<<id<< "\n";
+    std::cout << "Created empty BodyPart, id = "<<id<< "\n";
 }
 
 BodyPart::BodyPart(
@@ -27,7 +27,7 @@ BodyPart::BodyPart(
     mass(mass), 
     elasticity(elasticity)
 {
-    std::cout << "Creating BodyPart, id="<<id<< "\n";
+    std::cout << "Creating BodyPart, id = "<<id<< "\n";
 }
 
 BodyPart::BodyPart(const BodyPart &other, BodyPart* parent):

@@ -17,7 +17,7 @@ Joint::Joint(BodyPart* bodyA, BodyPart* bodyB, Vector2 anchorA, Vector2 anchorB,
 }
 
 Joint::~Joint() {
-    std::cout << "Deleting Joint, id " << id << "\n";
+    std::cout << "Deleting Joint, id = " << id << "\n";
 }
 
 Joint::Joint(const Joint &other): 
