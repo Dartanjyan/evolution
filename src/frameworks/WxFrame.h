@@ -21,23 +21,15 @@ private:
     void OnAbout(wxCommandEvent& event);
     void OnPaint(wxPaintEvent& event);
     void OnTimer(wxTimerEvent& event);
-    
-    std::unique_ptr<IPhysicsEngine> physicsEngine;
-    std::vector<Creature*> creatures;
+
+    void UpdateLogic();
     
     wxTimer* timer;
-    
-    void InitializeSimulation();
-    void UpdateSimulation(float deltaTime);
-    void CleanupSimulation();
-    
-    void CreateTestCreature();
-    void RenderCreatures(wxDC& dc);
 };
 
 enum
 {
-    ID_TIMER = 1
+    ID_TIMER = 2
 };
 
 #endif
