@@ -1,12 +1,15 @@
 #ifndef WXFRAME_H
 #define WXFRAME_H
 
-#include <wx/wx.h>
-#include <wx/timer.h>
-#include "IPhysicsEngine.h"
-#include "Creature.h"
 #include <memory>
 #include <vector>
+
+#include <wx/wx.h>
+#include <wx/timer.h>
+#include <wx/event.h>
+
+#include "IPhysicsEngine.h"
+#include "Creature.h"
 
 class WxFrame : public wxFrame {
 public:
@@ -30,8 +33,6 @@ private:
     
     void CreateTestCreature();
     void RenderCreatures(wxDC& dc);
-    
-    wxDECLARE_EVENT_TABLE();
 };
 
 enum

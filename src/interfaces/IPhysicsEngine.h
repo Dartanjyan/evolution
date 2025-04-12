@@ -9,7 +9,13 @@
 class IPhysicsEngine {
 public:
     virtual ~IPhysicsEngine() = default;
-    
+   /*
+    * initialize - create space, set up gravity etc.
+    * update - do N steps
+    * cleanup - delete all its objects
+    *
+    *
+    */ 
     // Space management
     virtual void Initialize() = 0;
     virtual void Update(float deltaTime) = 0;

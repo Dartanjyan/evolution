@@ -48,4 +48,9 @@ public:
     static void resetId();
 };
 
+enum JointTypes
+{
+
+};
+
 #endif

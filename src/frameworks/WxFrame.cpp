@@ -3,13 +3,6 @@
 #include <wx/dcclient.h>
 #include <chrono>
 
-wxBEGIN_EVENT_TABLE(WxFrame, wxFrame)
-    EVT_MENU(wxID_EXIT, WxFrame::OnExit)
-    EVT_MENU(wxID_ABOUT, WxFrame::OnAbout)
-    EVT_PAINT(WxFrame::OnPaint)
-    EVT_TIMER(ID_TIMER, WxFrame::OnTimer)
-wxEND_EVENT_TABLE()
-
 WxFrame::WxFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(nullptr, wxID_ANY, title, pos, size)
 {
@@ -27,7 +20,7 @@ WxFrame::WxFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     SetMenuBar(menuBar);
     CreateStatusBar();
     SetStatusText("Simulation Running");
-    
+	
     SetMinSize(wxSize(800, 600));
     
     InitializeSimulation();
@@ -36,6 +29,11 @@ WxFrame::WxFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     // Set up the timer for animation
     timer = new wxTimer(this, ID_TIMER);
     timer->Start(16);
+
+    Bind(wxEVT_MENU, &WxFrame::OnExit, this, wxID_EXIT);
+    Bind(wxEVT_MENU, &WxFrame::OnAbout, this, wxID_ABOUT);
+    Bind(wxEVT_PAINT, &WxFrame::OnPaint, this, wxEVT_PAINT);
+    // Bind(wxEVT_MENU, &WxFrame::OnTimer, this, wxEVT_TIMER);
 }
 
 WxFrame::~WxFrame()
