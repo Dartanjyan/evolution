@@ -2,9 +2,9 @@
 
 UI::UI(IGUI *gui, ICLI *cli) : gui_(gui), cli_(cli)
 {
-    if (gui_ == nullptr || cli_ == nullptr)
+    if (gui_ == nullptr)
     {
-        throw std::invalid_argument("GUI or CLI cannot be null");
+        std::cout << "Warning! GUI or CLI is nullptr\n";
     }
 }
 
@@ -23,17 +23,5 @@ int UI::Run(bool gui)
     else
     {
         return cli_->Run();
-    }
-}
-
-void UI::Init(bool gui)
-{
-    if (gui)
-{
-        gui_->Init();
-    }
-    else
-    {
-        cli_->Init();
     }
 }

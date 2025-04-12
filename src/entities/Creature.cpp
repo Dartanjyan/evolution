@@ -10,7 +10,7 @@ Creature::Creature()
       joints(std::vector<Joint*> {}),
       fitness(0.0f)
 {
-    std::cout << "Creating empty Creature, id = " << id << "\n";
+    // std::cout << "Creating empty Creature, id = " << id << "\n";
 }
 
 Creature::Creature(std::vector<BodyPart*> bodyParts, 
@@ -24,7 +24,7 @@ Creature::Creature(std::vector<BodyPart*> bodyParts,
     fitness(0.0f),
     immunity(immunity)
 {
-    std::cout << "Creating Creature, id = " << id << "\n";
+    // std::cout << "Creating Creature, id = " << id << "\n";
 }
 
 Creature::Creature(const Creature &other):
@@ -32,7 +32,7 @@ Creature::Creature(const Creature &other):
     fitness(other.fitness),
     immunity(other.immunity)
 {
-    std::cout << "Copying Creature, id "<<other.id<<"->"<<id<< "\n";
+    // std::cout << "Copying Creature, id "<<other.id<<"->"<<id<< "\n";
 
     std::map<BodyPart*, BodyPart*> partMapping;
 
@@ -84,7 +84,7 @@ Creature::Creature(const Creature &other):
 
 Creature::~Creature()
 {
-    std::cout << "Deleting Creature, id = "<<id<<"\n";
+    // std::cout << "Deleting Creature, id = "<<id<<"\n";
     for (Joint* joint : joints) {
         delete joint;
     }

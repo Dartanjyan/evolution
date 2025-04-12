@@ -4,7 +4,11 @@
 bool WxApp::OnInit() {
     WxFrame *frame = new WxFrame("Simulation", wxDefaultPosition, wxDefaultSize);
     frame->Show(true);
-    std::cout<<"WxApp::OnInit: Frame shown\n";
 
     return true;
+}
+
+int WxApp::Run()
+{
+    return wxApp::OnRun();
 }

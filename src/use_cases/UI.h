@@ -2,6 +2,7 @@
 #define UI_H
 
 #include <stdexcept>
+#include <iostream>
 #include "ICLI.h"
 #include "IGUI.h"
 #include "IUI.h"
@@ -13,7 +14,6 @@ public:
     ~UI() override;
 
     int Run(bool gui) override;
-    void Init(bool gui);
 private:
     IGUI* gui_;
     ICLI* cli_;

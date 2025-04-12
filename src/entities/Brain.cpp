@@ -10,7 +10,7 @@ Brain::Brain(const std::vector<unsigned short> layers,
 	weights(weights),
 	biasWeights(biasWeights)
 {
-	std::cout << "Creating new Brain, id = "<<id<<"\n";
+	// std::cout << "Creating new Brain, id = "<<id<<"\n";
 }
 
 Brain::Brain(const Brain &other):
@@ -20,10 +20,10 @@ Brain::Brain(const Brain &other):
 	memory(other.memory),
 	biasWeights(other.biasWeights)
 {
-	std::cout << "Copying Brain, id "<<other.id<<"->"<<id<<"\n";
+	// std::cout << "Copying Brain, id "<<other.id<<"->"<<id<<"\n";
 }
 
 Brain::~Brain()
 {
-	std::cout << "Deleting Brain, id = "<<id<<"\n";
+	// std::cout << "Deleting Brain, id = "<<id<<"\n";
 }

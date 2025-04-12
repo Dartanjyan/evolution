@@ -13,11 +13,11 @@ Joint::Joint(BodyPart* bodyA, BodyPart* bodyB, Vector2 anchorA, Vector2 anchorB,
     damping(damping), 
     collideConnected(collideConnected)
 {
-    std::cout << "Creating Joint, id = "<<id<< "\n";
+    // std::cout << "Creating Joint, id = "<<id<< "\n";
 }
 
 Joint::~Joint() {
-    std::cout << "Deleting Joint, id = " << id << "\n";
+    // std::cout << "Deleting Joint, id = " << id << "\n";
 }
 
 Joint::Joint(const Joint &other): 
@@ -31,7 +31,7 @@ Joint::Joint(const Joint &other):
     damping(other.damping), 
     collideConnected(other.collideConnected) 
 {
-    std::cout << "Copying Joint, id "<<other.id<<"->"<<id<< "\n";
+    // std::cout << "Copying Joint, id "<<other.id<<"->"<<id<< "\n";
 }
 
 unsigned Joint::newId() { return ++Joint::last_id; }

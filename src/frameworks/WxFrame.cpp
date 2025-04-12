@@ -11,7 +11,7 @@ WxFrame::WxFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     menuFile->Append(wxID_EXIT);
 
     wxMenu *menuHelp = new wxMenu;
-    menuHelp->Append(wxID_ABOUT);
+    menuHelp->Append(wxID_ABOUT, "&About\tF1", "Show about dialog");
 
     wxMenuBar *menuBar = new wxMenuBar;
     menuBar->Append(menuFile, "&File");

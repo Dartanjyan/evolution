@@ -6,7 +6,7 @@ BodyPart::BodyPart():
     BodyPart::BodyPart(nullptr, std::vector<Vector2>{})
 {
     id = BodyPart::newId();
-    std::cout << "Created empty BodyPart, id = "<<id<< "\n";
+    // std::cout << "Created empty BodyPart, id = "<<id<< "\n";
 }
 
 BodyPart::BodyPart(
@@ -27,7 +27,7 @@ BodyPart::BodyPart(
     mass(mass), 
     elasticity(elasticity)
 {
-    std::cout << "Creating BodyPart, id = "<<id<< "\n";
+    // std::cout << "Creating BodyPart, id = "<<id<< "\n";
 }
 
 BodyPart::BodyPart(const BodyPart &other, BodyPart* parent):
@@ -40,7 +40,7 @@ BodyPart::BodyPart(const BodyPart &other, BodyPart* parent):
     elasticity(other.elasticity),
     isSensorPart(other.isSensorPart)
 {
-    std::cout << "Copying BodyPart, id "<<other.id<<"->"<<id<< "\n";
+    // std::cout << "Copying BodyPart, id "<<other.id<<"->"<<id<< "\n";
 
     for(auto child : other.children) {
         children.push_back(new BodyPart(*child));
@@ -49,18 +49,18 @@ BodyPart::BodyPart(const BodyPart &other, BodyPart* parent):
 
 BodyPart::~BodyPart()
 {
-    std::cout << "Deleting BodyPart, id = "<<id<<", which has ";
+    // std::cout << "Deleting BodyPart, id = "<<id<<", which has ";
     if (children.size() > 0) { 
-        std::cout << children.size(); 
+        // std::cout << children.size(); 
         if (children.size()%10 == 1) { 
-            std::cout << " child"; 
+            // std::cout << " child"; 
         } else {
-            std::cout << " children";
+            // std::cout << " children";
         }
     } else {
-        std::cout << "no children";
+        // std::cout << "no children";
     }
-    std::cout << "\n";
+    // std::cout << "\n";
 
 
     for(auto* child: children) {

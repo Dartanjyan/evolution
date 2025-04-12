@@ -20,6 +20,7 @@ int ApplicationManager::Run(int argc, char** argv, IUI* ui) {
         }
     }
     
-    
-    return ui->Run(gui);
+    int result = ui->Run(gui);
+    delete ui;
+    return result;
 }
