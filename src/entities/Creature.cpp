@@ -59,8 +59,8 @@ Creature::Creature(const Creature &other):
     }
 
     for (Constraint* oldJoint : other.joints) {
-        BodyPart* oldBodyA = oldJoint->getBodyA();
-        BodyPart* oldBodyB = oldJoint->getBodyB();
+        BodyPart* oldBodyA = oldJoint->getPartA();
+        BodyPart* oldBodyB = oldJoint->getPartB();
 
         auto itA = partMapping.find(oldBodyA);
         auto itB = partMapping.find(oldBodyB);
@@ -70,7 +70,7 @@ Creature::Creature(const Creature &other):
             BodyPart* newBodyB = itB->second;
 
             Constraint* newJoint = new Constraint(
-                newBodyA, newBodyB,
+                newBodyA, newBodyB, oldJoint->getType(),
                 oldJoint->getAnchorA(), oldJoint->getAnchorB(),
                 oldJoint->getRest(), oldJoint->getStiffness(),
                 oldJoint->getDamping(), oldJoint->getCollideConnected()
@@ -164,10 +164,10 @@ Creature* Creature::createBasicCreature()
     
     std::vector<BodyPart*> bodyParts = {body, limb1, limb2, limb3, limb4};
     
-    Constraint* joint1 = new Constraint(body, limb1, Vector2(0.0f, -1.0f), Vector2(0.0f, 0.0f));
-    Constraint* joint2 = new Constraint(body, limb2, Vector2(1.0f, 0.0f), Vector2(0.0f, 0.0f));
-    Constraint* joint3 = new Constraint(body, limb3, Vector2(0.0f, 1.0f), Vector2(0.0f, 0.0f));
-    Constraint* joint4 = new Constraint(body, limb4, Vector2(-1.0f, 0.0f), Vector2(0.0f, 0.0f));
+    Constraint* joint1 = new Constraint(body, limb1, ConstraintType::JOINT, Vector2(0.0f, -1.0f), Vector2(0.0f, 0.0f));
+    Constraint* joint2 = new Constraint(body, limb2, ConstraintType::JOINT, Vector2(1.0f, 0.0f), Vector2(0.0f, 0.0f));
+    Constraint* joint3 = new Constraint(body, limb3, ConstraintType::JOINT, Vector2(0.0f, 1.0f), Vector2(0.0f, 0.0f));
+    Constraint* joint4 = new Constraint(body, limb4, ConstraintType::JOINT, Vector2(-1.0f, 0.0f), Vector2(0.0f, 0.0f));
     
     std::vector<Constraint*> joints = {joint1, joint2, joint3, joint4};
     

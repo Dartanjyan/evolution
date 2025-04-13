@@ -33,7 +33,7 @@ public:
     ~Creature();
     
     unsigned getId() const { return id; }
-    const std::vector<Constraint*>& getJoints() const { return joints; }
+    const std::vector<Constraint*> getConstraints() const { return joints; }
     const Brain* getBrain() const { return brain; }
     float getFitness() const { return fitness; }
     

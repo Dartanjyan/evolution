@@ -18,12 +18,12 @@ struct BodyObject {
 struct ShapeObject {
     float radius;
     std::vector<Vector2> vertices;
-    BodyObject* body;
+    BodyObject* body = nullptr;
 };
 
 struct ConstraintObject {
-    BodyObject* bodyA;
-    BodyObject* bodyB;
+    BodyObject* partA;
+    BodyObject* partB;
     float anchorAX;
     float anchorAY;
     float anchorBX;

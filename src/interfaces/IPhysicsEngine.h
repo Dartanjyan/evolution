@@ -16,12 +16,12 @@ public:
     virtual void update(float dt) = 0;
     virtual void shutdown() = 0;
 
-    virtual void addBodyPart(BodyPart* bodyPart) = 0;
-    virtual void addConstraint(Constraint* constraint) = 0;
+    virtual void addBodyPart(unsigned creature_id, BodyPart* bodyPart) = 0;
+    virtual void addConstraint(unsigned creature_id, Constraint* constraint) = 0;
     virtual void addCreature(Creature* creature) = 0;
-    virtual void removeBodyPart(BodyPart* bodyPart) = 0;
-    virtual void removeConstraint(Constraint* constraint) = 0;
-    virtual void removeCreature(Creature* creature) = 0;
+    virtual void removeBodyPart(unsigned creature_id, BodyPart* bodyPart) = 0;
+    virtual void removeConstraint(unsigned creature_id, Constraint* constraint) = 0;
+    virtual void removeCreature(unsigned creature_id) = 0;
 
     virtual void getRenderObjects(
         std::vector<BodyObject>& bodies,

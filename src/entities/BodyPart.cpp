@@ -120,12 +120,12 @@ BodyPart *BodyPart::getRootParent() const
 
 const std::vector<BodyPart *> BodyPart::getAllChildren() const
 {
-    std::vector<BodyPart *> _all_children = children;
+    std::vector<BodyPart *> all_children = children;
     for (const auto& child : children) {
         const auto& child_children = child->getAllChildren();
-        _all_children.insert(_all_children.end(), child_children.begin(), child_children.end());
+        all_children.insert(all_children.end(), child_children.begin(), child_children.end());
     }
-    return _all_children;
+    return all_children;
 }
 
 unsigned BodyPart::newId() { return ++BodyPart::last_id; }
