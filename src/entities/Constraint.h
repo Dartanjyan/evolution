@@ -1,9 +1,9 @@
-#ifndef JOINT_H
-#define JOINT_H
+#ifndef CONSTRAINT_H
+#define CONSTRAINT_H
 #include "BodyPart.h"
 #include <iostream>
 
-class Joint {
+class Constraint {
 private:
     unsigned id;
     BodyPart* bodyA;
@@ -18,12 +18,12 @@ private:
     static unsigned last_id;
 
 public:
-    Joint(BodyPart* bodyA, BodyPart* bodyB,
+    Constraint(BodyPart* bodyA, BodyPart* bodyB,
           Vector2 anchorA = Vector2{}, Vector2 anchorB = Vector2{},
           float rest = 0.0f, float stiffness = 0.0f, 
           float damping = 0.0f, bool collideConnected = false);
-    Joint(const Joint& other);
-    ~Joint();
+    Constraint(const Constraint& other);
+    ~Constraint();
 
     unsigned getId() const { return id; }
     BodyPart* getBodyA() const { return bodyA; }

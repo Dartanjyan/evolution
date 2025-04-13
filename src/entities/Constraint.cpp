@@ -1,9 +1,9 @@
-#include "Joint.h"
+#include "Constraint.h"
 
-unsigned Joint::last_id = 0;
+unsigned Constraint::last_id = 0;
 
-Joint::Joint(BodyPart* bodyA, BodyPart* bodyB, Vector2 anchorA, Vector2 anchorB, float rest, float stiffness, float damping, bool collideConnected): 
-    id(Joint::newId()), 
+Constraint::Constraint(BodyPart* bodyA, BodyPart* bodyB, Vector2 anchorA, Vector2 anchorB, float rest, float stiffness, float damping, bool collideConnected): 
+    id(Constraint::newId()), 
     bodyA(bodyA),
     bodyB(bodyB),
     anchorA(anchorA),
@@ -16,12 +16,12 @@ Joint::Joint(BodyPart* bodyA, BodyPart* bodyB, Vector2 anchorA, Vector2 anchorB,
     // std::cout << "Creating Joint, id = "<<id<< "\n";
 }
 
-Joint::~Joint() {
+Constraint::~Constraint() {
     // std::cout << "Deleting Joint, id = " << id << "\n";
 }
 
-Joint::Joint(const Joint &other): 
-    id(Joint::newId()), 
+Constraint::Constraint(const Constraint &other): 
+    id(Constraint::newId()), 
     bodyA(other.bodyA), 
     bodyB(other.bodyB),
     anchorA(other.anchorA),
@@ -34,7 +34,7 @@ Joint::Joint(const Joint &other):
     // std::cout << "Copying Joint, id "<<other.id<<"->"<<id<< "\n";
 }
 
-unsigned Joint::newId() { return ++Joint::last_id; }
+unsigned Constraint::newId() { return ++Constraint::last_id; }
 
-void Joint::resetId() { Joint::last_id = 0; }
+void Constraint::resetId() { Constraint::last_id = 0; }
 

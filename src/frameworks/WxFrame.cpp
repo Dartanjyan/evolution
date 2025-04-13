@@ -28,8 +28,17 @@ WxFrame::WxFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     Center();
 
     // Filling frame with gui stuff
-    DrawPanel *panel = new DrawPanel(this, wxID_ANY);
-    panel->SetBackgroundStyle(wxBG_STYLE_PAINT);
+    DrawPanel *drawPanel = new DrawPanel(this, wxID_ANY);
+    drawPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
+
+    wxPanel *controlPanel = new wxPanel(this, wxID_ANY);
+    controlPanel->SetBackgroundColour(wxColour(255, 255, 255));
+    wxButton *startButton = new wxButton(controlPanel, ID_START, "Start", wxDefaultPosition, wxDefaultSize);
+
+    wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(controlPanel, 0, wxEXPAND | wxBOTTOM, 1);
+    sizer->Add(drawPanel, 1, wxEXPAND | wxALL);
+    this->SetSizer(sizer);
 
     Bind(wxEVT_MENU, &WxFrame::OnExit, this, wxID_EXIT);
     Bind(wxEVT_MENU, &WxFrame::OnAbout, this, wxID_ABOUT);

@@ -49,4 +49,5 @@ target_include_directories(evolution PRIVATE
     src/use_cases
     src/interfaces
     src/frameworks
+    src/dto
 )

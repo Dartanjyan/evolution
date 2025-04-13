@@ -7,14 +7,14 @@ unsigned Creature::last_id = 0;
 Creature::Creature() 
     : id(Creature::newId()),
       bodyParts(std::vector<BodyPart*> {}),
-      joints(std::vector<Joint*> {}),
+      joints(std::vector<Constraint*> {}),
       fitness(0.0f)
 {
     // std::cout << "Creating empty Creature, id = " << id << "\n";
 }
 
 Creature::Creature(std::vector<BodyPart*> bodyParts, 
-                std::vector<Joint*> joints,
+                std::vector<Constraint*> joints,
                 Brain* brain,
                 unsigned immunity): 
     id(Creature::newId()), 
@@ -58,7 +58,7 @@ Creature::Creature(const Creature &other):
         mapBodyPartsRecursively(oldPart, newPart);
     }
 
-    for (Joint* oldJoint : other.joints) {
+    for (Constraint* oldJoint : other.joints) {
         BodyPart* oldBodyA = oldJoint->getBodyA();
         BodyPart* oldBodyB = oldJoint->getBodyB();
 
@@ -69,7 +69,7 @@ Creature::Creature(const Creature &other):
             BodyPart* newBodyA = itA->second;
             BodyPart* newBodyB = itB->second;
 
-            Joint* newJoint = new Joint(
+            Constraint* newJoint = new Constraint(
                 newBodyA, newBodyB,
                 oldJoint->getAnchorA(), oldJoint->getAnchorB(),
                 oldJoint->getRest(), oldJoint->getStiffness(),
@@ -85,7 +85,7 @@ Creature::Creature(const Creature &other):
 Creature::~Creature()
 {
     // std::cout << "Deleting Creature, id = "<<id<<"\n";
-    for (Joint* joint : joints) {
+    for (Constraint* joint : joints) {
         delete joint;
     }
     joints.clear();
@@ -104,14 +104,14 @@ void Creature::replaceBrain(Brain *new_brain)
     brain = new_brain;
 }
 
-void Creature::addJoint(Joint *joint)
+void Creature::addConstraint(Constraint *joint)
 {
     if (joint) {
         joints.push_back(joint);
     }
 }
 
-void Creature::removeJoint(Joint* joint)
+void Creature::removeConstraint(Constraint* joint)
 {
     if (!joint) return;
     
@@ -164,12 +164,12 @@ Creature* Creature::createBasicCreature()
     
     std::vector<BodyPart*> bodyParts = {body, limb1, limb2, limb3, limb4};
     
-    Joint* joint1 = new Joint(body, limb1, Vector2(0.0f, -1.0f), Vector2(0.0f, 0.0f));
-    Joint* joint2 = new Joint(body, limb2, Vector2(1.0f, 0.0f), Vector2(0.0f, 0.0f));
-    Joint* joint3 = new Joint(body, limb3, Vector2(0.0f, 1.0f), Vector2(0.0f, 0.0f));
-    Joint* joint4 = new Joint(body, limb4, Vector2(-1.0f, 0.0f), Vector2(0.0f, 0.0f));
+    Constraint* joint1 = new Constraint(body, limb1, Vector2(0.0f, -1.0f), Vector2(0.0f, 0.0f));
+    Constraint* joint2 = new Constraint(body, limb2, Vector2(1.0f, 0.0f), Vector2(0.0f, 0.0f));
+    Constraint* joint3 = new Constraint(body, limb3, Vector2(0.0f, 1.0f), Vector2(0.0f, 0.0f));
+    Constraint* joint4 = new Constraint(body, limb4, Vector2(-1.0f, 0.0f), Vector2(0.0f, 0.0f));
     
-    std::vector<Joint*> joints = {joint1, joint2, joint3, joint4};
+    std::vector<Constraint*> joints = {joint1, joint2, joint3, joint4};
     
     Brain* brain = new Brain(std::vector<unsigned short>{1}, std::vector<std::vector<double>>{
         {0.5, 0.5, 0.5, 0.5},

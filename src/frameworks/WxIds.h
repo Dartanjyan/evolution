@@ -3,7 +3,8 @@
 
 enum
 {
-    ID_TIMER = 2
+    ID_TIMER = 2,
+    ID_START
 };
 
 #endif

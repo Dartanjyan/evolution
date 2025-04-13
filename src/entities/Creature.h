@@ -7,7 +7,7 @@
 #include <map>
 #include <functional>
 #include "BodyPart.h"
-#include "Joint.h"
+#include "Constraint.h"
 #include "Brain.h"
 
 class Creature {
@@ -15,7 +15,7 @@ private:
     unsigned id;
     // only these parts that don't have parent
     std::vector<BodyPart*> bodyParts;
-    std::vector<Joint*> joints;
+    std::vector<Constraint*> joints;
     Brain* brain;
     float fitness;
     
@@ -26,22 +26,22 @@ private:
 public:
     Creature();
     Creature(std::vector<BodyPart*> bodyParts, 
-        std::vector<Joint*> joints, 
+        std::vector<Constraint*> joints, 
         Brain* brain,
         unsigned immunity = 0);
     Creature(const Creature& other);
     ~Creature();
     
     unsigned getId() const { return id; }
-    const std::vector<Joint*>& getJoints() const { return joints; }
+    const std::vector<Constraint*>& getJoints() const { return joints; }
     const Brain* getBrain() const { return brain; }
     float getFitness() const { return fitness; }
     
     void setFitness(float value) { fitness = value; }
     void replaceBrain(Brain* new_brain);
     
-    void addJoint(Joint* joint);
-    void removeJoint(Joint* joint);
+    void addConstraint(Constraint* joint);
+    void removeConstraint(Constraint* joint);
     
     // Return all the body parts recursevely
     std::vector<BodyPart*> getAllBodyParts() const;
