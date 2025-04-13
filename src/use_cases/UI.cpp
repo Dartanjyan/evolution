@@ -4,7 +4,7 @@ UI::UI(IGUI *gui, ICLI *cli) : gui_(gui), cli_(cli)
 {
     if (gui_ == nullptr)
     {
-        std::cout << "Warning! GUI or CLI is nullptr\n";
+        std::clog << "Warning! GUI or CLI is nullptr\n";
     }
 }
 

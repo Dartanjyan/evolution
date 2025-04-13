@@ -19,17 +19,8 @@ public:
 private:
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
-    void OnPaint(wxPaintEvent& event);
-    void OnTimer(wxTimerEvent& event);
 
     void UpdateLogic();
-    
-    wxTimer* timer;
-};
-
-enum
-{
-    ID_TIMER = 2
 };
 
 #endif
