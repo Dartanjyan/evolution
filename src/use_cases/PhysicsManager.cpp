@@ -1,9 +1,15 @@
 #include "PhysicsManager.h"
 #include <chrono>
 
-PhysicsManager::PhysicsManager(std::unique_ptr<IPhysicsEngine> engine)
-    : engine(std::move(engine)), running(false)
+PhysicsManager::PhysicsManager(IPhysicsEngine* engine)
+    : engine(engine), running(false)
 {}
+
+
+void PhysicsManager::getRenderObjects(std::vector<BodyObject> &bodies, std::vector<ShapeObject> &shapes, std::vector<ConstraintObject> &constraints) const
+{
+    engine->getRenderObjects(bodies, shapes, constraints);
+}
 
 PhysicsManager::~PhysicsManager() {
     stop();

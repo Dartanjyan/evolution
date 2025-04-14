@@ -9,7 +9,6 @@ struct Vector2 {
     Vector2() = default;
     Vector2(float x, float y) : x(x), y(y) {}
     
-    // Основные операции с векторами
     Vector2 operator+(const Vector2& other) const {
         return Vector2(x + other.x, y + other.y);
     }

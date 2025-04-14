@@ -9,10 +9,10 @@ struct BodyObject {
     float y;
     float angle;
     float mass;
-    float inertia;
+    // float inertia;
     float velocityX;
     float velocityY;
-    float angularVelocity;
+    // float angularVelocity;
 };
 
 struct ShapeObject {
@@ -28,7 +28,7 @@ struct ConstraintObject {
     float anchorAY;
     float anchorBX;
     float anchorBY;
-    float maxForce;
+    // float maxForce;
 };
 
 #endif

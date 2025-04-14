@@ -124,9 +124,9 @@ void ChipmunkEngine::removeConstraint(unsigned creature_id, Constraint *constrai
         ChimpmunkCreature* chimpmunkCreature = it->second;
         auto constraintIt = chimpmunkCreature->constraints.find(constraint->getId());
         if (constraintIt != chimpmunkCreature->constraints.end()) {
-            cpConstraint* joint = constraintIt->second;
-            cpSpaceRemoveConstraint(space, joint);
-            cpConstraintFree(joint);
+            cpConstraint* constraint = constraintIt->second;
+            cpSpaceRemoveConstraint(space, constraint);
+            cpConstraintFree(constraint);
             chimpmunkCreature->constraints.erase(constraintIt);
         }
     }
@@ -142,7 +142,10 @@ void ChipmunkEngine::removeCreature(unsigned creature_id)
 
 void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies, 
     std::vector<ShapeObject> &shapes, 
-    std::vector<ConstraintObject> &joints) const
+    std::vector<ConstraintObject> &constraints) const
 {
-    // TODO: Implement this function to fill the bodies, shapes, and joints vectors   
+    // TODO: Implement this function to fill the bodies, shapes, and constraints vectors
+    for (const auto& creature : creatures) {
+
+    }
 }

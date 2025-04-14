@@ -2,13 +2,16 @@
 #include <wx/dcbuffer.h>
 #include <chrono>
 
-DrawPanel::DrawPanel(wxWindow* parent, wxWindowID id,
+DrawPanel::DrawPanel(PhysicsManager* physicsManager, wxWindow* parent, wxWindowID id,
                      const wxPoint& pos,
                      const wxSize& size,
                      long style) 
-    : wxPanel(parent, id, pos, size, style) {
+    : physicsManager(physicsManager), wxPanel(parent, id, pos, size, style) {
     
-    // Установка фона (опционально)
+    if (!physicsManager) {
+        std::cout << "DrawPanel constructor: got nullptr as physicsManager\n";
+    }
+        
     SetBackgroundColour(wxColour(240, 240, 240));
     
     timer = new wxTimer(this, ID_TIMER);
@@ -49,18 +52,20 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
 }
 */
 
-void DrawPanel::OnSize(wxSizeEvent& event) {
-    Refresh(); // Перерисовываем при изменении размера
-    event.Skip(); // Пропускаем событие дальше
-}
-
-
 void DrawPanel::OnPaint(wxPaintEvent& event) {
     wxBufferedPaintDC dc(this);
     
     dc.SetBackground(*wxWHITE);
     // Рисуем фон
     dc.Clear();
+
+    std::vector<BodyObject> bodies;
+    std::vector<ShapeObject> shapes;
+    std::vector<ConstraintObject> constraints;
+    physicsManager->getRenderObjects(bodies, shapes, constraints);
+    // TODO Drawing Shapes depending on shapes vector.
+    
+
     // Получаем текущее время
     auto now = std::chrono::system_clock::now();
     auto now_time = std::chrono::system_clock::to_time_t(now);
@@ -93,3 +98,9 @@ void DrawPanel::OnTimer(wxTimerEvent& event) {
     Refresh(false);
     Update();
 }
+
+void DrawPanel::OnSize(wxSizeEvent& event) {
+    Refresh(); // Перерисовываем при изменении размера
+    event.Skip(); // Пропускаем событие дальше
+}
+

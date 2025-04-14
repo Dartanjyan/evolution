@@ -3,6 +3,7 @@
 
 #include <string>
 #include "IUI.h"
+#include "PhysicsManager.h"
 
 namespace ApplicationManager
 {

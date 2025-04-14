@@ -8,17 +8,24 @@
 
 class PhysicsManager {
 public:
-    PhysicsManager(std::unique_ptr<IPhysicsEngine> engine);
+    PhysicsManager(IPhysicsEngine* engine);
     ~PhysicsManager();
 
     // physics thread
     void start();
     void stop();
 
+    void getRenderObjects(
+        std::vector<BodyObject>& bodies,
+        std::vector<ShapeObject>& shapes,
+        std::vector<ConstraintObject>& constraints) const;
+
+    const IPhysicsEngine* getEnginePtr() { return engine; }
+
 private:
     void run();
 
-    std::unique_ptr<IPhysicsEngine> engine;
+    IPhysicsEngine* engine;
     std::thread physicsThread;
     std::atomic<bool> running;
 };

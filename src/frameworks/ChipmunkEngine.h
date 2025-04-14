@@ -26,16 +26,16 @@ public:
     void shutdown() override;
     
     void addBodyPart(unsigned creature_id, BodyPart* bodyPart) override;
-    void addConstraint(unsigned creature_id, Constraint* joint) override;
+    void addConstraint(unsigned creature_id, Constraint* constraint) override;
     void addCreature(Creature* creature) override;
     void removeBodyPart(unsigned creature_id, BodyPart* bodyPart) override;
-    void removeConstraint(unsigned creature_id, Constraint* joint) override;
+    void removeConstraint(unsigned creature_id, Constraint* constraint) override;
     void removeCreature(unsigned creature_id) override;
 
     void getRenderObjects(
         std::vector<BodyObject>& bodies,
         std::vector<ShapeObject>& shapes,
-        std::vector<ConstraintObject>& joints) const override;
+        std::vector<ConstraintObject>& constraints) const override;
 
 
 private:

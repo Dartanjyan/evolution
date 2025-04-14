@@ -3,7 +3,7 @@
 #include <wx/dcclient.h>
 #include <wx/dcbuffer.h>
 
-WxFrame::WxFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
+WxFrame::WxFrame(PhysicsManager* physicsManager, const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(nullptr, wxID_ANY, title, pos, size)
 {
     // Setting up a menu bar
@@ -28,7 +28,7 @@ WxFrame::WxFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     Center();
 
     // Filling frame with gui stuff
-    DrawPanel *drawPanel = new DrawPanel(this, wxID_ANY);
+    DrawPanel *drawPanel = new DrawPanel(physicsManager, this, wxID_ANY);
     drawPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
     wxPanel *controlPanel = new wxPanel(this, wxID_ANY);

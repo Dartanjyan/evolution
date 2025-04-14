@@ -7,20 +7,20 @@ unsigned Creature::last_id = 0;
 Creature::Creature() 
     : id(Creature::newId()),
       bodyParts(std::vector<BodyPart*> {}),
-      joints(std::vector<Constraint*> {}),
+      constraints(std::vector<Constraint*> {}),
       fitness(0.0f)
 {
     // std::cout << "Creating empty Creature, id = " << id << "\n";
 }
 
 Creature::Creature(std::vector<BodyPart*> bodyParts, 
-                std::vector<Constraint*> joints,
+                std::vector<Constraint*> constraints,
                 Brain* brain,
                 unsigned immunity): 
     id(Creature::newId()), 
     bodyParts(bodyParts),
     brain(brain),
-    joints(joints),
+    constraints(constraints),
     fitness(0.0f),
     immunity(immunity)
 {
@@ -58,9 +58,9 @@ Creature::Creature(const Creature &other):
         mapBodyPartsRecursively(oldPart, newPart);
     }
 
-    for (Constraint* oldJoint : other.joints) {
-        BodyPart* oldBodyA = oldJoint->getPartA();
-        BodyPart* oldBodyB = oldJoint->getPartB();
+    for (Constraint* oldConstraint : other.constraints) {
+        BodyPart* oldBodyA = oldConstraint->getPartA();
+        BodyPart* oldBodyB = oldConstraint->getPartB();
 
         auto itA = partMapping.find(oldBodyA);
         auto itB = partMapping.find(oldBodyB);
@@ -69,13 +69,13 @@ Creature::Creature(const Creature &other):
             BodyPart* newBodyA = itA->second;
             BodyPart* newBodyB = itB->second;
 
-            Constraint* newJoint = new Constraint(
-                newBodyA, newBodyB, oldJoint->getType(),
-                oldJoint->getAnchorA(), oldJoint->getAnchorB(),
-                oldJoint->getRest(), oldJoint->getStiffness(),
-                oldJoint->getDamping(), oldJoint->getCollideConnected()
+            Constraint* newConstraint = new Constraint(
+                newBodyA, newBodyB, oldConstraint->getType(),
+                oldConstraint->getAnchorA(), oldConstraint->getAnchorB(),
+                oldConstraint->getRest(), oldConstraint->getStiffness(),
+                oldConstraint->getDamping(), oldConstraint->getCollideConnected()
             );
-            joints.push_back(newJoint);
+            constraints.push_back(newConstraint);
         }
     }
     
@@ -85,15 +85,15 @@ Creature::Creature(const Creature &other):
 Creature::~Creature()
 {
     // std::cout << "Deleting Creature, id = "<<id<<"\n";
-    for (Constraint* joint : joints) {
-        delete joint;
+    for (Constraint* constraint : constraints) {
+        delete constraint;
     }
-    joints.clear();
+    constraints.clear();
 
     for (BodyPart* part : bodyParts) {
         delete part;
     }
-    joints.clear();
+    constraints.clear();
 
     delete brain;
 }
@@ -104,21 +104,21 @@ void Creature::replaceBrain(Brain *new_brain)
     brain = new_brain;
 }
 
-void Creature::addConstraint(Constraint *joint)
+void Creature::addConstraint(Constraint *constraint)
 {
-    if (joint) {
-        joints.push_back(joint);
+    if (constraint) {
+        constraints.push_back(constraint);
     }
 }
 
-void Creature::removeConstraint(Constraint* joint)
+void Creature::removeConstraint(Constraint* constraint)
 {
-    if (!joint) return;
+    if (!constraint) return;
     
-    auto it = std::find(joints.begin(), joints.end(), joint);
-    if (it != joints.end()) {
+    auto it = std::find(constraints.begin(), constraints.end(), constraint);
+    if (it != constraints.end()) {
         delete *it;
-        joints.erase(it);
+        constraints.erase(it);
     }
 }
 
@@ -164,12 +164,12 @@ Creature* Creature::createBasicCreature()
     
     std::vector<BodyPart*> bodyParts = {body, limb1, limb2, limb3, limb4};
     
-    Constraint* joint1 = new Constraint(body, limb1, ConstraintType::JOINT, Vector2(0.0f, -1.0f), Vector2(0.0f, 0.0f));
-    Constraint* joint2 = new Constraint(body, limb2, ConstraintType::JOINT, Vector2(1.0f, 0.0f), Vector2(0.0f, 0.0f));
-    Constraint* joint3 = new Constraint(body, limb3, ConstraintType::JOINT, Vector2(0.0f, 1.0f), Vector2(0.0f, 0.0f));
-    Constraint* joint4 = new Constraint(body, limb4, ConstraintType::JOINT, Vector2(-1.0f, 0.0f), Vector2(0.0f, 0.0f));
+    Constraint* constraint1 = new Constraint(body, limb1, ConstraintType::JOINT, Vector2(0.0f, -1.0f), Vector2(0.0f, 0.0f));
+    Constraint* constraint2 = new Constraint(body, limb2, ConstraintType::JOINT, Vector2(1.0f, 0.0f), Vector2(0.0f, 0.0f));
+    Constraint* constraint3 = new Constraint(body, limb3, ConstraintType::JOINT, Vector2(0.0f, 1.0f), Vector2(0.0f, 0.0f));
+    Constraint* constraint4 = new Constraint(body, limb4, ConstraintType::JOINT, Vector2(-1.0f, 0.0f), Vector2(0.0f, 0.0f));
     
-    std::vector<Constraint*> joints = {joint1, joint2, joint3, joint4};
+    std::vector<Constraint*> constraints = {constraint1, constraint2, constraint3, constraint4};
     
     Brain* brain = new Brain(std::vector<unsigned short>{1}, std::vector<std::vector<double>>{
         {0.5, 0.5, 0.5, 0.5},
@@ -178,7 +178,7 @@ Creature* Creature::createBasicCreature()
         {0.5, 0.5, 0.5, 0.5}
     }, std::vector<double>{0.5, 0.5, 0.5, 0.5});
 
-    Creature* creature = new Creature(bodyParts, joints, brain);
+    Creature* creature = new Creature(bodyParts, constraints, brain);
     
     return creature;
 }

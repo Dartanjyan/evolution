@@ -6,6 +6,7 @@
 #include "ICLI.h"
 #include "IGUI.h"
 #include "IUI.h"
+#include "PhysicsManager.h"
 
 class UI : public IUI
 {

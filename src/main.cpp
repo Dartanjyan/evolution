@@ -1,7 +1,11 @@
 #include <iostream>
 #include "ApplicationManager.h"
+#include "PhysicsManager.h"
 #include "UI.h"
 #include "WxApp.h"
+#include "ChipmunkEngine.h"
+
+#include "PhysicsObjects.h"
 
 wxDECLARE_APP(WxApp);
 wxIMPLEMENT_APP_NO_MAIN(WxApp);
@@ -13,7 +17,12 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    ChipmunkEngine* engine = new ChipmunkEngine();
+
+    auto* physicsManager = new PhysicsManager(engine);
+
     WxApp* app = new WxApp();
+    app->setPhysicsManager(physicsManager);
     wxApp::SetInstance(app);
 
     if (!app->CallOnInit()) {
@@ -23,7 +32,13 @@ int main(int argc, char** argv) {
     }
 
     UI* ui = new UI(app, nullptr);
+
     int result = ApplicationManager::Run(argc, argv, ui);
     wxEntryCleanup();
+
+    delete ui;
+    delete physicsManager;
+    delete engine;
+
     return result;
 }

@@ -21,6 +21,5 @@ int ApplicationManager::Run(int argc, char** argv, IUI* ui) {
     }
     
     int result = ui->Run(gui);
-    delete ui;
     return result;
 }
