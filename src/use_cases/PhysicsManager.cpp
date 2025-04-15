@@ -20,6 +20,9 @@ void PhysicsManager::start() {
         running.store(true);
         engine->initialize();
         physicsThread = std::thread(&PhysicsManager::run, this);
+        std::cout << "Created new physics thread\n";
+    } else {
+        std::cout << "Physics thread already running\n";
     }
 }
 
@@ -29,6 +32,7 @@ void PhysicsManager::stop() {
         if (physicsThread.joinable())
             physicsThread.join();
         engine->shutdown();
+        std::cout<<"Physics engine has been shut down\n";
     }
 }
 

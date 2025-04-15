@@ -141,6 +141,16 @@ std::vector<BodyPart*> Creature::getAllBodyParts() const
     return std::vector<BodyPart*>(allParts);
 }
 
+const BodyPart* Creature::getBodyPartById(unsigned id) const
+{
+    for (auto* bodyPart : this->getAllBodyParts()) {
+        if (bodyPart->getId() == id) { 
+            return bodyPart;
+        }
+    }
+    return nullptr;
+}
+
 Creature* Creature::createBasicCreature()
 {
     std::vector<Vector2> bodyVertices = {

@@ -3,31 +3,32 @@
 
 #include <vector>
 #include "Vector2.h"
+#include "Constraint.h"
 
 struct BodyObject {
-    float x;
-    float y;
+    Vector2 position;
     float angle;
     float mass;
     // float inertia;
-    float velocityX;
-    float velocityY;
+    Vector2 velocity;
     // float angularVelocity;
+    unsigned id;
 };
 
 struct ShapeObject {
     float radius;
     std::vector<Vector2> vertices;
-    BodyObject* body = nullptr;
+    BodyObject* body;
+    unsigned id;
 };
 
 struct ConstraintObject {
     BodyObject* partA;
     BodyObject* partB;
-    float anchorAX;
-    float anchorAY;
-    float anchorBX;
-    float anchorBY;
+    Vector2 anchorA;
+    Vector2 anchorB;
+    ConstraintType constraintType;
+    unsigned id;
     // float maxForce;
 };
 

@@ -14,6 +14,11 @@ void ChipmunkEngine::initialize() {
 
 void ChipmunkEngine::update(float dt) {
     cpSpaceStep(space, dt);
+    if (this->creatures.size() > 0) {
+        auto* creat = this->creatures[0];
+        auto& _bodies = creat->bodies;
+        std::cout<<"Amount of creatures sizes: "<<_bodies.size()<<"\n";
+    }
 }
 
 void ChipmunkEngine::shutdown() {
@@ -145,7 +150,38 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
     std::vector<ConstraintObject> &constraints) const
 {
     // TODO: Implement this function to fill the bodies, shapes, and constraints vectors
-    for (const auto& creature : creatures) {
+    for (auto& creature : creatures) {
+        for (auto& bodyPair : creature.second->bodies) {
+            // Body
+            BodyObject obj_body;
+            cpBody* body = bodyPair.second;
+            cpVect position = cpBodyGetPosition(body);
+            cpVect velocity = cpBodyGetVelocity(body);
 
+            obj_body.position.x = position.x;
+            obj_body.position.y = position.y;
+            obj_body.velocity.x = velocity.x;
+            obj_body.velocity.y = velocity.y;
+
+            obj_body.angle = cpBodyGetAngle(body);
+            obj_body.mass = cpBodyGetMass(body);
+            obj_body.id = bodyPair.first;
+            bodies.push_back(obj_body);
+        }
+        for (auto& shapePair : creature.second->shapes) {
+            // Shape
+            ShapeObject obj_shape;
+            cpShape* shape = shapePair.second;
+            cpBody* body = cpShapeGetBody(shape);
+
+            unsigned id = shapePair.first;
+            obj_shape.id = id;
+            obj_shape.radius = creature.second->creature->getBodyPartById(id)->getRadius();
+            obj_shape.vertices = creature.second->creature->getBodyPartById(id)->getVertices();
+            shapes.push_back(obj_shape);
+        }
+        for (auto& constraint : creature.second->constraints) {
+            // Constraint
+        }
     }
 }

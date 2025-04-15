@@ -12,7 +12,7 @@ private:
 public:
     bool OnInit() override;
     int Run() override;
-    void setPhysicsManager(PhysicsManager* physics_manager) { this->physicsManager = physics_manager; }
+    void setPhysicsManager(PhysicsManager* physics_manager);
 };
 
 #endif

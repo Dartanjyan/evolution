@@ -47,6 +47,7 @@ public:
     std::vector<BodyPart*> getAllBodyParts() const;
     // Return all the body parts that are not children of other parts
     std::vector<BodyPart*> getMainBodyParts() const { return bodyParts; }
+    const BodyPart* getBodyPartById(unsigned id) const;
     
     static Creature* createBasicCreature();
     

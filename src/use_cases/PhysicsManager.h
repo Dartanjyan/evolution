@@ -20,7 +20,7 @@ public:
         std::vector<ShapeObject>& shapes,
         std::vector<ConstraintObject>& constraints) const;
 
-    const IPhysicsEngine* getEnginePtr() { return engine; }
+    IPhysicsEngine* getEnginePtr() { return engine; }
 
 private:
     void run();

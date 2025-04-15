@@ -64,7 +64,11 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
     std::vector<ConstraintObject> constraints;
     physicsManager->getRenderObjects(bodies, shapes, constraints);
     // TODO Drawing Shapes depending on shapes vector.
-    
+    for (auto& shape : shapes) {
+        dc.SetBrush(*wxBLUE_BRUSH);
+        dc.SetPen(*wxBLACK_PEN);
+        dc.DrawCircle(wxPoint(shape.vertices[0].x, shape.vertices[0].y), shape.radius);
+    }
 
     // Получаем текущее время
     auto now = std::chrono::system_clock::now();

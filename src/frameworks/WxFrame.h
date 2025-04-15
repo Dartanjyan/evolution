@@ -18,8 +18,12 @@ public:
     ~WxFrame();
     
 private:
+    PhysicsManager *physicsManager;
     void OnExit(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
+
+    void OnStart(wxCommandEvent& event);
+    void OnAdd(wxCommandEvent& event);
 };
 
 #endif
