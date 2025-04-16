@@ -8,16 +8,15 @@ ChipmunkEngine::~ChipmunkEngine() {
 
 void ChipmunkEngine::initialize() {
     space = cpSpaceNew();
-    cpSpaceSetGravity(space, cpv(0, -100));
+    cpSpaceSetGravity(space, cpv(0, -500));
     // Here I may add more settings
 }
 
 void ChipmunkEngine::update(float dt) {
     cpSpaceStep(space, dt);
     if (this->creatures.size() > 0) {
-        auto* creat = this->creatures[0];
-        auto& _bodies = creat->bodies;
-        std::cout<<"Amount of creatures sizes: "<<_bodies.size()<<"\n";
+        auto* creat = this->creatures[1];
+        // std::cout<<"Amount of creatures sizes: "<<creat->shapes.size()<<"\n";
     }
 }
 
@@ -64,6 +63,12 @@ void ChipmunkEngine::addBodyPart(unsigned creature_id, BodyPart *bodyPart)
     cpSpaceAddBody(space, body);
     this->creatures[creature_id]->bodies[bodyPart->getId()] = body;
 
+    // Add shape
+    cpShape* shape = createShape(body, bodyPart->getVertices());
+    cpSpaceAddShape(space, shape);
+    this->creatures[creature_id]->shapes[bodyPart->getId()] = shape;
+
+    // Adding shapes if bodyPart has children
     for (auto& child : bodyPart->getAllChildren()) {
         cpShape* shape = createShape(body, child->getVertices());
         cpShapeSetFriction(shape, child->getFriction());

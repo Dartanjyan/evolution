@@ -40,16 +40,16 @@ void PhysicsManager::run() {
     using namespace std::chrono;
     auto previousTime = high_resolution_clock::now();
 
-    // NOTE: probably atomic bottleneck
-    // p.s. oh this is not in engine's thread
     while (running.load()) {
-        auto currentTime = high_resolution_clock::now();
-        float dt = duration<float>(currentTime - previousTime).count();
-        previousTime = currentTime;
+        // auto currentTime = high_resolution_clock::now();
+        // float dt = duration<float>(currentTime - previousTime).count();
+        // previousTime = currentTime;
+        float dt = 0.1;
         engine->update(dt);
 	
 	while (!this->creaturesQueue.empty()) {
-	    engine->addCreature(this->creaturesQueue.front());
+        auto queue = this->creaturesQueue;
+	    engine->addCreature(queue.front());
 	    creaturesQueue.pop();
 	}
         // a little sleep to avoid cpu hogging

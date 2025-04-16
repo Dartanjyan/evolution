@@ -67,7 +67,7 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
     for (auto& shape : shapes) {
         dc.SetBrush(*wxBLUE_BRUSH);
         dc.SetPen(*wxBLACK_PEN);
-        dc.DrawCircle(wxPoint(shape.vertices[0].x, shape.vertices[0].y), shape.radius);
+        dc.DrawCircle(wxPoint(shape.vertices[0].x, shape.vertices[0].y), (shape.radius>=10) ? shape.radius : 10);
     }
 
     // Получаем текущее время
