@@ -39,12 +39,21 @@ void PhysicsManager::stop() {
 void PhysicsManager::run() {
     using namespace std::chrono;
     auto previousTime = high_resolution_clock::now();
+
+    // NOTE: probably atomic bottleneck
+    // p.s. oh this is not in engine's thread
     while (running.load()) {
         auto currentTime = high_resolution_clock::now();
         float dt = duration<float>(currentTime - previousTime).count();
         previousTime = currentTime;
         engine->update(dt);
+	
+	while (!this->creaturesQueue.empty()) {
+	    engine->addCreature(this->creaturesQueue.front());
+	    creaturesQueue.pop();
+	}
         // a little sleep to avoid cpu hogging
         std::this_thread::sleep_for(milliseconds(1));
     }
 }
+

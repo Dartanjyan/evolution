@@ -5,6 +5,8 @@
 #include <thread>
 #include <atomic>
 #include "IPhysicsEngine.h"
+#include "Creature.h"
+#include <queue>
 
 class PhysicsManager {
 public:
@@ -20,10 +22,15 @@ public:
         std::vector<ShapeObject>& shapes,
         std::vector<ConstraintObject>& constraints) const;
 
-    IPhysicsEngine* getEnginePtr() { return engine; }
+    const IPhysicsEngine* getEnginePtr() { return engine; }
+
+    // A function to add creature to a queue of adding creatures
+    void addCreature(Creature* creature) { creaturesQueue.push(creature); }
 
 private:
     void run();
+
+    std::queue<Creature*> creaturesQueue;
 
     IPhysicsEngine* engine;
     std::thread physicsThread;

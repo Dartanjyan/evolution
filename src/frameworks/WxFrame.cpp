@@ -71,5 +71,5 @@ void WxFrame::OnStart(wxCommandEvent &event)
 void WxFrame::OnAdd(wxCommandEvent &event)
 {
     Creature* creature = Creature::createBasicCreature();
-    this->physicsManager->getEnginePtr()->addCreature(creature);
+    this->physicsManager->addCreature(creature);
 }
