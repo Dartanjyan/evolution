@@ -153,18 +153,20 @@ const BodyPart* Creature::getBodyPartById(unsigned id) const
 
 Creature* Creature::createBasicCreature()
 {
+    float scale = 10;
+    Vector2 bias(100, 100);
     std::vector<Vector2> bodyVertices = {
-        Vector2(-1.0f, -1.0f),
-        Vector2( 1.0f, -1.0f),
-        Vector2( 1.0f,  1.0f),
-        Vector2(-1.0f,  1.0f)
+        Vector2(-1.0f, -1.0f)*scale+bias,
+        Vector2( 1.0f, -1.0f)*scale+bias,
+        Vector2( 1.0f,  1.0f)*scale+bias,
+        Vector2(-1.0f,  1.0f)*scale+bias
     };
     BodyPart* body = new BodyPart(nullptr, bodyVertices);
     
     std::vector<Vector2> limbVertices = {
-        Vector2(0.0f, 0.0f),
-        Vector2(0.5f, -1.0f),
-        Vector2(-0.5f, -1.0f)
+        Vector2(0.0f, 0.0f)*scale+bias,
+        Vector2(0.5f, -1.0f)*scale+bias,
+        Vector2(-0.5f, -1.0f)*scale+bias
     };
     
     BodyPart* limb1 = new BodyPart(nullptr, limbVertices);
@@ -174,10 +176,10 @@ Creature* Creature::createBasicCreature()
     
     std::vector<BodyPart*> bodyParts = {body, limb1, limb2, limb3, limb4};
     
-    Constraint* constraint1 = new Constraint(body, limb1, ConstraintType::JOINT, Vector2(0.0f, -1.0f), Vector2(0.0f, 0.0f));
-    Constraint* constraint2 = new Constraint(body, limb2, ConstraintType::JOINT, Vector2(1.0f, 0.0f), Vector2(0.0f, 0.0f));
-    Constraint* constraint3 = new Constraint(body, limb3, ConstraintType::JOINT, Vector2(0.0f, 1.0f), Vector2(0.0f, 0.0f));
-    Constraint* constraint4 = new Constraint(body, limb4, ConstraintType::JOINT, Vector2(-1.0f, 0.0f), Vector2(0.0f, 0.0f));
+    Constraint* constraint1 = new Constraint(body, limb1, ConstraintType::JOINT, Vector2(0.0f, -1.0f)*scale+bias, Vector2(0.0f, 0.0f)*scale+bias);
+    Constraint* constraint2 = new Constraint(body, limb2, ConstraintType::JOINT, Vector2(1.0f, 0.0f)*scale+bias, Vector2(0.0f, 0.0f)*scale+bias);
+    Constraint* constraint3 = new Constraint(body, limb3, ConstraintType::JOINT, Vector2(0.0f, 1.0f)*scale+bias, Vector2(0.0f, 0.0f)*scale+bias);
+    Constraint* constraint4 = new Constraint(body, limb4, ConstraintType::JOINT, Vector2(-1.0f, 0.0f)*scale+bias, Vector2(0.0f, 0.0f)*scale+bias);
     
     std::vector<Constraint*> constraints = {constraint1, constraint2, constraint3, constraint4};
     

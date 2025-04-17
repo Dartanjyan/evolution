@@ -5,7 +5,8 @@
 #include "Vector2.h"
 #include "Constraint.h"
 
-struct BodyObject {
+class BodyObject {
+public:
     Vector2 position;
     float angle;
     float mass;
@@ -15,14 +16,17 @@ struct BodyObject {
     unsigned id;
 };
 
-struct ShapeObject {
+class ShapeObject {
+public:
     float radius;
     std::vector<Vector2> vertices;
     BodyObject* body;
     unsigned id;
 };
 
-struct ConstraintObject {
+class ConstraintObject {
+public:
+    // NOTE: maybe change to ShapeObject
     BodyObject* partA;
     BodyObject* partB;
     Vector2 anchorA;

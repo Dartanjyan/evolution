@@ -41,10 +41,10 @@ void PhysicsManager::run() {
     auto previousTime = high_resolution_clock::now();
 
     while (running.load()) {
+        float dt = 0.01;
         // auto currentTime = high_resolution_clock::now();
-        // float dt = duration<float>(currentTime - previousTime).count();
+        // dt = duration<float>(currentTime - previousTime).count();
         // previousTime = currentTime;
-        float dt = 0.1;
         engine->update(dt);
 	
 	while (!this->creaturesQueue.empty()) {
@@ -53,7 +53,7 @@ void PhysicsManager::run() {
 	    creaturesQueue.pop();
 	}
         // a little sleep to avoid cpu hogging
-        std::this_thread::sleep_for(milliseconds(1));
+        std::this_thread::sleep_for(milliseconds(16));
     }
 }
 

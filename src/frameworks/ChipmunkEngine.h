@@ -41,6 +41,9 @@ public:
 private:
     cpSpace* space;
     std::map<unsigned, ChimpmunkCreature*> creatures;
+    
+    std::vector<cpShape*> world_shapes;
+    std::vector<cpBody*> world_bodies;
 };
 
 #endif

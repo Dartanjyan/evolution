@@ -26,7 +26,7 @@ DrawPanel::DrawPanel(PhysicsManager* physicsManager, wxWindow* parent, wxWindowI
 
 DrawPanel::~DrawPanel()
 {
-    if (timer && false) {
+    if (timer) {
         timer->Stop();
         delete timer;
         timer = nullptr;
@@ -64,10 +64,19 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
     std::vector<ConstraintObject> constraints;
     physicsManager->getRenderObjects(bodies, shapes, constraints);
     // TODO Drawing Shapes depending on shapes vector.
-    for (auto& shape : shapes) {
-        dc.SetBrush(*wxBLUE_BRUSH);
-        dc.SetPen(*wxBLACK_PEN);
-        dc.DrawCircle(wxPoint(shape.vertices[0].x, shape.vertices[0].y), (shape.radius>=10) ? shape.radius : 10);
+    
+    dc.SetBrush(*wxBLUE_BRUSH);
+    dc.SetPen(*wxBLACK_PEN);
+    for (size_t i=0; i < shapes.size(); i++) {
+        auto &shape = shapes.at(i);
+        dc.DrawCircle(wxPoint(shape.body->position.x, shape.body->position.y), shape.radius);
+    }
+
+    dc.SetBrush(*wxCYAN_BRUSH);
+    dc.SetPen(*wxBLACK_PEN);
+    for (size_t i=0; i < bodies.size(); i++) {
+        auto &body = bodies.at(i);
+        dc.DrawCircle(wxPoint(body.position.x, body.position.y), 10);
     }
 
     // Получаем текущее время
