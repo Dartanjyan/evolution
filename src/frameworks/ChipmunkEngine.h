@@ -2,6 +2,7 @@
 #define CHIPMUNK_ENGINE_H
 
 #include <chipmunk/chipmunk.h>
+#include <mutex>
 
 #include "IPhysicsEngine.h"
 #include "BodyPart.h"
@@ -35,12 +36,14 @@ public:
     void getRenderObjects(
         std::vector<BodyObject>& bodies,
         std::vector<ShapeObject>& shapes,
-        std::vector<ConstraintObject>& constraints) const override;
+        std::vector<ConstraintObject>& constraints) override;
 
 
 private:
     cpSpace* space;
     std::map<unsigned, ChimpmunkCreature*> creatures;
+    
+    std::mutex step_mutex;
     
     std::vector<cpShape*> world_shapes;
     std::vector<cpBody*> world_bodies;

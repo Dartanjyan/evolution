@@ -35,10 +35,10 @@ public:
     BodyPart(BodyPart* parent,
             std::vector<Vector2> vertices,
             bool isSensorPart = false,
-            float radius = 0.0f,
-            float density = 1.0f, 
-            float friction = 0.5f,
-            float elasticity = 0.5f);
+            float radius = 0.0,
+            float density = 0.2, 
+            float friction = 1,
+            float elasticity = 0.5);
     BodyPart(const BodyPart &other, BodyPart* parent);
     ~BodyPart();
 
@@ -52,6 +52,7 @@ public:
     float getRadius() const { return radius; }
     float getArea() const;
     float getMass() const;
+    Vector2 getCenter() const;
 
     // setters
     void setDensity(float density) { this->density = density; }

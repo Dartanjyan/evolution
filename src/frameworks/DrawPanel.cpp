@@ -54,30 +54,60 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
 
 void DrawPanel::OnPaint(wxPaintEvent& event) {
     wxBufferedPaintDC dc(this);
-    
+
     dc.SetBackground(*wxWHITE);
     // Рисуем фон
     dc.Clear();
 
-    std::vector<BodyObject> bodies;
-    std::vector<ShapeObject> shapes;
-    std::vector<ConstraintObject> constraints;
+    std::vector<BodyObject> bodies {};
+    std::vector<ShapeObject> shapes {};
+    std::vector<ConstraintObject> constraints {};
     physicsManager->getRenderObjects(bodies, shapes, constraints);
-    // TODO Drawing Shapes depending on shapes vector.
-    
-    dc.SetBrush(*wxBLUE_BRUSH);
-    dc.SetPen(*wxBLACK_PEN);
-    for (size_t i=0; i < shapes.size(); i++) {
-        auto &shape = shapes.at(i);
-        dc.DrawCircle(wxPoint(shape.body->position.x, shape.body->position.y), shape.radius);
+    // Отрисовка ShapeObject
+    for (const auto& shape : shapes) {
+        if (!shape.body) {
+            std::cout << "Shape with id="<<shape.id<<" has no body\n";
+            continue;
+        }
+
+        const BodyObject* body = shape.body;
+
+        if(shape.vertices.size() == 2) {
+            // Если 2 вершины, рисуем линию (сегмент)
+            wxPoint start(
+                (shape.vertices[0].rotated(body->angle) + body->position).x,
+                (shape.vertices[0].rotated(body->angle) + body->position).y
+            );
+            wxPoint end(
+                (shape.vertices[1].rotated(body->angle) + body->position).x,
+                (shape.vertices[1].rotated(body->angle) + body->position).y
+            );
+            dc.SetPen(wxPen(*wxBLACK, 7/2)); // Толщина линии = radius
+            dc.DrawLine(start, end);
+	    } else {
+            // Если 3 и больше вершин, рисуем многогранник
+            std::vector<wxPoint> points;
+            for (const auto& vertex : shape.vertices) {
+                Vector2 rotated = vertex.rotated(body->angle);
+                points.emplace_back(
+                    rotated.x + body->position.x,
+                    rotated.y + body->position.y
+                );
+            }
+            dc.SetBrush(*wxBLUE_BRUSH);
+            dc.SetPen(*wxBLACK_PEN);
+            dc.DrawPolygon(points.size(), points.data());
+        }
     }
 
+    
+    // Отрисовка BodyObject
     dc.SetBrush(*wxCYAN_BRUSH);
     dc.SetPen(*wxBLACK_PEN);
-    for (size_t i=0; i < bodies.size(); i++) {
-        auto &body = bodies.at(i);
+    for (const auto& body : bodies) {
         dc.DrawCircle(wxPoint(body.position.x, body.position.y), 10);
     }
+    
 
     // Получаем текущее время
     auto now = std::chrono::system_clock::now();
@@ -96,14 +126,14 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
     static wxStopWatch sw;
     static int frameCount = 0;
     static float fps = 0;
-    
+
     frameCount++;
     if (sw.Time() > 500) {
         fps = frameCount / (sw.Time() / 1000.0f);
         frameCount = 0;
         sw.Start();
     }
-    
+
     dc.DrawText(wxString::Format("FPS: %.1f", fps), 10, 10);
 }
 

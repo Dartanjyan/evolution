@@ -1,6 +1,7 @@
 #ifndef VECTOR2_H
 #define VECTOR2_H
 #include <cmath>
+#include <ostream>
 
 struct Vector2 {
     float x = 0.0f;
@@ -20,6 +21,15 @@ struct Vector2 {
     Vector2 operator*(float scalar) const {
         return Vector2(x * scalar, y * scalar);
     }
+
+    Vector2 operator/(float scalar) const {
+        return Vector2(x / scalar, y / scalar);
+    }
+
+    friend std::ostream& operator<<(std::ostream& os, const Vector2& vec) {
+        os << "Vector2(" << vec.x << ", " << vec.y << ")";
+        return os;
+    }
     
     float length() const {
         return sqrt(x*x + y*y);
@@ -31,6 +41,15 @@ struct Vector2 {
             return Vector2(x / len, y / len);
         }
         return *this;
+    }
+
+    Vector2 rotated(float angle) const {
+        float cosA = std::cos(angle);
+        float sinA = std::sin(angle);
+        return Vector2(
+            x * cosA - y * sinA,
+            x * sinA + y * cosA
+        );
     }
 };
 

@@ -17,6 +17,21 @@ Constraint::Constraint(BodyPart* partA, BodyPart* partB, ConstraintType type, Ve
     // std::cout << "Creating Joint, id = "<<id<< "\n";
 }
 
+Constraint::Constraint(BodyPart* partA, BodyPart* partB, ConstraintType type, Vector2 anchorA, float rest, float stiffness, float damping, bool collideConnected): 
+    id(Constraint::newId()), 
+    partA(partA),
+    partB(partB),
+    anchorA(anchorA),
+    anchorB(anchorA),
+    rest(rest), 
+    stiffness(stiffness), 
+    damping(damping), 
+    collideConnected(collideConnected),
+    type(type)
+{
+    // std::cout << "Creating Joint, id = "<<id<< "\n";
+}
+
 Constraint::~Constraint() {
     // std::cout << "Deleting Joint, id = " << id << "\n";
 }

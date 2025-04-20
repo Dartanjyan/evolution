@@ -26,9 +26,13 @@ private:
 
 public:
     Constraint(BodyPart* partA, BodyPart* partB, ConstraintType type,
-          Vector2 anchorA = Vector2{}, Vector2 anchorB = Vector2{},
-          float rest = 0.0f, float stiffness = 0.0f, 
-          float damping = 0.0f, bool collideConnected = false);
+        Vector2 anchorA = Vector2{}, Vector2 anchorB = Vector2{},
+        float rest = 0.0f, float stiffness = 8e5, 
+        float damping = 4e4, bool collideConnected = false);
+    Constraint(BodyPart* partA, BodyPart* partB, ConstraintType type,
+        Vector2 anchorA = Vector2{},
+        float rest = 0.0f, float stiffness = 8e5, 
+        float damping = 4e4, bool collideConnected = false);
     Constraint(const Constraint& other);
     ~Constraint();
 

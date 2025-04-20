@@ -47,9 +47,8 @@ void PhysicsManager::run() {
         // previousTime = currentTime;
         engine->update(dt);
 	
-	while (!this->creaturesQueue.empty()) {
-        auto queue = this->creaturesQueue;
-	    engine->addCreature(queue.front());
+	while (!creaturesQueue.empty()) {
+	    engine->addCreature(creaturesQueue.front());
 	    creaturesQueue.pop();
 	}
         // a little sleep to avoid cpu hogging

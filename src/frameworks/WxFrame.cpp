@@ -31,7 +31,7 @@ WxFrame::WxFrame(PhysicsManager* physicsManager, const wxString &title, const wx
 
     wxPanel *controlPanel = new wxPanel(this, wxID_ANY);
     controlPanel->SetBackgroundColour(wxColour(255, 255, 255));
-    wxButton *startButton = new wxButton(controlPanel, ID_START, "Start", wxDefaultPosition, wxSize(60, wxDefaultSize.y));
+    // wxButton *startButton = new wxButton(controlPanel, ID_START, "Start", wxDefaultPosition, wxSize(60, wxDefaultSize.y));
     wxButton *addButton = new wxButton(controlPanel, ID_ADD_CREATURE, "+", wxPoint(60, 0), wxSize(60, wxDefaultSize.y));
 
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
@@ -70,6 +70,7 @@ void WxFrame::OnStart(wxCommandEvent &event)
 
 void WxFrame::OnAdd(wxCommandEvent &event)
 {
-    Creature* creature = Creature::createBasicCreature();
-    this->physicsManager->addCreature(creature);
+    for (int i=0; i<1; i++) {
+        this->physicsManager->addCreature(Creature::createBasicCreature());
+    }
 }

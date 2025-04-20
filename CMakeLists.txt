@@ -17,8 +17,9 @@ else()
     #include(${wxWidgets_USE_FILE})
 
     # Trying to link wxWidgets just to work
-    set(wxWidgets_ROOT_DIR "${3RD_PARTY_DIR}/wxWidgets/install")
-    list(APPEND CMAKE_PREFIX_PATH "${wxWidgets_ROOT_DIR}")
+    set(wxWidgets_ROOT_DIR "${3RD_PARTY_DIR}/wxWidgets/install/")
+    # list(APPEND CMAKE_PREFIX_PATH "${wxWidgets_ROOT_DIR}")
+    set(CMAKE_PREFIX_PATH, ${wxWidgets_ROOT_DIR})
     find_package(wxWidgets REQUIRED COMPONENTS core base)
     include(${wxWidgets_USE_FILE})
 endif()

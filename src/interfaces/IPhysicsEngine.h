@@ -26,7 +26,7 @@ public:
     virtual void getRenderObjects(
         std::vector<BodyObject>& bodies,
         std::vector<ShapeObject>& shapes,
-        std::vector<ConstraintObject>& constraints) const = 0;
+        std::vector<ConstraintObject>& constraints) = 0;
 
 };
 

@@ -153,35 +153,66 @@ const BodyPart* Creature::getBodyPartById(unsigned id) const
 
 Creature* Creature::createBasicCreature()
 {
-    float scale = 10;
+    /*
+    p1 = myCreature.PolySegment(
+        self.space, 1, None,
+        (
+            pymunk.Vec2d(40, 20),
+            pymunk.Vec2d(140, 20),
+            pymunk.Vec2d(120, 50)
+        )
+    )
+
+    ll1 = myCreature.Bone(self.space, 1, pymunk.Vec2d(40, 20), pymunk.Vec2d(80, 40)) 
+    ll2 = myCreature.Bone(self.space, 2, pymunk.Vec2d(80, 40), pymunk.Vec2d(40, 60))
+    ll3 = myCreature.Bone(self.space, 3, pymunk.Vec2d(40, 60), pymunk.Vec2d(60, 80))
+    rl1 = myCreature.Bone(self.space, 4, pymunk.Vec2d(140, 20), pymunk.Vec2d(160, 40))
+    rl2 = myCreature.Bone(self.space, 5, pymunk.Vec2d(160, 40), pymunk.Vec2d(140, 60))
+    rl3 = myCreature.Bone(self.space, 6, pymunk.Vec2d(140, 60), pymunk.Vec2d(160, 60))
+    t1 = myCreature.Bone(self.space, 7, pymunk.Vec2d(40, 20), pymunk.Vec2d(0, 0))
+    h1 = myCreature.Bone(self.space, 8, pymunk.Vec2d(140, 20), pymunk.Vec2d(160, 0))
+
+    stiffness = 8e5
+    damping = 4e4
+    j1 = myCreature.Joint(self.space, 1, p1.body, ll1.body, pymunk.Vec2d(40, 20), pymunk.Vec2d(40, 20), stiffness=stiffness, damping=damping)
+    j2 = myCreature.Joint(self.space, 2, ll1.body, ll2.body, pymunk.Vec2d(80, 40), pymunk.Vec2d(80, 40), stiffness=stiffness, damping=damping)
+    j3 = myCreature.Joint(self.space, 3, ll2.body, ll3.body, pymunk.Vec2d(40, 60), pymunk.Vec2d(40, 60), stiffness=stiffness, damping=damping)
+    j4 = myCreature.Joint(self.space, 4, p1.body, rl1.body, pymunk.Vec2d(140, 20), pymunk.Vec2d(140, 20), stiffness=stiffness, damping=damping)
+    j5 = myCreature.Joint(self.space, 5, rl1.body, rl2.body, pymunk.Vec2d(160, 40), pymunk.Vec2d(160, 40), stiffness=stiffness, damping=damping)
+    j6 = myCreature.Joint(self.space, 6, rl2.body, rl3.body, pymunk.Vec2d(140, 60), pymunk.Vec2d(140, 60), stiffness=stiffness, damping=damping)
+    j7 = myCreature.Joint(self.space, 7, p1.body, t1.body, pymunk.Vec2d(40, 20), pymunk.Vec2d(40, 20), stiffness=stiffness, damping=damping)
+    j8 = myCreature.Joint(self.space, 8, p1.body, h1.body, pymunk.Vec2d(140, 20), pymunk.Vec2d(140, 20), stiffness=stiffness, damping=damping)
+
+    polies.extend([p1])
+    bones.extend([ll1, ll2, ll3, rl1, rl2, rl3, t1, h1])
+    joints.extend([j1, j2, j3, j4, j5, j6, j7, j8])
+    */
+    float scale = 1;
     Vector2 bias(100, 100);
-    std::vector<Vector2> bodyVertices = {
-        Vector2(-1.0f, -1.0f)*scale+bias,
-        Vector2( 1.0f, -1.0f)*scale+bias,
-        Vector2( 1.0f,  1.0f)*scale+bias,
-        Vector2(-1.0f,  1.0f)*scale+bias
-    };
-    BodyPart* body = new BodyPart(nullptr, bodyVertices);
+
+    BodyPart* body = new BodyPart(nullptr, { Vector2(40, 20)*scale+bias, Vector2(140, 20)*scale+bias, Vector2(120, 50)*scale+bias});
     
-    std::vector<Vector2> limbVertices = {
-        Vector2(0.0f, 0.0f)*scale+bias,
-        Vector2(0.5f, -1.0f)*scale+bias,
-        Vector2(-0.5f, -1.0f)*scale+bias
-    };
+    BodyPart* ll1 = new BodyPart(nullptr, {Vector2(40, 20)*scale+bias, Vector2(80, 40)*scale+bias});
+    BodyPart* ll2 = new BodyPart(nullptr, {Vector2(80, 40)*scale+bias, Vector2(40, 60)*scale+bias});
+    BodyPart* ll3 = new BodyPart(nullptr, {Vector2(40, 60)*scale+bias, Vector2(60, 80)*scale+bias});
+    BodyPart* rl1 = new BodyPart(nullptr, {Vector2(140, 20)*scale+bias, Vector2(160, 40)*scale+bias});
+    BodyPart* rl2 = new BodyPart(nullptr, {Vector2(160, 40)*scale+bias, Vector2(140, 60)*scale+bias});
+    BodyPart* rl3 = new BodyPart(nullptr, {Vector2(140, 60)*scale+bias, Vector2(160, 60)*scale+bias});
+    BodyPart* t1 = new BodyPart(nullptr, {Vector2(40, 20)*scale+bias, Vector2(0, 0)*scale+bias});
+    BodyPart* h1 = new BodyPart(nullptr, {Vector2(140, 20)*scale+bias, Vector2(160, 0)*scale+bias});
     
-    BodyPart* limb1 = new BodyPart(nullptr, limbVertices);
-    BodyPart* limb2 = new BodyPart(nullptr, limbVertices);
-    BodyPart* limb3 = new BodyPart(nullptr, limbVertices);
-    BodyPart* limb4 = new BodyPart(nullptr, limbVertices);
+    std::vector<BodyPart*> bodyParts = {body, ll1, ll2, ll3, rl1, rl2, rl3, t1, h1};
     
-    std::vector<BodyPart*> bodyParts = {body, limb1, limb2, limb3, limb4};
+    Constraint* j1 = new Constraint(body, ll1, ConstraintType::JOINT, Vector2(40, 20)*scale+bias, false);
+    Constraint* j2 = new Constraint(ll1, ll2, ConstraintType::JOINT, Vector2(80, 40)*scale+bias, false);
+    Constraint* j3 = new Constraint(ll2, ll3, ConstraintType::JOINT, Vector2(40, 60)*scale+bias, false);
+    Constraint* j4 = new Constraint(body, rl1, ConstraintType::JOINT, Vector2(140, 20)*scale+bias, false);
+    Constraint* j5 = new Constraint(rl1, rl2, ConstraintType::JOINT, Vector2(160, 40)*scale+bias, false);
+    Constraint* j6 = new Constraint(rl2, rl3, ConstraintType::JOINT, Vector2(140, 60)*scale+bias, false);
+    Constraint* j7 = new Constraint(body, t1, ConstraintType::JOINT, Vector2(40, 20)*scale+bias, false);
+    Constraint* j8 = new Constraint(body, h1, ConstraintType::JOINT, Vector2(140, 20)*scale+bias, false);
     
-    Constraint* constraint1 = new Constraint(body, limb1, ConstraintType::JOINT, Vector2(0.0f, -1.0f)*scale+bias, Vector2(0.0f, 0.0f)*scale+bias);
-    Constraint* constraint2 = new Constraint(body, limb2, ConstraintType::JOINT, Vector2(1.0f, 0.0f)*scale+bias, Vector2(0.0f, 0.0f)*scale+bias);
-    Constraint* constraint3 = new Constraint(body, limb3, ConstraintType::JOINT, Vector2(0.0f, 1.0f)*scale+bias, Vector2(0.0f, 0.0f)*scale+bias);
-    Constraint* constraint4 = new Constraint(body, limb4, ConstraintType::JOINT, Vector2(-1.0f, 0.0f)*scale+bias, Vector2(0.0f, 0.0f)*scale+bias);
-    
-    std::vector<Constraint*> constraints = {constraint1, constraint2, constraint3, constraint4};
+    std::vector<Constraint*> constraints = {j1, j2, j3, j4, j5, j6, j7, j8};
     
     Brain* brain = new Brain(std::vector<unsigned short>{1}, std::vector<std::vector<double>>{
         {0.5, 0.5, 0.5, 0.5},

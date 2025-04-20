@@ -103,6 +103,23 @@ float BodyPart::getMass() const
     return mass;
 }
 
+Vector2 BodyPart::getCenter() const
+{
+    Vector2 all_vertices = Vector2(0, 0);
+    size_t amount = 0;
+    for (auto vertex: this->getVertices()) {
+        all_vertices = all_vertices + vertex;
+        amount++;
+    }
+    for (auto* child : this->getAllChildren()) {
+        for (auto vertex: child->getVertices()) {
+            all_vertices = all_vertices + vertex;
+            amount++;
+        }
+    }
+    return all_vertices / amount;
+}
+
 void BodyPart::addChild(BodyPart* child) { children.push_back(child); }
 void BodyPart::removeChild(BodyPart *child) { children.erase(std::find(children.begin(), children.end(), child)); }
 
