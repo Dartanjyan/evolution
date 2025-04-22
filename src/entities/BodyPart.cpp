@@ -72,12 +72,26 @@ BodyPart::~BodyPart()
 float BodyPart::getOwnArea() const {
     float area = 0.0f;
     size_t n = vertices.size();
-    for (size_t i = 0; i < n; ++i) {
-        const Vector2& current = vertices[i];
-        const Vector2& next = vertices[(i + 1) % n];
-        area += (current.x * next.y - next.x * current.y);
+    switch (n) {
+        case 0:
+            throw std::runtime_error("BodyPart must have at least 1 vertex but has 0");
+            break;
+        case 1:
+            area = M_PI * pow(this->radius, 2);
+            break;
+        case 2:
+            area = M_PI * pow(this->radius, 2) + (this->radius * 2 * sqrt(pow(vertices[1].x-vertices[0].x, 2) + pow(vertices[1].y-vertices[0].y, 2)));
+            break;
+        default:
+            for (size_t i = 0; i < n; ++i) {
+                const Vector2& current = vertices[i];
+                const Vector2& next = vertices[(i + 1) % n];
+                area += (current.x * next.y - next.x * current.y);
+            }
+            area = std::abs(area) * 0.5f;
+            break;
     }
-    return std::abs(area) * 0.5f;
+    return area;
 }
 
 float BodyPart::getArea() const
@@ -91,7 +105,8 @@ float BodyPart::getArea() const
 
 float BodyPart::getOwnMass() const
 {
-    return this->getOwnArea() * this->density;
+    float area = this->getOwnArea();
+    return area * this->density;
 }
 
 float BodyPart::getMass() const

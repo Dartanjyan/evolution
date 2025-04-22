@@ -104,9 +104,11 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
     // Отрисовка BodyObject
     dc.SetBrush(*wxCYAN_BRUSH);
     dc.SetPen(*wxBLACK_PEN);
+    
     for (const auto& body : bodies) {
         dc.DrawCircle(wxPoint(body.position.x, body.position.y), 10);
     }
+    
     
 
     // Получаем текущее время

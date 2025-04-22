@@ -22,7 +22,7 @@ public:
         std::vector<ShapeObject>& shapes,
         std::vector<ConstraintObject>& constraints) const;
 
-    const IPhysicsEngine* getEnginePtr() { return engine; }
+    const IPhysicsEngine* getEnginePtr() const { return engine; }
 
     // A function to add creature to a queue of adding creatures
     void addCreature(Creature* creature) { creaturesQueue.push(creature); }

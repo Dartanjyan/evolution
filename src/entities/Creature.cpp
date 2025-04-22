@@ -192,14 +192,15 @@ Creature* Creature::createBasicCreature()
 
     BodyPart* body = new BodyPart(nullptr, { Vector2(40, 20)*scale+bias, Vector2(140, 20)*scale+bias, Vector2(120, 50)*scale+bias});
     
-    BodyPart* ll1 = new BodyPart(nullptr, {Vector2(40, 20)*scale+bias, Vector2(80, 40)*scale+bias});
-    BodyPart* ll2 = new BodyPart(nullptr, {Vector2(80, 40)*scale+bias, Vector2(40, 60)*scale+bias});
-    BodyPart* ll3 = new BodyPart(nullptr, {Vector2(40, 60)*scale+bias, Vector2(60, 80)*scale+bias});
-    BodyPart* rl1 = new BodyPart(nullptr, {Vector2(140, 20)*scale+bias, Vector2(160, 40)*scale+bias});
-    BodyPart* rl2 = new BodyPart(nullptr, {Vector2(160, 40)*scale+bias, Vector2(140, 60)*scale+bias});
-    BodyPart* rl3 = new BodyPart(nullptr, {Vector2(140, 60)*scale+bias, Vector2(160, 60)*scale+bias});
-    BodyPart* t1 = new BodyPart(nullptr, {Vector2(40, 20)*scale+bias, Vector2(0, 0)*scale+bias});
-    BodyPart* h1 = new BodyPart(nullptr, {Vector2(140, 20)*scale+bias, Vector2(160, 0)*scale+bias});
+    float radius = 7;
+    BodyPart* ll1 = new BodyPart(nullptr, {Vector2(40, 20)*scale+bias, Vector2(80, 40)*scale+bias}, false, radius);
+    BodyPart* ll2 = new BodyPart(nullptr, {Vector2(80, 40)*scale+bias, Vector2(40, 60)*scale+bias}, false, radius);
+    BodyPart* ll3 = new BodyPart(nullptr, {Vector2(40, 60)*scale+bias, Vector2(60, 80)*scale+bias}, false, radius);
+    BodyPart* rl1 = new BodyPart(nullptr, {Vector2(140, 20)*scale+bias, Vector2(160, 40)*scale+bias}, false, radius);
+    BodyPart* rl2 = new BodyPart(nullptr, {Vector2(160, 40)*scale+bias, Vector2(140, 60)*scale+bias}, false, radius);
+    BodyPart* rl3 = new BodyPart(nullptr, {Vector2(140, 60)*scale+bias, Vector2(160, 60)*scale+bias}, false, radius);
+    BodyPart* t1 = new BodyPart(nullptr, {Vector2(40, 20)*scale+bias, Vector2(0, 0)*scale+bias}, false, radius);
+    BodyPart* h1 = new BodyPart(nullptr, {Vector2(140, 20)*scale+bias, Vector2(160, 0)*scale+bias}, false, radius);
     
     std::vector<BodyPart*> bodyParts = {body, ll1, ll2, ll3, rl1, rl2, rl3, t1, h1};
     

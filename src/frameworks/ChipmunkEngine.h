@@ -8,14 +8,7 @@
 #include "BodyPart.h"
 #include "Constraint.h"
 #include "Vector2.h"
-#include "Creature.h"
-
-struct ChimpmunkCreature {
-    Creature* creature;
-    std::map<unsigned, cpBody*> bodies;
-    std::map<unsigned, cpShape*> shapes;
-    std::map<unsigned, cpConstraint*> constraints;
-};
+#include "ChipmunkCreature.h"
 
 class ChipmunkEngine : public IPhysicsEngine {
 public:
@@ -25,8 +18,10 @@ public:
     void initialize() override;
     void update(float dt) override;
     void shutdown() override;
-    
-    void addBodyPart(unsigned creature_id, BodyPart* bodyPart) override;
+
+    void addShapeToChipmunkCreature(cpBody *body, BodyPart *bodyPart, unsigned creature_id, cpVect bias);
+
+    void addBodyPart(unsigned creature_id, BodyPart *bodyPart) override;
     void addConstraint(unsigned creature_id, Constraint* constraint) override;
     void addCreature(Creature* creature) override;
     void removeBodyPart(unsigned creature_id, BodyPart* bodyPart) override;
@@ -36,7 +31,8 @@ public:
     void getRenderObjects(
         std::vector<BodyObject>& bodies,
         std::vector<ShapeObject>& shapes,
-        std::vector<ConstraintObject>& constraints) override;
+        std::vector<ConstraintObject>& constraints
+    ) override;
 
 
 private:
@@ -44,6 +40,7 @@ private:
     std::map<unsigned, ChimpmunkCreature*> creatures;
     
     std::mutex step_mutex;
+    std::mutex data_mutex;
     
     std::vector<cpShape*> world_shapes;
     std::vector<cpBody*> world_bodies;

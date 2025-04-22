@@ -1,5 +1,8 @@
 #include "ChipmunkEngine.h"
 
+#define CATEGORY_ENTITY  0b0001
+#define CATEGORY_TERRAIN 0b0010
+
 ChipmunkEngine::ChipmunkEngine() : space(nullptr) {}
 
 ChipmunkEngine::~ChipmunkEngine() {
@@ -13,6 +16,13 @@ void ChipmunkEngine::initialize() {
     cpSpaceSetGravity(space, cpv(0, 981));
     
     // Here I may add more settings
+    cpBB terrainBB = cpBBNew(-10000, 800, 10000, 600);
+    cpShape* terrain = cpBoxShapeNew2(cpSpaceGetStaticBody(space), terrainBB, 0);
+    cpShapeSetFriction(terrain, 0.8);
+    cpShapeSetElasticity(terrain, 0.5);
+    cpShapeSetFilter(terrain, cpShapeFilterNew(CATEGORY_TERRAIN, CATEGORY_ENTITY, 0));
+    this->world_shapes.push_back(terrain);
+    cpSpaceAddShape(space, terrain);
 }
 
 void ChipmunkEngine::update(float dt) {
@@ -49,7 +59,7 @@ void ChipmunkEngine::shutdown() {
     space = nullptr;
 }
 
-cpShape* createShape(cpBody* body, const BodyPart *bodyPart, cpVect bias) {
+cpShape* createShapeForBodyPart(cpBody* body, const BodyPart *bodyPart, cpVect bias) {
     const std::vector<Vector2>& vertices = bodyPart->getVertices();
     std::unique_ptr<cpVect[]> cpVertices = std::make_unique<cpVect[]>(vertices.size());
     for (size_t i = 0; i < vertices.size(); ++i) {
@@ -67,22 +77,57 @@ cpShape* createShape(cpBody* body, const BodyPart *bodyPart, cpVect bias) {
     cpShapeSetElasticity(shape, bodyPart->getElasticity());
     cpShapeSetDensity(shape, bodyPart->getDensity());
     cpShapeSetUserData(shape, (void*)bodyPart);
+    cpShapeSetFilter(shape, cpShapeFilterNew(CATEGORY_ENTITY, CATEGORY_TERRAIN, 0));
 
     return shape;
+}
+
+void ChipmunkEngine::addShapeToChipmunkCreature(cpBody* body, BodyPart* bodyPart, unsigned creature_id, cpVect bias) {
+    cpShape* shape = createShapeForBodyPart(body, bodyPart, bias);
+    cpSpaceAddShape(space, shape);
+    this->creatures[creature_id]->shapes[bodyPart->getId()] = shape;
+    bodyPart->setBodyPosBias(Vector2(bias.x, bias.y));
 }
 
 void ChipmunkEngine::addBodyPart(unsigned creature_id, BodyPart *bodyPart)
 {
     const float mass = bodyPart->getMass();
-    cpFloat moment = cpMomentForPoly(
-        mass,
-        bodyPart->getVertices().size(),
-        reinterpret_cast<const cpVect*>(bodyPart->getVertices().data()),
-        cpvzero,
-        0
-    );
+    auto vertices = bodyPart->getVertices();
+    size_t vertices_count = vertices.size();
+    cpFloat moment = 0;
+    switch (vertices_count) {
+        case 0:
+            throw std::runtime_error("BodyPart must have at least 1 vertex");
+            break;
+        case 1:
+            moment = cpMomentForCircle(
+                mass,
+                0,
+                bodyPart->getRadius(),
+                cpvzero
+            );
+            break;
+        case 2:
+            moment = cpMomentForSegment(
+                mass,
+                cpv(vertices[0].x, vertices[0].y),
+                cpv(vertices[1].x, vertices[1].y),
+                bodyPart->getRadius()
+            );
+            break;
+        default:
+            moment = cpMomentForPoly(
+                mass,
+                vertices_count,
+                reinterpret_cast<const cpVect*>(vertices.data()),
+                cpvzero,
+                0
+            );
+            break;
+    }
     auto center = bodyPart->getCenter();
     cpVect body_pos = cpv(center.x, center.y);
+    cpVect bias = -body_pos;
 
     cpBody* cp_body = cpBodyNew(mass, moment);
     cpBodySetUserData(cp_body, (void*)bodyPart);
@@ -91,15 +136,11 @@ void ChipmunkEngine::addBodyPart(unsigned creature_id, BodyPart *bodyPart)
     this->creatures[creature_id]->bodies[bodyPart->getId()] = cp_body;
 
     // Add shape
-    cpShape* shape = createShape(cp_body, bodyPart, -body_pos);
-    cpSpaceAddShape(space, shape);
-    this->creatures[creature_id]->shapes[bodyPart->getId()] = shape;
+    this->addShapeToChipmunkCreature(cp_body, bodyPart, creature_id, bias);
 
     // Adding shapes if bodyPart has children
     for (auto& child : bodyPart->getAllChildren()) {
-        cpShape* shape = createShape(cp_body, child, -body_pos);
-        cpSpaceAddShape(space, shape);
-        this->creatures[creature_id]->shapes[child->getId()] = shape;
+        this->addShapeToChipmunkCreature(cp_body, child, creature_id, bias);
     }
 }
 
@@ -125,6 +166,8 @@ void ChipmunkEngine::addConstraint(unsigned creature_id, Constraint *constraint)
 
 void ChipmunkEngine::addCreature(Creature *creature)
 {
+    std::lock_guard<std::mutex> lock(data_mutex);
+
     ChimpmunkCreature* chimpmunkCreature = new ChimpmunkCreature();
     chimpmunkCreature->creature = creature;
     creatures[creature->getId()] = chimpmunkCreature;
@@ -133,6 +176,7 @@ void ChipmunkEngine::addCreature(Creature *creature)
         addBodyPart(creature->getId(), bodyPart);
     }
     for (auto& constraint : creature->getConstraints()) {
+        // I don't need constraints for now
         break;
         addConstraint(creature->getId(), constraint);
     }
@@ -180,9 +224,9 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
     std::vector<ShapeObject> &shapes, 
     std::vector<ConstraintObject> &constraints)
 {
-    std::map<unsigned, size_t> bodyMap; // Храним индексы вместо указателей
+    std::lock_guard<std::mutex> lock(data_mutex);
 
-    // step_mutex.lock();
+    std::map<unsigned, size_t> bodyMap;
 
     for (auto& creature : creatures) {
         for (auto& bodyPair : creature.second->bodies) {
@@ -199,15 +243,12 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             obj_body.id = bodyPair.first;
 
             bodies.push_back(obj_body);
-            bodyMap[obj_body.id] = bodies.size() - 1; // Сохраняем индекс
+            bodyMap[obj_body.id] = bodies.size() - 1;
 
-            std::cout << "Body id: " << obj_body.id << ", position: " << obj_body.position << std::endl;
-            if(std::isnan(obj_body.position.x) || std::isnan(obj_body.position.y)) {
-                // throw std::runtime_error("Nan position\n");
-            }
+            // std::cout << "Body id: " << obj_body.id << ", position: " << obj_body.position << std::endl;
         }
 
-        std::cout<<"\n";
+        // std::cout<<"\n";
 
         for (auto& shapePair : creature.second->shapes) {
             ShapeObject obj_shape;
@@ -218,21 +259,38 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             obj_shape.radius = creature.second->creature->getBodyPartById(id)->getRadius();
             obj_shape.vertices = creature.second->creature->getBodyPartById(id)->getVertices();
 
-            // Получаем индекс из bodyMap и находим соответствующий BodyObject
             auto it = bodyMap.find(id);
             if (it != bodyMap.end() && it->second < bodies.size()) {
                 obj_shape.body = &bodies[it->second];
             } else {
-                obj_shape.body = nullptr;
+                throw std::runtime_error("Body not found for shape. One of the condition is not met: " + 
+                    std::to_string(it != bodyMap.end()) + 
+                    " && " + 
+                    std::to_string(it->second < bodies.size()) +
+                    "\n"
+                );
+            }
+            
+            for (auto& vertex : obj_shape.vertices) {
+                vertex = vertex - obj_shape.body->position;
             }
 
-            std::cout << "Shape id: " << obj_shape.id << ", position: " << obj_shape.body->position << std::endl;
+            // std::cout << "Shape id: " << obj_shape.id << ", position: " << obj_shape.body->position << std::endl;
 
             shapes.push_back(obj_shape);
         }
 
-        std::cout<<"\n";
+        // std::cout<<"\n";
     }
 
-    // step_mutex.unlock();
+    BodyObject terrain_body;
+    terrain_body.angle = 0;
+    auto pos = cpBodyGetPosition(cpSpaceGetStaticBody(space));
+    terrain_body.position = Vector2(pos.x, pos.y);
+
+    ShapeObject terrain_shape;
+    terrain_shape.body = &terrain_body;
+    cpBB terrBB = cpShapeGetBB(world_shapes[0]);
+    terrain_shape.vertices = {Vector2(terrBB.l, terrBB.t), Vector2(terrBB.r, terrBB.b)};
+    shapes.push_back(terrain_shape);
 }

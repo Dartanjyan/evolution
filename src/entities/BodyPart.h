@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <math.h>
 #include "Vector2.h"
 
 class BodyPart {
@@ -21,6 +22,7 @@ private:
     float elasticity;
     bool isSensorPart;
     std::vector<Vector2> vertices;
+    Vector2 body_to_shape_bias = Vector2();
     float radius = 0.0f;
     std::vector<BodyPart*> children;
 
@@ -53,6 +55,7 @@ public:
     float getArea() const;
     float getMass() const;
     Vector2 getCenter() const;
+    Vector2 getBodyPosBias() const { return body_to_shape_bias; }
 
     // setters
     void setDensity(float density) { this->density = density; }
@@ -63,6 +66,7 @@ public:
     void setVertices(const std::vector<Vector2>& new_vertices) { this->vertices = new_vertices; }
     void setRadius(float radius) { this->radius = radius; }
     void setParent(BodyPart* new_parent) { this->parent = new_parent; }
+    void setBodyPosBias(Vector2 new_bias) { this->body_to_shape_bias = new_bias; }
 
     // Parents and children stuff
     void addChild(BodyPart* child);
