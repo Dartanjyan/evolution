@@ -33,7 +33,7 @@ DrawPanel::~DrawPanel()
 }
 
 void DrawPanel::OnPaint(wxPaintEvent& event) {
-    wxBufferedPaintDC dc(this);
+    wxAutoBufferedPaintDC dc(this);
 
     dc.SetBackground(*wxWHITE);
     // Рисуем фон
@@ -43,6 +43,7 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
     std::vector<ShapeObject> shapes {};
     std::vector<ConstraintObject> constraints {};
     physicsManager->getRenderObjects(bodies, shapes, constraints);
+    
     // Отрисовка ShapeObject
     for (const auto& shape : shapes) {
         if (!shape.body) {
@@ -125,9 +126,6 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
         dc.DrawCircle(wxPoint(body.position.x, body.position.y), 10);
     }
     */
-    
-    dc.SetPen(*wxBLACK_PEN);
-    dc.DrawLine(wxPoint(0, 600), wxPoint(700, 600));
 
     // Получаем текущее время
     auto now = std::chrono::system_clock::now();

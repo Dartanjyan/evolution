@@ -14,7 +14,7 @@ cmake -B build \
     -DBUILD_DEMOS=OFF \
     -DBUILD_SHARED=ON \
     -DCMAKE_INSTALL_PREFIX=${INSTALL_DIR} \
-    -DCMAKE_BUILD_TYPE=Release
+    -DCMAKE_BUILD_TYPE=Debug
 cmake --build build
 cmake --install build
 rm -rf ${SRC_DIR}

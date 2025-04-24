@@ -14,23 +14,46 @@ ChipmunkEngine::~ChipmunkEngine() {
 void ChipmunkEngine::initialize() {
     space = cpSpaceNew();
     cpSpaceSetGravity(space, cpv(0, 981));
-    
-    // Here I may add more settings
-    cpVect a = cpv(-10000, 600);
-    cpVect b = cpv(10000, 600);
+    cpSpaceSetSleepTimeThreshold(space, 0.5);
+
+    // Creating terrain
+    cpFloat x = 1000;
+    cpFloat y = 400;
+    cpVect a = cpv(0, y);
+    cpVect b = cpv(x, y);
     cpBody* body = cpSpaceGetStaticBody(space);
-    cpShape* terrain = cpSegmentShapeNew(body, a, b, 10.0);
+    cpShape* terrain = cpSegmentShapeNew(body, a, b, 5.0);
     cpShapeSetFriction(terrain, 0.8);
     cpShapeSetElasticity(terrain, 0.5);
-    cpShapeSetFilter(terrain, cpShapeFilterNew(CATEGORY_TERRAIN, CATEGORY_ENTITY, 0));
+    cpShapeSetFilter(terrain, cpShapeFilterNew(0, CATEGORY_TERRAIN, CATEGORY_ENTITY));
     this->world_shapes.push_back(terrain);
     cpSpaceAddShape(space, terrain);
 }
 
 void ChipmunkEngine::update(float dt) {
+    std::cout<<"Locking...\n";
     step_mutex.lock();
-    cpSpaceStep(space, dt);
+    std::cout<<"Locked.\n";
+    for (const auto& creature : creatures) {
+        for (const auto& shape : creature.second->shapes) {
+            cpVect center = cpBBCenter(cpShapeGetBB(shape.second));
+            std::cout<<Vector2(center.x, center.y)<<std::endl;
+        }
+    }
+    for (const auto& shape : world_shapes) {
+        cpVect center = cpBBCenter(cpShapeGetBB(shape));
+            std::cout<<Vector2(center.x, center.y)<<std::endl;
+    }
+    std::cout<<"Making step...\n";
+    const int STEPS = 5;
+    float sub_dt = dt / STEPS;
+    for (int i = 0; i < STEPS; ++i) {
+        cpSpaceStep(space, sub_dt);
+    }
+    std::cout<<"Made step.\n";
+    std::cout<<"Unocking...\n";
     step_mutex.unlock();
+    std::cout<<"Unlocked.\n";
 }
 
 void ChipmunkEngine::shutdown() {
@@ -65,8 +88,7 @@ cpShape* createShapeForBodyPart(cpBody* body, const BodyPart *bodyPart, cpVect b
     const std::vector<Vector2>& vertices = bodyPart->getVertices();
     std::unique_ptr<cpVect[]> cpVertices = std::make_unique<cpVect[]>(vertices.size());
     for (size_t i = 0; i < vertices.size(); ++i) {
-        // reversed Y due to different coordinate systems
-        cpVertices[i] = cpv(vertices[i].x, -vertices[i].y) + bias;
+        cpVertices[i] = cpv(vertices[i].x, vertices[i].y) + bias;
     }
 
     cpShape* shape = nullptr;
@@ -93,7 +115,7 @@ cpShape* createShapeForBodyPart(cpBody* body, const BodyPart *bodyPart, cpVect b
     cpShapeSetElasticity(shape, bodyPart->getElasticity());
     cpShapeSetDensity(shape, bodyPart->getDensity());
     cpShapeSetUserData(shape, (void*)bodyPart);
-    cpShapeSetFilter(shape, cpShapeFilterNew(CATEGORY_ENTITY, CATEGORY_TERRAIN, 0));
+    cpShapeSetFilter(shape, cpShapeFilterNew(0, CATEGORY_ENTITY, CATEGORY_TERRAIN));
 
     return shape;
 }
@@ -193,7 +215,7 @@ void ChipmunkEngine::addCreature(Creature *creature)
     }
     for (auto& constraint : creature->getConstraints()) {
         // I don't need constraints for now
-        break;
+        // break;
         addConstraint(creature->getId(), constraint);
     }
 }
@@ -234,6 +256,7 @@ void ChipmunkEngine::removeCreature(unsigned creature_id)
     if (creature == nullptr) {
         return;
     }
+    // TODO: Implement removing creatures
 }
 
 void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies, 
@@ -259,7 +282,7 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             obj_body.id = bodyPair.first;
 
             bodies.push_back(obj_body);
-	    // Map body ids to their index at bodies vector
+	        // Map body ids to their index at bodies vector
             bodyMap[obj_body.id] = bodies.size() - 1;
 
             // std::cout << "Body id: " << obj_body.id << ", position: " << obj_body.position << std::endl;
