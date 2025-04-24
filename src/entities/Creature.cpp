@@ -192,7 +192,7 @@ Creature* Creature::createBasicCreature()
 
     BodyPart* body = new BodyPart(nullptr, { Vector2(40, 20)*scale+bias, Vector2(140, 20)*scale+bias, Vector2(120, 50)*scale+bias});
     
-    float radius = 3;
+    float radius = 6;
     BodyPart* ll1 = new BodyPart(nullptr, {Vector2(40, 20)*scale+bias, Vector2(80, 40)*scale+bias}, false, radius);
     BodyPart* ll2 = new BodyPart(nullptr, {Vector2(80, 40)*scale+bias, Vector2(40, 60)*scale+bias}, false, radius);
     BodyPart* ll3 = new BodyPart(nullptr, {Vector2(40, 60)*scale+bias, Vector2(60, 80)*scale+bias}, false, radius);

@@ -31,29 +31,13 @@ void ChipmunkEngine::initialize() {
 }
 
 void ChipmunkEngine::update(float dt) {
-    std::cout<<"Locking...\n";
     step_mutex.lock();
-    std::cout<<"Locked.\n";
-    for (const auto& creature : creatures) {
-        for (const auto& shape : creature.second->shapes) {
-            cpVect center = cpBBCenter(cpShapeGetBB(shape.second));
-            std::cout<<Vector2(center.x, center.y)<<std::endl;
-        }
-    }
-    for (const auto& shape : world_shapes) {
-        cpVect center = cpBBCenter(cpShapeGetBB(shape));
-            std::cout<<Vector2(center.x, center.y)<<std::endl;
-    }
-    std::cout<<"Making step...\n";
-    const int STEPS = 5;
+    const int STEPS = 1;
     float sub_dt = dt / STEPS;
     for (int i = 0; i < STEPS; ++i) {
         cpSpaceStep(space, sub_dt);
     }
-    std::cout<<"Made step.\n";
-    std::cout<<"Unocking...\n";
     step_mutex.unlock();
-    std::cout<<"Unlocked.\n";
 }
 
 void ChipmunkEngine::shutdown() {

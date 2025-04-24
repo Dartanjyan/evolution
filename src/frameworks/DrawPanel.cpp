@@ -33,7 +33,7 @@ DrawPanel::~DrawPanel()
 }
 
 void DrawPanel::OnPaint(wxPaintEvent& event) {
-    wxAutoBufferedPaintDC dc(this);
+    wxBufferedPaintDC dc(this);
 
     dc.SetBackground(*wxWHITE);
     // Рисуем фон
@@ -79,7 +79,7 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
                 }
                 
                 // Толстая линия
-                dc.SetPen(wxPen(*wxBLACK, 2 * radius - 1));
+                dc.SetPen(wxPen(*wxBLACK, radius - 1));
                 dc.DrawLine(points[0], points[1]);
                 
                 /*
