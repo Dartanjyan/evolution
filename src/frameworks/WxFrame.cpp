@@ -70,7 +70,7 @@ void WxFrame::OnStart(wxCommandEvent &event)
 
 void WxFrame::OnAdd(wxCommandEvent &event)
 {
-    for (int i=0; i<100; i++) {
+    for (int i=0; i<1; i++) {
         this->physicsManager->addCreature(Creature::createBasicCreature());
     }
 }

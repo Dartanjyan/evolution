@@ -16,7 +16,7 @@ DrawPanel::DrawPanel(PhysicsManager* physicsManager, wxWindow* parent, wxWindowI
     
     timer = new wxTimer(this, ID_TIMER);
     timer->SetOwner(this, ID_TIMER);
-    timer->Start(16);
+    timer->Start(1000/60);
     
     
     Bind(wxEVT_SIZE, &DrawPanel::OnSize, this);
@@ -65,40 +65,70 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
     physicsManager->getRenderObjects(bodies, shapes, constraints);
     // Отрисовка ShapeObject
     for (const auto& shape : shapes) {
-        if (!shape.body) {
-            std::cout << "Shape with id="<<shape.id<<" has no body\n";
-            continue;
+    if (!shape.body) continue;
+
+    const BodyObject* body = shape.body;
+    const float angle = body->angle;
+    const float cos_a = cosf(angle);
+    const float sin_a = sinf(angle);
+    const float radius = shape.radius;
+
+    switch (shape.vertices.size()) {
+        case 0:
+            throw std::runtime_error("Shape with id=" + std::to_string(shape.id) + " has 0 vertices");
+            
+        case 1: {
+            // Рисуем круг в позиции единственной вершины
+            const auto& v = shape.vertices[0];
+            float x = v.x * cos_a - v.y * sin_a + body->position.x;
+            float y = v.x * sin_a + v.y * cos_a + body->position.y;
+            dc.SetBrush(*wxBLUE_BRUSH);
+            dc.DrawCircle(wxPoint(x, y), radius);
+            break;
         }
-
-        const BodyObject* body = shape.body;
-
-        if(shape.vertices.size() == 2) {
-            // Если 2 вершины, рисуем линию (сегмент)
-            wxPoint start(
-                (shape.vertices[0].rotated(body->angle) + body->position).x,
-                (shape.vertices[0].rotated(body->angle) + body->position).y
-            );
-            wxPoint end(
-                (shape.vertices[1].rotated(body->angle) + body->position).x,
-                (shape.vertices[1].rotated(body->angle) + body->position).y
-            );
-            dc.SetPen(wxPen(*wxBLACK, 7/2)); // Толщина линии = radius
-            dc.DrawLine(start, end);
-	    } else {
-            // Если 3 и больше вершин, рисуем многогранник
-            std::vector<wxPoint> points;
-            for (const auto& vertex : shape.vertices) {
-                Vector2 rotated = vertex.rotated(body->angle);
-                points.emplace_back(
-                    rotated.x + body->position.x,
-                    rotated.y + body->position.y
-                );
+        
+        case 2: {
+            // Рисуем линию с кругами на концах
+            std::array<wxPoint, 2> points;
+            for (int i = 0; i < 2; ++i) {
+                const auto& v = shape.vertices[i].rotated(angle) + body->position;
+                //float x = v.x * cos_a - v.y * sin_a + body->position.x;
+                //float y = v.x * sin_a + v.y * cos_a + body->position.y;
+                points[i] = wxPoint(v.x, v.y);
             }
+            
+            // Толстая линия
+            dc.SetPen(wxPen(*wxBLACK, 2 * radius));
+            dc.DrawLine(points[0], points[1]);
+            
+            // Круги на концах
+            dc.SetPen(wxPen(*wxBLACK, 1));
+            dc.SetBrush(*wxBLUE_BRUSH);
+            dc.DrawCircle(points[0], radius-1);
+            dc.DrawCircle(points[1], radius-1);
+            break;
+        }
+        
+        default: {
+            // Рисуем многоугольник
+            std::vector<wxPoint> points;
+            for (const auto& v : shape.vertices) {
+	        Vector2 vertex = v.rotated(angle) + body->position;
+		if (shape.id == 1) {
+		    std::cout<<"v:\t"<<v<<"\nang:\t"<<angle<<"\nv.rot:\t"<<v.rotated(angle)<<"\nbpos:\t"<<body->position<<"\n\n";
+		}
+                // float x = v.x * cos_a - v.y * sin_a + body->position.x;
+                // float y = v.x * sin_a + v.y * cos_a + body->position.y;
+                points.emplace_back(vertex.x, vertex.y);
+            }
+            
             dc.SetBrush(*wxBLUE_BRUSH);
             dc.SetPen(*wxBLACK_PEN);
             dc.DrawPolygon(points.size(), points.data());
+            break;
         }
     }
+}
 
     
     // Отрисовка BodyObject

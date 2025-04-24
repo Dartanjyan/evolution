@@ -135,6 +135,14 @@ Vector2 BodyPart::getCenter() const
     return all_vertices / amount;
 }
 
+std::vector<Vector2> BodyPart::getBiasedVertices() const{
+    std::vector<Vector2> verts = this->vertices;
+    for (auto& v : verts) {
+        v = v + this->body_to_shape_bias;
+    }
+    return verts;
+}
+
 void BodyPart::addChild(BodyPart* child) { children.push_back(child); }
 void BodyPart::removeChild(BodyPart *child) { children.erase(std::find(children.begin(), children.end(), child)); }
 

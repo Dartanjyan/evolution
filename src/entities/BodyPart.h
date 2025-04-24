@@ -51,6 +51,7 @@ public:
     float getElasticity() const { return elasticity; }
     bool isSensor() const { return isSensorPart; }
     std::vector<Vector2> getVertices() const { return vertices; }
+    std::vector<Vector2> getBiasedVertices() const;
     float getRadius() const { return radius; }
     float getArea() const;
     float getMass() const;

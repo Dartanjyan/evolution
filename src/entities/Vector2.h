@@ -27,7 +27,7 @@ struct Vector2 {
     }
 
     friend std::ostream& operator<<(std::ostream& os, const Vector2& vec) {
-        os << "Vector2(" << vec.x << ", " << vec.y << ")";
+        os << "vec(" << vec.x << ", " << vec.y << ")";
         return os;
     }
     
@@ -50,6 +50,14 @@ struct Vector2 {
             x * cosA - y * sinA,
             x * sinA + y * cosA
         );
+    }
+
+    Vector2 revX() const {
+        return Vector2(-x, y);
+    }
+
+    Vector2 revY() const {
+        return Vector2(x, -y);
     }
 };
 

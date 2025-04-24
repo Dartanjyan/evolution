@@ -16,8 +16,10 @@ void ChipmunkEngine::initialize() {
     cpSpaceSetGravity(space, cpv(0, 981));
     
     // Here I may add more settings
-    cpBB terrainBB = cpBBNew(-10000, 800, 10000, 600);
-    cpShape* terrain = cpBoxShapeNew2(cpSpaceGetStaticBody(space), terrainBB, 0);
+    cpVect a = cpv(-10000, 600);
+    cpVect b = cpv(10000, 600);
+    cpBody* body = cpSpaceGetStaticBody(space);
+    cpShape* terrain = cpSegmentShapeNew(body, a, b, 10.0);
     cpShapeSetFriction(terrain, 0.8);
     cpShapeSetElasticity(terrain, 0.5);
     cpShapeSetFilter(terrain, cpShapeFilterNew(CATEGORY_TERRAIN, CATEGORY_ENTITY, 0));
@@ -63,14 +65,28 @@ cpShape* createShapeForBodyPart(cpBody* body, const BodyPart *bodyPart, cpVect b
     const std::vector<Vector2>& vertices = bodyPart->getVertices();
     std::unique_ptr<cpVect[]> cpVertices = std::make_unique<cpVect[]>(vertices.size());
     for (size_t i = 0; i < vertices.size(); ++i) {
-        cpVertices[i] = cpv(vertices[i].x, vertices[i].y) + bias;
+        // reversed Y due to different coordinate systems
+        cpVertices[i] = cpv(vertices[i].x, -vertices[i].y) + bias;
     }
 
     cpShape* shape = nullptr;
-    if (vertices.size() == 2) {
-        shape = cpSegmentShapeNew(body, cpVertices[0], cpVertices[1], bodyPart->getRadius());
-    } else {
-        shape = cpPolyShapeNew(body, vertices.size(), cpVertices.get(), cpTransformIdentity, 0);
+    switch (vertices.size()) {
+	case 0: {
+	    throw std::runtime_error("DrawPanel::OnDraw(): shape must have at least 1 vertex\n");
+	    break;
+	}
+	case 1: {
+	    shape = cpCircleShapeNew(body, bodyPart->getRadius(), cpVertices[0]);
+	    break;
+	}
+	case 2: {
+            shape = cpSegmentShapeNew(body, cpVertices[0], cpVertices[1], bodyPart->getRadius());
+	    break;
+        }
+        default: {
+            shape = cpPolyShapeNew(body, vertices.size(), cpVertices.get(), cpTransformIdentity, 0);
+	    break;
+        }
     }
 
     cpShapeSetFriction(shape, bodyPart->getFriction());
@@ -125,7 +141,7 @@ void ChipmunkEngine::addBodyPart(unsigned creature_id, BodyPart *bodyPart)
             );
             break;
     }
-    auto center = bodyPart->getCenter();
+    Vector2 center = bodyPart->getCenter();
     cpVect body_pos = cpv(center.x, center.y);
     cpVect bias = -body_pos;
 
@@ -243,6 +259,7 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             obj_body.id = bodyPair.first;
 
             bodies.push_back(obj_body);
+	    // Map body ids to their index at bodies vector
             bodyMap[obj_body.id] = bodies.size() - 1;
 
             // std::cout << "Body id: " << obj_body.id << ", position: " << obj_body.position << std::endl;
@@ -257,7 +274,7 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
 
             obj_shape.id = id;
             obj_shape.radius = creature.second->creature->getBodyPartById(id)->getRadius();
-            obj_shape.vertices = creature.second->creature->getBodyPartById(id)->getVertices();
+            obj_shape.vertices = creature.second->creature->getBodyPartById(id)->getBiasedVertices();
 
             auto it = bodyMap.find(id);
             if (it != bodyMap.end() && it->second < bodies.size()) {
@@ -271,9 +288,10 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
                 );
             }
             
+	    /*
             for (auto& vertex : obj_shape.vertices) {
                 vertex = vertex - obj_shape.body->position;
-            }
+            }*/
 
             // std::cout << "Shape id: " << obj_shape.id << ", position: " << obj_shape.body->position << std::endl;
 
@@ -285,8 +303,7 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
 
     BodyObject terrain_body;
     terrain_body.angle = 0;
-    auto pos = cpBodyGetPosition(cpSpaceGetStaticBody(space));
-    terrain_body.position = Vector2(pos.x, pos.y);
+    terrain_body.position = Vector2(0, 0);
 
     ShapeObject terrain_shape;
     terrain_shape.body = &terrain_body;
