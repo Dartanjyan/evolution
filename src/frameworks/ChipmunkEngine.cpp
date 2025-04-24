@@ -288,13 +288,6 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
                 );
             }
             
-	    /*
-            for (auto& vertex : obj_shape.vertices) {
-                vertex = vertex - obj_shape.body->position;
-            }*/
-
-            // std::cout << "Shape id: " << obj_shape.id << ", position: " << obj_shape.body->position << std::endl;
-
             shapes.push_back(obj_shape);
         }
 
@@ -304,10 +297,15 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
     BodyObject terrain_body;
     terrain_body.angle = 0;
     terrain_body.position = Vector2(0, 0);
+    terrain_body.id= 0;
+    bodies.push_back(terrain_body);
 
     ShapeObject terrain_shape;
-    terrain_shape.body = &terrain_body;
+    terrain_shape.body = &bodies.back();
     cpBB terrBB = cpShapeGetBB(world_shapes[0]);
-    terrain_shape.vertices = {Vector2(terrBB.l, terrBB.t), Vector2(terrBB.r, terrBB.b)};
+    float y = (terrBB.b+terrBB.t)/2;
+    terrain_shape.vertices = {Vector2(terrBB.l, y), Vector2(terrBB.r, y)};
+    terrain_shape.id = 228;
+    terrain_shape.radius=20;
     shapes.push_back(terrain_shape);
 }

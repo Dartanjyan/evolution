@@ -18,7 +18,6 @@ DrawPanel::DrawPanel(PhysicsManager* physicsManager, wxWindow* parent, wxWindowI
     timer->SetOwner(this, ID_TIMER);
     timer->Start(1000/60);
     
-    
     Bind(wxEVT_SIZE, &DrawPanel::OnSize, this);
     Bind(wxEVT_PAINT, &DrawPanel::OnPaint, this);
     Bind(wxEVT_TIMER, &DrawPanel::OnTimer, this, ID_TIMER);
@@ -33,25 +32,6 @@ DrawPanel::~DrawPanel()
     }
 }
 
-/*
-void DrawPanel::OnPaint(wxPaintEvent& event) {
-    wxBufferedPaintDC dc(this);
-    
-    // Очистка фона (использует цвет фона панели)
-    dc.Clear();
-    
-    // Рисуем только в пределах этой панели
-    dc.SetBrush(*wxBLUE_BRUSH);
-    dc.SetPen(*wxBLACK_PEN);
-    dc.DrawRectangle(m_positionX, m_positionY, 50, 50);
-    
-    // Можно добавить границу для наглядности
-    dc.SetPen(*wxRED_PEN);
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
-    dc.DrawRectangle(0, 0, GetSize().x, GetSize().y);
-}
-*/
-
 void DrawPanel::OnPaint(wxPaintEvent& event) {
     wxBufferedPaintDC dc(this);
 
@@ -65,72 +45,78 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
     physicsManager->getRenderObjects(bodies, shapes, constraints);
     // Отрисовка ShapeObject
     for (const auto& shape : shapes) {
-    if (!shape.body) continue;
-
-    const BodyObject* body = shape.body;
-    const float angle = body->angle;
-    const float cos_a = cosf(angle);
-    const float sin_a = sinf(angle);
-    const float radius = shape.radius;
-
-    switch (shape.vertices.size()) {
-        case 0:
-            throw std::runtime_error("Shape with id=" + std::to_string(shape.id) + " has 0 vertices");
-            
-        case 1: {
-            // Рисуем круг в позиции единственной вершины
-            const auto& v = shape.vertices[0];
-            float x = v.x * cos_a - v.y * sin_a + body->position.x;
-            float y = v.x * sin_a + v.y * cos_a + body->position.y;
-            dc.SetBrush(*wxBLUE_BRUSH);
-            dc.DrawCircle(wxPoint(x, y), radius);
-            break;
+        if (!shape.body) {
+            std::cout<<"Shape with id="<<shape.id<<" has no body\n";
+            continue;
         }
-        
-        case 2: {
-            // Рисуем линию с кругами на концах
-            std::array<wxPoint, 2> points;
-            for (int i = 0; i < 2; ++i) {
-                const auto& v = shape.vertices[i].rotated(angle) + body->position;
-                //float x = v.x * cos_a - v.y * sin_a + body->position.x;
-                //float y = v.x * sin_a + v.y * cos_a + body->position.y;
-                points[i] = wxPoint(v.x, v.y);
+
+        const BodyObject* body = shape.body;
+        const float angle = body->angle;
+        const float cos_a = cosf(angle);
+        const float sin_a = sinf(angle);
+        const float radius = shape.radius;
+
+        switch (shape.vertices.size()) {
+            case 0:
+                throw std::runtime_error("Shape with id=" + std::to_string(shape.id) + " has 0 vertices");
+                
+            case 1: {
+                const auto& v = shape.vertices[0];
+                float x = v.x * cos_a - v.y * sin_a + body->position.x;
+                float y = v.x * sin_a + v.y * cos_a + body->position.y;
+                dc.SetBrush(*wxBLUE_BRUSH);
+                dc.DrawCircle(wxPoint(x, y), radius);
+                break;
             }
             
-            // Толстая линия
-            dc.SetPen(wxPen(*wxBLACK, 2 * radius));
-            dc.DrawLine(points[0], points[1]);
+            case 2: {
+                // Рисуем линию с кругами на концах
+                std::array<wxPoint, 2> points;
+                for (int i = 0; i < 2; ++i) {
+                    const auto& v = shape.vertices[i].rotated(angle) + body->position;
+                    points[i] = wxPoint(v.x, v.y);
+                }
+                
+                // Толстая линия
+                dc.SetPen(wxPen(*wxBLACK, 2 * radius - 1));
+                dc.DrawLine(points[0], points[1]);
+                
+                /*
+                // Круги на концах
+                dc.SetPen(wxPen(*wxBLACK, 1));
+                dc.SetBrush(*wxBLUE_BRUSH);
+                dc.DrawCircle(points[0], radius-1);
+                dc.DrawCircle(points[1], radius-1);
+                break;
+                */
+            }
             
-            // Круги на концах
-            dc.SetPen(wxPen(*wxBLACK, 1));
-            dc.SetBrush(*wxBLUE_BRUSH);
-            dc.DrawCircle(points[0], radius-1);
-            dc.DrawCircle(points[1], radius-1);
-            break;
+            default: {
+                // Рисуем многоугольник
+                std::vector<wxPoint> points;
+                for (const auto& v : shape.vertices) {
+                    Vector2 vertex = v.rotated(angle) + body->position;
+                    points.emplace_back(vertex.x, vertex.y);
+                }
+                
+                dc.SetBrush(*wxBLUE_BRUSH);
+                dc.SetPen(*wxBLACK_PEN);
+                dc.DrawPolygon(points.size(), points.data());
+                break;
+            }
         }
         
-        default: {
-            // Рисуем многоугольник
-            std::vector<wxPoint> points;
+        /*
+        if (shape.id == 228) {
             for (const auto& v : shape.vertices) {
-	        Vector2 vertex = v.rotated(angle) + body->position;
-		if (shape.id == 1) {
-		    std::cout<<"v:\t"<<v<<"\nang:\t"<<angle<<"\nv.rot:\t"<<v.rotated(angle)<<"\nbpos:\t"<<body->position<<"\n\n";
-		}
-                // float x = v.x * cos_a - v.y * sin_a + body->position.x;
-                // float y = v.x * sin_a + v.y * cos_a + body->position.y;
-                points.emplace_back(vertex.x, vertex.y);
+                std::cout<<"v:\t"<<v<<"\nang:\t"<<angle<<"\nv.rot:\t"<<v.rotated(angle)<<"\nbpos:\t"<<body->position<<"\n";
             }
-            
-            dc.SetBrush(*wxBLUE_BRUSH);
-            dc.SetPen(*wxBLACK_PEN);
-            dc.DrawPolygon(points.size(), points.data());
-            break;
+            std::cout<<std::endl;
         }
+        */
     }
-}
 
-    
+    /*
     // Отрисовка BodyObject
     dc.SetBrush(*wxCYAN_BRUSH);
     dc.SetPen(*wxBLACK_PEN);
@@ -138,8 +124,10 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
     for (const auto& body : bodies) {
         dc.DrawCircle(wxPoint(body.position.x, body.position.y), 10);
     }
+    */
     
-    
+    dc.SetPen(*wxBLACK_PEN);
+    dc.DrawLine(wxPoint(0, 600), wxPoint(700, 600));
 
     // Получаем текущее время
     auto now = std::chrono::system_clock::now();
