@@ -285,7 +285,7 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
 
         for (auto& shapePair : creature.second->shapes) {
             ShapeObject obj_shape;
-            cpShape* shape = shapePair.second;
+            // cpShape* shape = shapePair.second;
             unsigned id = shapePair.first;
 
             obj_shape.id = id;

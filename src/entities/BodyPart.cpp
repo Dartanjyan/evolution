@@ -18,21 +18,21 @@ BodyPart::BodyPart(
     float friction, 
     float elasticity):
 
-    id(BodyPart::newId()),
     parent(parent),
+    id(BodyPart::newId()),
     vertices(vertices),
     radius(radius),
-    isSensorPart(isSensorPart),
     density(density),
     friction(friction), 
-    elasticity(elasticity)
+    elasticity(elasticity),
+    isSensorPart(isSensorPart)
 {
     // std::cout << "Creating BodyPart, id = "<<id<< "\n";
 }
 
 BodyPart::BodyPart(const BodyPart &other, BodyPart* parent):
-    id(BodyPart::newId()),
     parent(parent),
+    id(BodyPart::newId()),
     vertices(other.vertices),
     radius(other.radius),
     density(other.density), 

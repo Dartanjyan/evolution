@@ -16,8 +16,8 @@ Brain::Brain(const std::vector<unsigned short> layers,
 Brain::Brain(const Brain &other):
 	id(Brain::newId()),
 	layers(other.layers),
-	weights(other.weights),
 	memory(other.memory),
+	weights(other.weights),
 	biasWeights(other.biasWeights)
 {
 	// std::cout << "Copying Brain, id "<<other.id<<"->"<<id<<"\n";

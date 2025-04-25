@@ -8,9 +8,9 @@ Creature::Creature()
     : id(Creature::newId()),
       bodyParts(std::vector<BodyPart*> {}),
       constraints(std::vector<Constraint*> {}),
+      brain(nullptr),
       fitness(0.0f),
-      immunity(0),
-      brain(nullptr)
+      immunity(0)
 {
     // std::cout << "Creating empty Creature, id = " << id << "\n";
 }
@@ -21,8 +21,8 @@ Creature::Creature(std::vector<BodyPart*> bodyParts,
                 unsigned immunity): 
     id(Creature::newId()), 
     bodyParts(bodyParts),
-    brain(brain),
     constraints(constraints),
+    brain(brain),
     fitness(0.0f),
     immunity(immunity)
 {

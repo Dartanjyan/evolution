@@ -17,14 +17,14 @@ private:
 
     unsigned id;
     unsigned previous_id = 0;
-    float density;
-    float friction;
-    float elasticity;
-    bool isSensorPart;
     std::vector<Vector2> vertices;
     Vector2 body_to_shape_bias = Vector2();
     float radius = 0.0f;
     std::vector<BodyPart*> children;
+    float density;
+    float friction;
+    float elasticity;
+    bool isSensorPart;
 
     static unsigned last_id;
     static unsigned newId();
