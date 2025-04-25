@@ -32,7 +32,7 @@ void ChipmunkEngine::initialize() {
 
 void ChipmunkEngine::update(float dt) {
     step_mutex.lock();
-    const int STEPS = 1;
+    const int STEPS = 5;
     float sub_dt = dt / STEPS;
     for (int i = 0; i < STEPS; ++i) {
         cpSpaceStep(space, sub_dt);
@@ -175,12 +175,21 @@ void ChipmunkEngine::addConstraint(unsigned creature_id, Constraint *constraint)
     cpVect anchorB = cpv(constraint->getAnchorB().x, constraint->getAnchorB().y);
 
     cpConstraint* joint = nullptr;
-    if (constraint->getType() == ConstraintType::JOINT) {
-        joint = cpPivotJointNew(bodyA, bodyB, anchorA);
-    } else {
-        joint = cpDampedSpringNew(bodyA, bodyB, anchorA, anchorB,
-            constraint->getRest(), constraint->getStiffness(), constraint->getDamping());
+    switch (constraint->getType()) {
+        case ConstraintType::JOINT:
+            joint = cpPivotJointNew(bodyA, bodyB, anchorA);
+            break;
+        case ConstraintType::MUSCLE:
+            joint = cpDampedSpringNew(
+                bodyA, bodyB, 
+                anchorA, anchorB,
+                constraint->getRest(), 
+                constraint->getStiffness(), 
+                constraint->getDamping()
+            );
+            break;
     }
+    
     cpSpaceAddConstraint(space, joint);
     cpConstraintSetCollideBodies(joint, constraint->getCollideConnected());
     this->creatures[creature_id]->constraints[constraint->getId()] = joint;
