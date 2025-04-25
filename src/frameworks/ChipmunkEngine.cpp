@@ -18,8 +18,8 @@ void ChipmunkEngine::initialize() {
 
     // Creating terrain
     cpFloat x = 1000;
-    cpFloat y = 400;
-    cpVect a = cpv(0, y);
+    cpFloat y = 450;
+    cpVect a = cpv(-x, y);
     cpVect b = cpv(x, y);
     cpBody* body = cpSpaceGetStaticBody(space);
     cpShape* terrain = cpSegmentShapeNew(body, a, b, 5.0);
@@ -31,9 +31,9 @@ void ChipmunkEngine::initialize() {
 }
 
 void ChipmunkEngine::update(float dt) {
-    step_mutex.lock();
-    const int STEPS = 5;
+    const int STEPS = 1;
     float sub_dt = dt / STEPS;
+    step_mutex.lock();
     for (int i = 0; i < STEPS; ++i) {
         cpSpaceStep(space, sub_dt);
     }
