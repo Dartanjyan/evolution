@@ -192,7 +192,7 @@ Creature* Creature::createBasicCreature()
     float scale = 1;
     Vector2 bias(100, 100);
 
-    BodyPart* body = new BodyPart(nullptr, { Vector2(40, 20)*scale+bias, Vector2(140, 20)*scale+bias, Vector2(120, 50)*scale+bias});
+    BodyPart* body = new BodyPart(nullptr, { Vector2(40, 20)*scale+bias, Vector2(140, 20)*scale+bias, Vector2(120, 50)*scale+bias}, false, 0);
     
     float radius = 6;
     BodyPart* ll1 = new BodyPart(nullptr, {Vector2(40, 20)*scale+bias, Vector2(80, 40)*scale+bias}, false, radius);
@@ -204,8 +204,6 @@ Creature* Creature::createBasicCreature()
     BodyPart* t1 = new BodyPart(nullptr, {Vector2(40, 20)*scale+bias, Vector2(0, 0)*scale+bias}, false, radius);
     BodyPart* h1 = new BodyPart(nullptr, {Vector2(140, 20)*scale+bias, Vector2(160, 0)*scale+bias}, false, radius);
     
-    std::vector<BodyPart*> bodyParts = {body, ll1, ll2, ll3, rl1, rl2, rl3, t1, h1};
-    
     Constraint* j1 = new Constraint(body, ll1, ConstraintType::JOINT, Vector2(40, 20)*scale+bias, false);
     Constraint* j2 = new Constraint(ll1, ll2, ConstraintType::JOINT, Vector2(80, 40)*scale+bias, false);
     Constraint* j3 = new Constraint(ll2, ll3, ConstraintType::JOINT, Vector2(40, 60)*scale+bias, false);
@@ -216,14 +214,14 @@ Creature* Creature::createBasicCreature()
     Constraint* j8 = new Constraint(body, h1, ConstraintType::JOINT, Vector2(140, 20)*scale+bias, false);
     
     float stiffness = 4e2;
-    float damping = 5e1;
+    float damping = 4e1;
     float rest = 0;
     Constraint* m1 = new Constraint(
         body, ll1,
         ConstraintType::MUSCLE, 
         Vector2(90, 20)*scale+bias, 
         Vector2(60, 30)*scale+bias, 
-        rest, stiffness, damping);
+        rest, stiffness*2, damping);
     Constraint* m2 = new Constraint(
         ll1, ll2,
         ConstraintType::MUSCLE, 
@@ -266,7 +264,14 @@ Creature* Creature::createBasicCreature()
         Vector2(90, 20)*scale+bias, 
         Vector2(150, 10)*scale+bias, 
         rest, stiffness, damping);
+    Constraint* m9 = new Constraint(
+        body, ll1,
+        ConstraintType::MUSCLE, 
+        Vector2(90, 40)*scale+bias, 
+        Vector2(60, 30)*scale+bias, 
+        rest, stiffness, damping);
     
+    std::vector<BodyPart*> bodyParts = {body, ll1, ll2, ll3, rl1, rl2, rl3, t1, h1};
     std::vector<Constraint*> constraints = {j1, j2, j3, j4, j5, j6, j7, j8, m1, m2, m3, m4, m5, m6, m7, m8};
     
     Brain* brain = new Brain(std::vector<unsigned short>{1}, std::vector<std::vector<double>>{

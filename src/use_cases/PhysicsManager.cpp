@@ -52,7 +52,7 @@ void PhysicsManager::run() {
 	    creaturesQueue.pop();
 	}
         // a little sleep to avoid cpu hogging
-        std::this_thread::sleep_for(milliseconds(16));
+        std::this_thread::sleep_for(milliseconds(1000/60));
     }
 }
 

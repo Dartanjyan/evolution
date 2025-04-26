@@ -18,9 +18,8 @@ private:
     void OnPaint(wxPaintEvent& event);
     void OnTimer(wxTimerEvent& event);
     void OnSize(wxSizeEvent& event);
-    wxTimer* timer;
-
     PhysicsManager* physicsManager;
+    wxTimer* timer;
 };
 
 #endif

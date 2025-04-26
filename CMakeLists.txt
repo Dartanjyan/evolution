@@ -3,7 +3,7 @@ project(evolution VERSION 0.1.0 LANGUAGES CXX)
 
 add_compile_options(
     -Wall -Wextra -Werror -Wno-unused
-    -O2 -march=native
+    -march=native
     -fstack-protector-strong
 )
 

@@ -16,6 +16,12 @@ void ChipmunkEngine::initialize() {
     cpSpaceSetGravity(space, cpv(0, 981));
     cpSpaceSetSleepTimeThreshold(space, 0.5);
 
+    // Amount of overlap between shapes that is allowed
+    cpSpaceSetCollisionSlop(space, 0.8);
+
+    // Chipmunk attempts to correct 10% of error ever 1/60th of a second
+    cpSpaceSetCollisionBias(space, cpfpow(1.0f - 0.1f, 60.0f));
+
     // Creating terrain
     cpFloat x = 1000;
     cpFloat y = 450;
@@ -77,21 +83,21 @@ cpShape* createShapeForBodyPart(cpBody* body, const BodyPart *bodyPart, cpVect b
 
     cpShape* shape = nullptr;
     switch (vertices.size()) {
-	case 0: {
-	    throw std::runtime_error("DrawPanel::OnDraw(): shape must have at least 1 vertex\n");
-	    break;
-	}
-	case 1: {
-	    shape = cpCircleShapeNew(body, bodyPart->getRadius(), cpVertices[0]);
-	    break;
-	}
-	case 2: {
+        case 0: {
+            throw std::runtime_error("DrawPanel::OnDraw(): shape must have at least 1 vertex\n");
+            break;
+        }
+        case 1: {
+            shape = cpCircleShapeNew(body, bodyPart->getRadius(), cpVertices[0]);
+            break;
+        }
+        case 2: {
             shape = cpSegmentShapeNew(body, cpVertices[0], cpVertices[1], bodyPart->getRadius());
-	    break;
+            break;
         }
         default: {
             shape = cpPolyShapeNew(body, vertices.size(), cpVertices.get(), cpTransformIdentity, 0);
-	    break;
+            break;
         }
     }
 
@@ -117,6 +123,11 @@ void ChipmunkEngine::addBodyPart(unsigned creature_id, BodyPart *bodyPart)
     auto vertices = bodyPart->getVertices();
     size_t vertices_count = vertices.size();
     cpFloat moment = 0;
+    cpVect cp_verts[vertices_count];
+    for (size_t i=0; i<vertices_count; i++) {
+        cp_verts[i].x = vertices[i].x;
+        cp_verts[i].y = vertices[i].y;
+    }
     switch (vertices_count) {
         case 0:
             throw std::runtime_error("BodyPart must have at least 1 vertex");
@@ -126,14 +137,14 @@ void ChipmunkEngine::addBodyPart(unsigned creature_id, BodyPart *bodyPart)
                 mass,
                 0,
                 bodyPart->getRadius(),
-                cpvzero
+                cp_verts[0]
             );
             break;
         case 2:
             moment = cpMomentForSegment(
                 mass,
-                cpv(vertices[0].x, vertices[0].y),
-                cpv(vertices[1].x, vertices[1].y),
+                cp_verts[0],
+                cp_verts[1],
                 bodyPart->getRadius()
             );
             break;
@@ -141,12 +152,13 @@ void ChipmunkEngine::addBodyPart(unsigned creature_id, BodyPart *bodyPart)
             moment = cpMomentForPoly(
                 mass,
                 vertices_count,
-                reinterpret_cast<const cpVect*>(vertices.data()),
+                cp_verts,
                 cpvzero,
                 0
             );
             break;
     }
+
     Vector2 center = bodyPart->getCenter();
     cpVect body_pos = cpv(center.x, center.y);
     cpVect bias = -body_pos;
@@ -174,13 +186,13 @@ void ChipmunkEngine::addConstraint(unsigned creature_id, Constraint *constraint)
     cpVect anchorA = cpv(constraint->getAnchorA().x, constraint->getAnchorA().y);
     cpVect anchorB = cpv(constraint->getAnchorB().x, constraint->getAnchorB().y);
 
-    cpConstraint* joint = nullptr;
+    cpConstraint* cp_constraint = nullptr;
     switch (constraint->getType()) {
         case ConstraintType::JOINT:
-            joint = cpPivotJointNew(bodyA, bodyB, anchorA);
+            cp_constraint = cpPivotJointNew(bodyA, bodyB, anchorA);
             break;
         case ConstraintType::MUSCLE:
-            joint = cpDampedSpringNew(
+            cp_constraint = cpDampedSpringNew(
                 bodyA, bodyB, 
                 anchorA, anchorB,
                 constraint->getRest(), 
@@ -190,9 +202,11 @@ void ChipmunkEngine::addConstraint(unsigned creature_id, Constraint *constraint)
             break;
     }
     
-    cpSpaceAddConstraint(space, joint);
-    cpConstraintSetCollideBodies(joint, constraint->getCollideConnected());
-    this->creatures[creature_id]->constraints[constraint->getId()] = joint;
+    cpConstraintSetErrorBias(cp_constraint, cpfpow(1.0 - 0.01, 1200000));
+    cpConstraintSetCollideBodies(cp_constraint, constraint->getCollideConnected());
+    this->creatures[creature_id]->constraints[constraint->getId()] = cp_constraint;
+    
+    cpSpaceAddConstraint(space, cp_constraint);
 }
 
 void ChipmunkEngine::addCreature(Creature *creature)
@@ -296,17 +310,13 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             if (it != bodyMap.end() && it->second < bodies.size()) {
                 obj_shape.body = &bodies[it->second];
             } else {
-                throw std::runtime_error("Body not found for shape. One of the condition is not met: " + 
-                    std::to_string(it != bodyMap.end()) + 
-                    " && " + 
-                    std::to_string(it->second < bodies.size()) +
-                    "\n"
-                );
+                obj_shape.body = nullptr; // Ensure obj_shape.body is initialized
+                std::cerr << "Warning: Body mapping not found for shape ID " << id << std::endl;
             }
-            
+            obj_shape.isWorldObj = false;
+            obj_shape.initShapeType();
             shapes.push_back(obj_shape);
         }
-
         // std::cout<<"\n";
     }
 
@@ -323,5 +333,7 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
     terrain_shape.vertices = {Vector2(terrBB.l, y), Vector2(terrBB.r, y)};
     terrain_shape.id = 228;
     terrain_shape.radius=20;
+    terrain_shape.isWorldObj = true;
+    terrain_shape.initShapeType();
     shapes.push_back(terrain_shape);
 }

@@ -5,6 +5,12 @@
 #include "Vector2.h"
 #include "Constraint.h"
 
+enum class ShapeType {
+    Circle, 
+    Segment, 
+    Polygon
+};
+
 class BodyObject {
 public:
     unsigned id;
@@ -24,8 +30,11 @@ public:
     float radius;
     std::vector<Vector2> vertices;
     BodyObject* body;
+    ShapeType shapeType;
+    bool isWorldObj = false;
     ShapeObject() = default;
-    ShapeObject(unsigned id, float radius, std::vector<Vector2> vertices, BodyObject* body);
+    ShapeObject(unsigned id, float radius, std::vector<Vector2> vertices, BodyObject* body, bool isWorldObj);
+    void initShapeType();
 };
 
 class ConstraintObject {

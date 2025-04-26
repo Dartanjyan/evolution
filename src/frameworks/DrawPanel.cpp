@@ -6,7 +6,7 @@ DrawPanel::DrawPanel(PhysicsManager* physicsManager, wxWindow* parent, wxWindowI
                      const wxPoint& pos,
                      const wxSize& size,
                      long style) 
-    : physicsManager(physicsManager), wxPanel(parent, id, pos, size, style) {
+    : wxPanel(parent, id, pos, size, style), physicsManager(physicsManager) {
     
     if (!physicsManager) {
         std::cout << "DrawPanel constructor: got nullptr as physicsManager\n";
@@ -33,111 +33,95 @@ DrawPanel::~DrawPanel()
 }
 
 void DrawPanel::OnPaint(wxPaintEvent& event) {
+    const wxColour world_shape_colour = wxColour(79, 73, 85);
+    const wxBrush world_shape_brush = wxBrush(world_shape_colour);
+    
+
     wxBufferedPaintDC dc(this);
 
     dc.SetBackground(*wxWHITE);
-    // Рисуем фон
     dc.Clear();
 
     std::vector<BodyObject> bodies {};
     std::vector<ShapeObject> shapes {};
     std::vector<ConstraintObject> constraints {};
-    physicsManager->getRenderObjects(bodies, shapes, constraints);
+    std::vector<const ShapeObject*> circles, segments, polygons, world_circles, world_segments, world_polygons;
     
-    // Отрисовка ShapeObject
-    for (const auto& shape : shapes) {
-        if (!shape.body) {
-            std::cout<<"Shape with id="<<shape.id<<" has no body\n";
+    physicsManager->getRenderObjects(bodies, shapes, constraints);
+
+    for (auto& s: shapes) {
+        if (s.isWorldObj) {
+            switch (s.shapeType) {
+                case ShapeType::Circle:   world_circles.push_back(&s); break;
+                case ShapeType::Segment:  world_segments.push_back(&s); break;
+                case ShapeType::Polygon:  world_polygons.push_back(&s); break;
+            }
+        }
+        else {
+            switch (s.shapeType) {
+                case ShapeType::Circle:   circles.push_back(&s); break;
+                case ShapeType::Segment:  segments.push_back(&s); break;
+                case ShapeType::Polygon:  polygons.push_back(&s); break;
+            }
+        }
+
+        if (!s.body) {
+            std::cout<<"Shape with id="<<s.id<<" has no body\n";
             continue;
         }
+    }
 
-        const BodyObject* body = shape.body;
+    // First draw polygons in order for segments to be on top
+    dc.SetBrush(*wxBLUE_BRUSH);
+    dc.SetPen(*wxBLACK_PEN);
+    for (const auto *shape : polygons) {
+        const BodyObject* body = shape->body;
         const float angle = body->angle;
-        const float cos_a = cosf(angle);
-        const float sin_a = sinf(angle);
-        const float radius = shape.radius;
+        const float radius = shape->radius;
 
-        switch (shape.vertices.size()) {
-            case 0:
-                throw std::runtime_error("Shape with id=" + std::to_string(shape.id) + " has 0 vertices");
-                
-            case 1: {
-                const auto& v = shape.vertices[0];
-                float x = v.x * cos_a - v.y * sin_a + body->position.x;
-                float y = v.x * sin_a + v.y * cos_a + body->position.y;
-                dc.SetBrush(*wxBLUE_BRUSH);
-                dc.DrawCircle(wxPoint(x, y), radius);
-                break;
-            }
-            
-            case 2: {
-                // Рисуем линию с кругами на концах
-                std::array<wxPoint, 2> points;
-                for (int i = 0; i < 2; ++i) {
-                    const auto& v = shape.vertices[i].rotated(angle) + body->position;
-                    points[i] = wxPoint(v.x, v.y);
-                }
-                
-                // Толстая линия
-                dc.SetPen(wxPen(*wxBLACK, radius - 1));
-                dc.DrawLine(points[0], points[1]);
-                
-                /*
-                // Круги на концах
-                dc.SetPen(wxPen(*wxBLACK, 1));
-                dc.SetBrush(*wxBLUE_BRUSH);
-                dc.DrawCircle(points[0], radius-1);
-                dc.DrawCircle(points[1], radius-1);
-                break;
-                */
-            }
-            
-            default: {
-                // Рисуем многоугольник
-                std::vector<wxPoint> points;
-                for (const auto& v : shape.vertices) {
-                    Vector2 vertex = v.rotated(angle) + body->position;
-                    points.emplace_back(vertex.x, vertex.y);
-                }
-                
-                dc.SetBrush(*wxBLUE_BRUSH);
-                dc.SetPen(*wxBLACK_PEN);
-                dc.DrawPolygon(points.size(), points.data());
-                break;
-            }
+        std::vector<wxPoint> points;
+        for (const auto& v : shape->vertices) {
+            Vector2 vertex = v.rotated(angle) + body->position;
+            points.emplace_back(vertex.x, vertex.y);
         }
         
-        /*
-        if (shape.id == 228) {
-            for (const auto& v : shape.vertices) {
-                std::cout<<"v:\t"<<v<<"\nang:\t"<<angle<<"\nv.rot:\t"<<v.rotated(angle)<<"\nbpos:\t"<<body->position<<"\n";
-            }
-            std::cout<<std::endl;
+        dc.DrawPolygon(points.size(), points.data());
+    }
+
+    for (const auto *shape : segments) {
+        const BodyObject* body = shape->body;
+        const float angle = body->angle;
+        const float radius = shape->radius;
+        
+        std::array<wxPoint, 2> points;
+        for (int i = 0; i < 2; ++i) {
+            const auto v = shape->vertices[i].rotated(angle) + body->position;
+            points[i] = wxPoint(v.x, v.y);
         }
-        */
+        
+        dc.SetPen(wxPen(shape->isWorldObj ? world_shape_colour : 0x888888, radius - 1));
+        dc.DrawLine(points[0], points[1]);
     }
 
-    /*
-    // Отрисовка BodyObject
-    dc.SetBrush(*wxCYAN_BRUSH);
-    dc.SetPen(*wxBLACK_PEN);
+    for (const auto *shape : circles) {
+        const BodyObject* body = shape->body;
+        const float angle = body->angle;
+        const float radius = shape->radius;
+
+        const auto& v = shape->vertices[0].rotated(angle) + body->position;
+
+        // if it is a world object then brush it with gray color
+        dc.SetBrush(shape->isWorldObj ? world_shape_brush : *wxBLUE_BRUSH);
+        dc.DrawCircle(wxPoint(v.x, v.y), radius);
+    }
     
-    for (const auto& body : bodies) {
-        dc.DrawCircle(wxPoint(body.position.x, body.position.y), 10);
-    }
-    */
-
-    // Получаем текущее время
     auto now = std::chrono::system_clock::now();
     auto now_time = std::chrono::system_clock::to_time_t(now);
     std::string time_str = std::ctime(&now_time);
-    time_str.pop_back(); // Удаляем символ новой строки
-    // Устанавливаем цвет текста
+    time_str.pop_back();
     dc.SetTextForeground(*wxBLACK);
-    // Устанавливаем шрифт
     wxFont font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     dc.SetFont(font);
-    // Выводим текст на экран
     dc.DrawText("Current time: " + wxString(time_str), 10, 30);
 
     // FPS counter
@@ -152,7 +136,7 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
         sw.Start();
     }
 
-    dc.DrawText(wxString::Format("FPS: %.1f", fps), 10, 10);
+    dc.DrawText(wxString::Format("FPS: %.f", fps), 10, 10);
 }
 
 void DrawPanel::OnTimer(wxTimerEvent& event) {
@@ -161,7 +145,7 @@ void DrawPanel::OnTimer(wxTimerEvent& event) {
 }
 
 void DrawPanel::OnSize(wxSizeEvent& event) {
-    Refresh(); // Перерисовываем при изменении размера
-    event.Skip(); // Пропускаем событие дальше
+    Refresh();
+    event.Skip();
 }
 
