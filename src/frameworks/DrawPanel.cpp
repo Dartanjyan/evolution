@@ -32,23 +32,36 @@ DrawPanel::~DrawPanel()
     }
 }
 
+// Cache last used wxPen to reduce pen switching
+inline void setPen(wxDC &dc, wxPen pen, bool force = false) {
+    static wxPen last_pen;
+    if (force || last_pen != pen) {
+        dc.SetPen(pen);
+        last_pen = pen;
+    }
+}
+
 void DrawPanel::OnPaint(wxPaintEvent& event) {
-    const wxColour world_shape_colour = wxColour(79, 73, 85);
-    const wxBrush world_shape_brush = wxBrush(world_shape_colour);
+    static const wxColour world_shape_color = wxColour(79, 73, 85);
+
+    static const wxColour poly_color = wxColour(170, 153, 137);
+    static const wxColour segment_color = wxColour(115, 126, 137);
+    static const wxColour circle_color = segment_color;
+    static const wxColour muscle_color = wxColour(255, 129, 110);
+
+    std::vector<BodyObject> bodies {};
+    std::vector<ShapeObject> shapes {};
+    std::vector<ConstraintObject> constraints {};
     
+    physicsManager->getRenderObjects(bodies, shapes, constraints);
+    std::vector<const ShapeObject*> circles, segments, polygons, world_circles, world_segments, world_polygons;
 
     wxBufferedPaintDC dc(this);
 
     dc.SetBackground(*wxWHITE);
     dc.Clear();
-
-    std::vector<BodyObject> bodies {};
-    std::vector<ShapeObject> shapes {};
-    std::vector<ConstraintObject> constraints {};
-    std::vector<const ShapeObject*> circles, segments, polygons, world_circles, world_segments, world_polygons;
     
-    physicsManager->getRenderObjects(bodies, shapes, constraints);
-
+    // Fill vectors do draw them with different colors.
     for (auto& s: shapes) {
         if (s.isWorldObj) {
             switch (s.shapeType) {
@@ -71,48 +84,122 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
         }
     }
 
+    setPen(dc, wxPen("black"), true);
+    if (world_polygons.size() > 0) {
+        dc.SetBrush(wxBrush(world_shape_color));
+        setPen(dc, wxPen("black"));
+        for (const auto *shape : polygons) {
+            const BodyObject* body = shape->body;
+            const float angle = body->angle;
+            const float radius = shape->radius;
+    
+            std::vector<wxPoint> points;
+            for (const auto& v : shape->vertices) {
+                Vector2 vertex = v.rotated(angle) + body->position;
+                points.emplace_back(vertex.x, vertex.y);
+            }
+            
+            dc.DrawPolygon(points.size(), points.data());
+        }
+    }
+
+    if (world_segments.size() > 0) {    
+        for (const auto *shape : world_segments) {
+            const BodyObject* body = shape->body;
+            const float angle = body->angle;
+            const float radius = shape->radius;
+            
+            std::array<wxPoint, 2> points;
+            for (int i = 0; i < 2; ++i) {
+                const auto v = shape->vertices[i].rotated(angle) + body->position;
+                points[i] = wxPoint(v.x, v.y);
+            }
+
+            setPen(dc, wxPen(world_shape_color, radius - 1));
+            dc.DrawLine(points[0], points[1]);
+        }
+    }
+
+    if(world_circles.size() > 0) {
+        dc.SetBrush(world_shape_color);
+        dc.SetPen(*wxBLACK_PEN);
+        for (const auto *shape : world_circles) {
+            const BodyObject* body = shape->body;
+            const float angle = body->angle;
+            const float radius = shape->radius;
+    
+            const auto& v = shape->vertices[0].rotated(angle) + body->position;
+    
+            dc.DrawCircle(wxPoint(v.x, v.y), radius);
+        }
+    }
+    
+
     // First draw polygons in order for segments to be on top
-    dc.SetBrush(*wxBLUE_BRUSH);
-    dc.SetPen(*wxBLACK_PEN);
-    for (const auto *shape : polygons) {
-        const BodyObject* body = shape->body;
-        const float angle = body->angle;
-        const float radius = shape->radius;
-
-        std::vector<wxPoint> points;
-        for (const auto& v : shape->vertices) {
-            Vector2 vertex = v.rotated(angle) + body->position;
-            points.emplace_back(vertex.x, vertex.y);
+    if (polygons.size() > 0) {
+        dc.SetBrush(wxBrush(poly_color));
+        dc.SetPen(wxPen("black"));
+        for (const auto *shape : polygons) {
+            const BodyObject* body = shape->body;
+            const float angle = body->angle;
+            const float radius = shape->radius;
+    
+            std::vector<wxPoint> points;
+            for (const auto& v : shape->vertices) {
+                Vector2 vertex = v.rotated(angle) + body->position;
+                points.emplace_back(vertex.x, vertex.y);
+            }
+            
+            dc.DrawPolygon(points.size(), points.data());
         }
-        
-        dc.DrawPolygon(points.size(), points.data());
     }
 
-    for (const auto *shape : segments) {
-        const BodyObject* body = shape->body;
-        const float angle = body->angle;
-        const float radius = shape->radius;
-        
-        std::array<wxPoint, 2> points;
-        for (int i = 0; i < 2; ++i) {
-            const auto v = shape->vertices[i].rotated(angle) + body->position;
-            points[i] = wxPoint(v.x, v.y);
+    if (segments.size() > 0) {
+        for (const auto *shape : segments) {
+            const BodyObject* body = shape->body;
+            const float angle = body->angle;
+            const float radius = shape->radius;
+            
+            std::array<wxPoint, 2> points;
+            for (int i = 0; i < 2; ++i) {
+                const auto v = shape->vertices[i].rotated(angle) + body->position;
+                points[i] = wxPoint(v.x, v.y);
+            }
+            
+            // Radius may vary so i have to set pen every time drawing a segment
+            setPen(dc, wxPen(wxColour(0, 0, 0), radius-1));
+            dc.DrawLine(points[0], points[1]);
         }
-        
-        dc.SetPen(wxPen(shape->isWorldObj ? world_shape_colour : 0x888888, radius - 1));
-        dc.DrawLine(points[0], points[1]);
+    
+        for (const auto *shape : segments) {
+            const BodyObject* body = shape->body;
+            const float angle = body->angle;
+            const float radius = shape->radius;
+            
+            std::array<wxPoint, 2> points;
+            for (int i = 0; i < 2; ++i) {
+                const auto v = shape->vertices[i].rotated(angle) + body->position;
+                points[i] = wxPoint(v.x, v.y);
+            }
+            
+            // Radius may vary so i have to set pen every time drawing a segment
+            setPen(dc, wxPen(segment_color, radius - 2));
+            dc.DrawLine(points[0], points[1]);
+        }
     }
 
-    for (const auto *shape : circles) {
-        const BodyObject* body = shape->body;
-        const float angle = body->angle;
-        const float radius = shape->radius;
-
-        const auto& v = shape->vertices[0].rotated(angle) + body->position;
-
-        // if it is a world object then brush it with gray color
-        dc.SetBrush(shape->isWorldObj ? world_shape_brush : *wxBLUE_BRUSH);
-        dc.DrawCircle(wxPoint(v.x, v.y), radius);
+    if(circles.size() > 0) {
+        dc.SetPen(*wxBLACK_PEN);
+        dc.SetBrush(circle_color);
+        for (const auto *shape : circles) {
+            const BodyObject* body = shape->body;
+            const float angle = body->angle;
+            const float radius = shape->radius;
+    
+            const auto& v = shape->vertices[0].rotated(angle) + body->position;
+    
+            dc.DrawCircle(wxPoint(v.x, v.y), radius);
+        }
     }
     
     auto now = std::chrono::system_clock::now();
