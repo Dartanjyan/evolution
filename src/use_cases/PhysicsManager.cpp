@@ -8,7 +8,9 @@ PhysicsManager::PhysicsManager(IPhysicsEngine* engine)
 
 void PhysicsManager::getRenderObjects(std::vector<BodyObject> &bodies, std::vector<ShapeObject> &shapes, std::vector<ConstraintObject> &constraints) const
 {
-    engine->getRenderObjects(bodies, shapes, constraints);
+    if(running.load()) {
+        engine->getRenderObjects(bodies, shapes, constraints);
+    }
 }
 
 PhysicsManager::~PhysicsManager() {
@@ -42,9 +44,6 @@ void PhysicsManager::run() {
 
     while (running.load()) {
         float dt = 0.01;
-        // auto currentTime = high_resolution_clock::now();
-        // dt = duration<float>(currentTime - previousTime).count();
-        // previousTime = currentTime;
         engine->update(dt);
 	
 	while (!creaturesQueue.empty()) {
@@ -52,7 +51,7 @@ void PhysicsManager::run() {
 	    creaturesQueue.pop();
 	}
         // a little sleep to avoid cpu hogging
-        std::this_thread::sleep_for(milliseconds(1000/60));
+        std::this_thread::sleep_for(milliseconds(0));
     }
 }
 

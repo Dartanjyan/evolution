@@ -19,7 +19,9 @@ public:
     
 private:
     PhysicsManager *physicsManager;
-    void OnExit(wxCommandEvent& event);
+    void OnQuit(wxCommandEvent& event);
+    void OnCloseWindow(wxCloseEvent& event);
+    void HandleExit();
     void OnAbout(wxCommandEvent& event);
 
     void OnStart(wxCommandEvent& event);

@@ -37,8 +37,8 @@ void ChipmunkEngine::initialize() {
 }
 
 void ChipmunkEngine::update(float dt) {
-    const int STEPS = 1;
-    float sub_dt = dt / STEPS;
+    static const int STEPS = 1;
+    static const float sub_dt = dt / STEPS;
     step_mutex.lock();
     for (int i = 0; i < STEPS; ++i) {
         cpSpaceStep(space, sub_dt);

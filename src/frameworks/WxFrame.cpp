@@ -31,7 +31,7 @@ WxFrame::WxFrame(PhysicsManager* physicsManager, const wxString &title, const wx
 
     wxPanel *controlPanel = new wxPanel(this, wxID_ANY);
     controlPanel->SetBackgroundColour(wxColour(255, 255, 255));
-    // wxButton *startButton = new wxButton(controlPanel, ID_START, "Start", wxDefaultPosition, wxSize(60, wxDefaultSize.y));
+    // wxButton *startButton = new wxButton(controlPanel, ID_START, "Stop", wxDefaultPosition, wxSize(60, wxDefaultSize.y));
     wxButton *addButton = new wxButton(controlPanel, ID_ADD_CREATURE, "+", wxPoint(60, 0), wxSize(60, wxDefaultSize.y));
 
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
@@ -39,7 +39,8 @@ WxFrame::WxFrame(PhysicsManager* physicsManager, const wxString &title, const wx
     sizer->Add(drawPanel, 1, wxEXPAND | wxALL);
     this->SetSizer(sizer);
 
-    Bind(wxEVT_MENU, &WxFrame::OnExit, this, wxID_EXIT);
+    Bind(wxEVT_MENU, &WxFrame::OnQuit, this, wxID_EXIT);
+    Bind(wxEVT_CLOSE_WINDOW, &WxFrame::OnCloseWindow, this, wxID_EXIT);
     Bind(wxEVT_MENU, &WxFrame::OnAbout, this, wxID_ABOUT);
     Bind(wxEVT_BUTTON, &WxFrame::OnStart, this, ID_START);
     Bind(wxEVT_BUTTON, &WxFrame::OnAdd, this, ID_ADD_CREATURE);
@@ -51,10 +52,22 @@ WxFrame::~WxFrame()
 {
 }
 
-void WxFrame::OnExit(wxCommandEvent& event)
+void WxFrame::OnQuit(wxCommandEvent& event)
 {
-    Close(true);
+    HandleExit();
+}
+
+void WxFrame::OnCloseWindow(wxCloseEvent &event)
+{
+    HandleExit();
+    event.Skip();
+}
+
+void WxFrame::HandleExit()
+{
     std::cout << "Exiting application" << std::endl;
+    this->physicsManager->stop();
+    Close(true);
 }
 
 void WxFrame::OnAbout(wxCommandEvent& event)
@@ -65,12 +78,12 @@ void WxFrame::OnAbout(wxCommandEvent& event)
 
 void WxFrame::OnStart(wxCommandEvent &event)
 {
-    std::cout<<"Empty button\n";
+    this->physicsManager->stop();
 }
 
 void WxFrame::OnAdd(wxCommandEvent &event)
 {
-    for (int i=0; i<1; i++) {
+    for (int i=0; i<100; i++) {
         this->physicsManager->addCreature(Creature::createBasicCreature());
     }
 }
