@@ -28,6 +28,10 @@ Now you have two options:
   ```shell
   bash ./scripts/build_wx.sh
   ```
+  And build Chipmunk2D:
+  ```shell
+  bash ./scripts/build_chipmunk2d.sh
+  ```
 2. Instal wxWidgets with your package manager
   - Debian
   ```shell
@@ -41,9 +45,7 @@ Now you have two options:
   ```shell
   sudo pacman -S wxwidgets-gtk3
   ```
-  
-
-If you installed wxWidgets with your package manager, then add the argument `-DUSE_SYSTEM_WX=ON` at the end of the first line
+Build
 ```shell
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
@@ -55,12 +57,9 @@ Launch
 
 ## Plans
 ### Application
-- Pre-increment static id in Creature, BodyPart, Joint
-- Remove isRootPart attribute in BodyPart class
 - **WIP:** Recoding on c++ with wxWidgets
 ### Creatures
 - Add joint angle limits
-- Add muscles (just like at the *Evolution by Keiwan Donyagard*)
 - Add immunity for the creature to live through some generations (it'd be like you compete your grandfather or smth like that)
 - Add reward/punishment system. For example, a little punishment for every muscle action, a big punishment for touching the ~~grass~~ ground with the specified body parts, and a dynamic award for the distance they have crossed. While living, creatures collect awards and punishments, what will then impact on selecting the best creatures
 - Add sight parts for the creatures. It'll probably look like you just specify a part as 'sight part' and creature will ray cast in multiple directions and see enviroment. Today the environment is just a plain world and it seems to be a bad idea to use side parts because creature always knows the angle of it's every body part.
