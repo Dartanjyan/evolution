@@ -24,22 +24,18 @@ git checkout cpp-recode -f
 ```
 
 Now you have two options:
-1. Build wxWidgets:
+1. Build libraries locally:
   ```shell
-  bash ./scripts/build_wx.sh
+  bash ./scripts/build_all.sh
   ```
-  And build Chipmunk2D:
-  ```shell
-  bash ./scripts/build_chipmunk2d.sh
-  ```
-2. Instal wxWidgets with your package manager
+2. Instal libraries with your package manager
   - Debian
   ```shell
-  sudo apt install libwxgtk3.2-dev
+  sudo apt install libwxgtk3.2-dev libchipmunk-dev
   ```
   - Fedora
   ```shell
-  sudo dnf install wxGTK-devel
+  sudo dnf install wxGTK-devel chipmunk-devel
   ```
   - Arch
   ```shell
