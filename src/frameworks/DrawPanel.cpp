@@ -2,11 +2,11 @@
 #include <wx/dcbuffer.h>
 #include <chrono>
 
-DrawPanel::DrawPanel(PhysicsManager* physicsManager, wxWindow* parent, wxWindowID id,
+DrawPanel::DrawPanel(std::unique_ptr<PhysicsManager> physicsManager, wxWindow* parent, wxWindowID id,
                      const wxPoint& pos,
                      const wxSize& size,
                      long style) 
-    : wxPanel(parent, id, pos, size, style), physicsManager(physicsManager) {
+    : wxPanel(parent, id, pos, size, style), physicsManager(std::move(physicsManager)) {
     
     if (!physicsManager) {
         std::cout << "DrawPanel constructor: got nullptr as physicsManager\n";

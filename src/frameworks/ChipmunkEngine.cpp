@@ -47,7 +47,7 @@ void ChipmunkEngine::update(float dt) {
 }
 
 void ChipmunkEngine::shutdown() {
-    for (auto& creature : creatures) {
+    for (auto& creature : chipmunkCreatures) {
         for (auto& body : creature.second->bodies) {
             cpSpaceRemoveBody(space, body.second);
             cpBodyFree(body.second);
@@ -113,7 +113,7 @@ cpShape* createShapeForBodyPart(cpBody* body, const BodyPart *bodyPart, cpVect b
 void ChipmunkEngine::addShapeToChipmunkCreature(cpBody* body, BodyPart* bodyPart, unsigned creature_id, cpVect bias) {
     cpShape* shape = createShapeForBodyPart(body, bodyPart, bias);
     cpSpaceAddShape(space, shape);
-    this->creatures[creature_id]->shapes[bodyPart->getId()] = shape;
+    this->chipmunkCreatures[creature_id]->shapes[bodyPart->getId()] = shape;
     bodyPart->setBodyPosBias(Vector2(bias.x, bias.y));
 }
 
@@ -167,7 +167,7 @@ void ChipmunkEngine::addBodyPart(unsigned creature_id, BodyPart *bodyPart)
     cpBodySetUserData(cp_body, (void*)bodyPart);
     cpBodySetPosition(cp_body, body_pos);
     cpSpaceAddBody(space, cp_body);
-    this->creatures[creature_id]->bodies[bodyPart->getId()] = cp_body;
+    this->chipmunkCreatures[creature_id]->bodies[bodyPart->getId()] = cp_body;
 
     // Add shape
     this->addShapeToChipmunkCreature(cp_body, bodyPart, creature_id, bias);
@@ -180,8 +180,8 @@ void ChipmunkEngine::addBodyPart(unsigned creature_id, BodyPart *bodyPart)
 
 void ChipmunkEngine::addConstraint(unsigned creature_id, Constraint *constraint)
 {
-    cpBody* bodyA = this->creatures[creature_id]->bodies[constraint->getPartA()->getId()];
-    cpBody* bodyB = this->creatures[creature_id]->bodies[constraint->getPartB()->getId()];
+    cpBody* bodyA = this->chipmunkCreatures[creature_id]->bodies[constraint->getPartA()->getId()];
+    cpBody* bodyB = this->chipmunkCreatures[creature_id]->bodies[constraint->getPartB()->getId()];
 
     cpVect anchorA = cpv(constraint->getAnchorA().x, constraint->getAnchorA().y);
     cpVect anchorB = cpv(constraint->getAnchorB().x, constraint->getAnchorB().y);
@@ -204,8 +204,8 @@ void ChipmunkEngine::addConstraint(unsigned creature_id, Constraint *constraint)
     
     cpConstraintSetErrorBias(cp_constraint, cpfpow(1.0 - 0.01, 1200000));
     cpConstraintSetCollideBodies(cp_constraint, constraint->getCollideConnected());
-    this->creatures[creature_id]->constraints[constraint->getId()] = cp_constraint;
-    
+    this->chipmunkCreatures[creature_id]->constraints[constraint->getId()] = cp_constraint;
+    cpConstraintSetUserData(cp_constraint, (void*)constraint);
     cpSpaceAddConstraint(space, cp_constraint);
 }
 
@@ -215,7 +215,7 @@ void ChipmunkEngine::addCreature(Creature *creature)
 
     ChimpmunkCreature* chimpmunkCreature = new ChimpmunkCreature();
     chimpmunkCreature->creature = creature;
-    creatures[creature->getId()] = chimpmunkCreature;
+    chipmunkCreatures[creature->getId()] = chimpmunkCreature;
 
     for (auto& bodyPart : creature->getMainBodyParts()) {
         addBodyPart(creature->getId(), bodyPart);
@@ -229,8 +229,8 @@ void ChipmunkEngine::addCreature(Creature *creature)
 
 void ChipmunkEngine::removeBodyPart(unsigned creature_id, BodyPart *bodyPart)
 {
-    auto it = creatures.find(creature_id);
-    if (it != creatures.end()) {
+    auto it = chipmunkCreatures.find(creature_id);
+    if (it != chipmunkCreatures.end()) {
         ChimpmunkCreature* chimpmunkCreature = it->second;
         auto bodyIt = chimpmunkCreature->bodies.find(bodyPart->getId());
         if (bodyIt != chimpmunkCreature->bodies.end()) {
@@ -244,8 +244,8 @@ void ChipmunkEngine::removeBodyPart(unsigned creature_id, BodyPart *bodyPart)
 
 void ChipmunkEngine::removeConstraint(unsigned creature_id, Constraint *constraint)
 {
-    auto it = creatures.find(creature_id);
-    if (it != creatures.end()) {
+    auto it = chipmunkCreatures.find(creature_id);
+    if (it != chipmunkCreatures.end()) {
         ChimpmunkCreature* chimpmunkCreature = it->second;
         auto constraintIt = chimpmunkCreature->constraints.find(constraint->getId());
         if (constraintIt != chimpmunkCreature->constraints.end()) {
@@ -259,11 +259,11 @@ void ChipmunkEngine::removeConstraint(unsigned creature_id, Constraint *constrai
 
 void ChipmunkEngine::removeCreature(unsigned creature_id)
 {
-    Creature* creature = creatures[creature_id]->creature;
+    Creature* creature = chipmunkCreatures[creature_id]->creature;
     if (creature == nullptr) {
         return;
     }
-    // TODO: Implement removing creatures
+    // TODO: Implement removing chipmunkCreatures
 }
 
 void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies, 
@@ -272,68 +272,76 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
 {
     std::lock_guard<std::mutex> lock(data_mutex);
 
-    std::map<unsigned, size_t> bodyMap;
+    std::map<unsigned, size_t> bodyPartIdToBodiesId;
 
-    for (auto& creature : creatures) {
+    for (auto& creature : chipmunkCreatures) {
         for (auto& bodyPair : creature.second->bodies) {
             BodyObject obj_body;
-            cpBody* body = bodyPair.second;
+            cpBody* cp_body = bodyPair.second;
+            BodyPart* bodyPart = static_cast<BodyPart*>(cpBodyGetUserData(cp_body));
 
-            cpVect position = cpBodyGetPosition(body);
-            cpVect velocity = cpBodyGetVelocity(body);
+            cpVect position = cpBodyGetPosition(cp_body);
+            cpVect velocity = cpBodyGetVelocity(cp_body);
 
+            obj_body.id = bodyPart->getId();
             obj_body.position = Vector2(position.x, position.y);
             obj_body.velocity = Vector2(velocity.x, velocity.y);
-            obj_body.angle = cpBodyGetAngle(body);
-            obj_body.mass = cpBodyGetMass(body);
-            obj_body.id = bodyPair.first;
+            obj_body.angle = cpBodyGetAngle(cp_body);
+            obj_body.mass = cpBodyGetMass(cp_body);
 
             bodies.push_back(obj_body);
-	        // Map body ids to their index at bodies vector
-            bodyMap[obj_body.id] = bodies.size() - 1;
-
-            // std::cout << "Body id: " << obj_body.id << ", position: " << obj_body.position << std::endl;
+            bodyPartIdToBodiesId[obj_body.id] = bodies.size() - 1;
         }
-
-        // std::cout<<"\n";
-
+    }
+    for (auto& creature : chipmunkCreatures) {
         for (auto& shapePair : creature.second->shapes) {
+            cpShape* cp_shape = shapePair.second;
+            BodyPart* bodyPart = static_cast<BodyPart*>(cpShapeGetUserData(cp_shape));
+
             ShapeObject obj_shape;
-            // cpShape* shape = shapePair.second;
-            unsigned id = shapePair.first;
+            obj_shape.id = shapePair.first;
+            obj_shape.radius = bodyPart->getRadius();
+            obj_shape.vertices = bodyPart->getBiasedVertices();
 
-            obj_shape.id = id;
-            obj_shape.radius = creature.second->creature->getBodyPartById(id)->getRadius();
-            obj_shape.vertices = creature.second->creature->getBodyPartById(id)->getBiasedVertices();
-
-            auto it = bodyMap.find(id);
-            if (it != bodyMap.end() && it->second < bodies.size()) {
-                obj_shape.body = &bodies[it->second];
+            auto it = bodyPartIdToBodiesId.find(bodyPart->getId());
+            if (it != bodyPartIdToBodiesId.end()) {
+                obj_shape.body = &bodies.at(it->second);
             } else {
-                obj_shape.body = nullptr; // Ensure obj_shape.body is initialized
-                std::cerr << "Warning: Body mapping not found for shape ID " << id << std::endl;
+                obj_shape.body = nullptr;
+                std::cerr << "BodyObject not found for BodyPart ID: " << bodyPart->getId() << std::endl;
             }
+
             obj_shape.isWorldObj = false;
             obj_shape.initShapeType();
             shapes.push_back(obj_shape);
         }
-        // std::cout<<"\n";
+    }
+    for (auto& creature : chipmunkCreatures) {
+        for (auto& constraintPair : creature.second->constraints) {
+            cpConstraint* cp_constraint = constraintPair.second;
+            Constraint* constraint = static_cast<Constraint*>(cpConstraintGetUserData(cp_constraint));
+            
+            ConstraintObject obj_constraint;
+            obj_constraint.id = constraintPair.first;
+        }
     }
 
     BodyObject terrain_body;
+    terrain_body.id= 0;
     terrain_body.angle = 0;
     terrain_body.position = Vector2(0, 0);
-    terrain_body.id= 0;
     bodies.push_back(terrain_body);
 
     ShapeObject terrain_shape;
     terrain_shape.body = &bodies.back();
-    cpBB terrBB = cpShapeGetBB(world_shapes[0]);
-    float y = (terrBB.b+terrBB.t)/2;
-    terrain_shape.vertices = {Vector2(terrBB.l, y), Vector2(terrBB.r, y)};
     terrain_shape.id = 228;
     terrain_shape.radius=20;
     terrain_shape.isWorldObj = true;
+
+    cpBB terrBB = cpShapeGetBB(world_shapes[0]);
+    float y = (terrBB.b+terrBB.t)/2;
+    terrain_shape.vertices = {Vector2(terrBB.l, y), Vector2(terrBB.r, y)};
+    
     terrain_shape.initShapeType();
     shapes.push_back(terrain_shape);
 }

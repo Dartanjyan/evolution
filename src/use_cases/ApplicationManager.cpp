@@ -1,6 +1,6 @@
 #include "ApplicationManager.h"
 
-int ApplicationManager::Run(int argc, char** argv, IUI* ui) {
+int ApplicationManager::Run(int argc, char** argv, std::unique_ptr<IUI> ui) {
     /*
     * Parse cli flags and arguments and run a UI
     * which further decide what to use: GUI or CLI.

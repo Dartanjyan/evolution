@@ -10,7 +10,7 @@
 
 class PhysicsManager {
 public:
-    PhysicsManager(IPhysicsEngine* engine);
+    PhysicsManager(std::unique_ptr<IPhysicsEngine> engine);
     ~PhysicsManager();
 
     // physics thread
@@ -22,9 +22,9 @@ public:
         std::vector<ShapeObject>& shapes,
         std::vector<ConstraintObject>& constraints) const;
 
-    const IPhysicsEngine* getEnginePtr() const { return engine; }
+    // const std::unique_ptr<IPhysicsEngine> getEnginePtr() const { return engine; }
 
-    // A function to add creature to a queue of adding creatures
+    // A function to add creature to a queue of adding chipmunkCreatures
     void addCreature(Creature* creature) { creaturesQueue.push(creature); }
 
 private:
@@ -32,7 +32,7 @@ private:
 
     std::queue<Creature*> creaturesQueue;
 
-    IPhysicsEngine* engine;
+    std::unique_ptr<IPhysicsEngine> engine;
     std::thread physicsThread;
     std::atomic<bool> running;
 };

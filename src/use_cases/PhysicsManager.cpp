@@ -1,8 +1,8 @@
 #include "PhysicsManager.h"
 #include <chrono>
 
-PhysicsManager::PhysicsManager(IPhysicsEngine* engine)
-    : engine(engine), running(false)
+PhysicsManager::PhysicsManager(std::unique_ptr<IPhysicsEngine> engine)
+    : engine(std::move(engine)), running(false)
 {}
 
 
@@ -51,7 +51,7 @@ void PhysicsManager::run() {
 	    creaturesQueue.pop();
 	}
         // a little sleep to avoid cpu hogging
-        std::this_thread::sleep_for(milliseconds(0));
+        std::this_thread::sleep_for(milliseconds(16));
     }
 }
 

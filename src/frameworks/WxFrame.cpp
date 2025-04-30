@@ -2,8 +2,8 @@
 #include "DrawPanel.h"
 #include <wx/dcbuffer.h>
 
-WxFrame::WxFrame(PhysicsManager* physicsManager, const wxString &title, const wxPoint &pos, const wxSize &size)
-    : wxFrame(nullptr, wxID_ANY, title, pos, size), physicsManager(physicsManager)
+WxFrame::WxFrame(std::unique_ptr<PhysicsManager> physicsManager, const wxString &title, const wxPoint &pos, const wxSize &size)
+    : wxFrame(nullptr, wxID_ANY, title, pos, size), physicsManager(std::move(physicsManager))
 {
     // Setting up a menu bar
     wxMenu *menuFile = new wxMenu;
@@ -26,7 +26,7 @@ WxFrame::WxFrame(PhysicsManager* physicsManager, const wxString &title, const wx
     Center();
 
     // Filling frame with gui stuff
-    DrawPanel *drawPanel = new DrawPanel(physicsManager, this, wxID_ANY);
+    DrawPanel *drawPanel = new DrawPanel(std::move(physicsManager), this, wxID_ANY);
     drawPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
     wxPanel *controlPanel = new wxPanel(this, wxID_ANY);

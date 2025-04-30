@@ -37,9 +37,11 @@ public:
 
 private:
     cpSpace* space;
-    std::map<unsigned, ChimpmunkCreature*> creatures;
+    std::map<unsigned, ChimpmunkCreature*> chipmunkCreatures;
     
+    // A mutex to prevent adding bodies and shapes while computing step
     std::mutex step_mutex;
+    // A mutex to protect std::map<unsigned, ChimpmunkCreature*> chipmunkCreatures
     std::mutex data_mutex;
     
     std::vector<cpShape*> world_shapes;

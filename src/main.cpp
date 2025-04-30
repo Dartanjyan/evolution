@@ -17,12 +17,12 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    ChipmunkEngine* engine = new ChipmunkEngine();
+    std::unique_ptr<ChipmunkEngine> engine = std::make_unique<ChipmunkEngine>();
 
-    auto* physicsManager = new PhysicsManager(engine);
+    std::unique_ptr<PhysicsManager> physicsManager = std::make_unique<PhysicsManager>(std::move(engine));
 
     WxApp* app = new WxApp();
-    app->setPhysicsManager(physicsManager);
+    app->setPhysicsManager(std::move(physicsManager));
     wxApp::SetInstance(app);
 
     if (!app->CallOnInit()) {
@@ -31,14 +31,10 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    UI* ui = new UI(app, nullptr);
+    std::unique_ptr<UI> ui = std::make_unique<UI>(app, nullptr);
 
-    int result = ApplicationManager::Run(argc, argv, ui);
+    int result = ApplicationManager::Run(argc, argv, std::move(ui));
     wxEntryCleanup();
-
-    delete ui;
-    delete physicsManager;
-    delete engine;
 
     return result;
 }

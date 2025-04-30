@@ -2,6 +2,7 @@
 #define APPLICATION_MANAGER_H
 
 #include <string>
+#include <memory>
 #include "IUI.h"
 #include "PhysicsManager.h"
 
@@ -11,7 +12,7 @@ namespace ApplicationManager
     // It takes command line arguments and a renderer interface as parameters.
     // It returns an integer indicating the success or failure of the operation.
     // The function is responsible for managing the application lifecycle and rendering.
-    int Run(int argc, char** argv, IUI* ui);
+    int Run(int argc, char** argv, std::unique_ptr<IUI> ui);
 }
 
 #endif
