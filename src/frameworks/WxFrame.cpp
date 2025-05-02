@@ -2,8 +2,8 @@
 #include "DrawPanel.h"
 #include <wx/dcbuffer.h>
 
-WxFrame::WxFrame(std::unique_ptr<PhysicsManager> physicsManager, const wxString &title, const wxPoint &pos, const wxSize &size)
-    : wxFrame(nullptr, wxID_ANY, title, pos, size), physicsManager(std::move(physicsManager))
+WxFrame::WxFrame(PhysicsManager* physicsManager, const wxString &title, const wxPoint &pos, const wxSize &size)
+    : wxFrame(nullptr, wxID_ANY, title, pos, size), physicsManager(physicsManager)
 {
     // Setting up a menu bar
     wxMenu *menuFile = new wxMenu;

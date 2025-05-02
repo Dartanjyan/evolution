@@ -14,11 +14,11 @@
 
 class WxFrame : public wxFrame {
 public:
-    WxFrame(std::unique_ptr<PhysicsManager> physicsManager, const wxString &title, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
+    WxFrame(PhysicsManager* physicsManager, const wxString &title, const wxPoint &pos = wxDefaultPosition, const wxSize &size = wxDefaultSize);
     ~WxFrame();
     
 private:
-    std::unique_ptr<PhysicsManager> physicsManager;
+    PhysicsManager* physicsManager;
     void OnQuit(wxCommandEvent& event);
     void OnCloseWindow(wxCloseEvent& event);
     void HandleExit();

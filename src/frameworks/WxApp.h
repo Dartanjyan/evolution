@@ -9,11 +9,11 @@
 
 class WxApp : public wxApp, public IGUI{
 private:
-    std::unique_ptr<PhysicsManager> physicsManager;
+    PhysicsManager* physicsManager;
 public:
     bool OnInit() override;
     int Run() override;
-    void setPhysicsManager(std::unique_ptr<PhysicsManager> physics_manager);
+    void setPhysicsManager(PhysicsManager* physics_manager);
 };
 
 #endif

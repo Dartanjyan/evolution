@@ -19,10 +19,10 @@ int main(int argc, char** argv) {
 
     std::unique_ptr<ChipmunkEngine> engine = std::make_unique<ChipmunkEngine>();
 
-    std::unique_ptr<PhysicsManager> physicsManager = std::make_unique<PhysicsManager>(std::move(engine));
+    PhysicsManager* physicsManager = new PhysicsManager(std::move(engine));
 
     WxApp* app = new WxApp();
-    app->setPhysicsManager(std::move(physicsManager));
+    app->setPhysicsManager(physicsManager);
     wxApp::SetInstance(app);
 
     if (!app->CallOnInit()) {

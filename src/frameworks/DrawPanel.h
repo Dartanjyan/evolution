@@ -9,7 +9,7 @@
 
 class DrawPanel : public wxPanel {
 public:
-    DrawPanel(std::unique_ptr<PhysicsManager> physicsManager, wxWindow* parent, wxWindowID id = wxID_ANY,
+    DrawPanel(PhysicsManager* physicsManager, wxWindow* parent, wxWindowID id = wxID_ANY,
               const wxPoint& pos = wxDefaultPosition,
               const wxSize& size = wxDefaultSize,
               long style = wxFULL_REPAINT_ON_RESIZE);
@@ -18,7 +18,7 @@ private:
     void OnPaint(wxPaintEvent& event);
     void OnTimer(wxTimerEvent& event);
     void OnSize(wxSizeEvent& event);
-    std::unique_ptr<PhysicsManager> physicsManager;
+    PhysicsManager* physicsManager;
     wxTimer* timer;
 };
 

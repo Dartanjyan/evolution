@@ -22,8 +22,6 @@ public:
         std::vector<ShapeObject>& shapes,
         std::vector<ConstraintObject>& constraints) const;
 
-    // const std::unique_ptr<IPhysicsEngine> getEnginePtr() const { return engine; }
-
     // A function to add creature to a queue of adding chipmunkCreatures
     void addCreature(Creature* creature) { creaturesQueue.push(creature); }
 
