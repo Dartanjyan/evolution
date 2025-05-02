@@ -16,27 +16,15 @@ set(3RD_PARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party")
 
 option(USE_SYSTEM_WX "Use system-wide installed wxWidgets" OFF)
 
-
 if(USE_SYSTEM_WX)
     message(STATUS "Using system-installed wxWidgets")
-    find_package(wxWidgets REQUIRED COMPONENTS core base)
-    include(${wxWidgets_USE_FILE})
 else()
-    #set(wxWidgets_DIR "${wxWidgets_ROOT_DIR}/lib/cmake/wxWidgets")
-    #set(wxWidgets_USE_FILE "${wxWidgets_ROOT_DIR}/lib/cmake/wxWidgets/wxWidgetsConfig.cmake")
-    #find_package(wxWidgets REQUIRED COMPONENTS core base NO_DEFAULT_PATH)
-    #include(${wxWidgets_USE_FILE})
-
-    # Trying to link wxWidgets just to work
     set(wxWidgets_ROOT_DIR "${3RD_PARTY_DIR}/wxWidgets/install/")
-    # list(APPEND CMAKE_PREFIX_PATH "${wxWidgets_ROOT_DIR}")
-    set(CMAKE_PREFIX_PATH, ${wxWidgets_ROOT_DIR})
-    find_package(wxWidgets REQUIRED COMPONENTS core base)
-    include(${wxWidgets_USE_FILE})
+    list(APPEND CMAKE_PREFIX_PATH "${wxWidgets_ROOT_DIR}")
 endif()
 
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
+find_package(wxWidgets REQUIRED COMPONENTS core base)
+include(${wxWidgets_USE_FILE})
 
 # Setting Chipmunk2D
 set(CHIPMUNK_ROOT "${3RD_PARTY_DIR}/Chipmunk2D/install")
