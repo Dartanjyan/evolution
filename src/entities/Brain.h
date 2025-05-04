@@ -1,36 +1,42 @@
-// Written in vim btw :>
-
 #ifndef BRAIN_H
 #define BRAIN_H
+
 #include <vector>
-#include <iostream>
 
 class Brain {
+	// TODO: Do something with layer_sizes. Maybe remove it from constructor args
+public:
+    Brain();
+    Brain(
+        const std::vector<size_t>& layer_sizes, 
+        const std::vector<double>& weights = {}, 
+        const std::vector<double>& biases = {}
+    );
+
+    unsigned getId() { return id; }
+    const std::vector<size_t>& getLayerSizes() const noexcept;
+    const std::vector<double>& getWeights() const noexcept;
+    const std::vector<double>& getBiases() const noexcept;
+
+	// Genome is simply a single vector like (weights_ + biases_)
+    
+	std::vector<double> encodeGenome() const;
+    void decodeGenome(const std::vector<double>& genome);
+    
+	void setWeights(const std::vector<double>& w);
+    void setBiases (const std::vector<double>& b);
+
+	static unsigned newId();
+    static void resetId();
 private:
+	unsigned id;
 	static unsigned last_id;
 
-	unsigned id;
-	const std::vector<unsigned short> layers;
-	std::vector<double> memory;
+    std::vector<size_t> layer_sizes_;
 
-	// Maybe create Layer class later but not sure
-	std::vector<std::vector<double>> weights;
-	std::vector<double> biasWeights;
-public:
-	Brain(const std::vector<unsigned short> layers, std::vector<std::vector<double>> weights, std::vector<double> biasWeights);
-	Brain(const Brain &other);
-	~Brain();
-
-	unsigned getId() const { return id; }
-	std::vector<unsigned short> getLayers() const { return layers; }
-	std::vector<std::vector<double>> getWeights() const { return weights; }
-
-	void setWeights(const std::vector<std::vector<double>> &new_weights) { weights = new_weights; }
-	void setMemory(const std::vector<double> &new_memory) { memory = new_memory; }
-
-	static unsigned newId() { return ++last_id; };
-    static void resetId() { last_id = 0; };
+    // Flat array: [i][j] will be [i*column + j]
+    std::vector<double> weights_;
+    std::vector<double> biases_;
 };
 
-#endif
-
+#endif // BRAIN_H

@@ -190,7 +190,7 @@ Creature* Creature::createBasicCreature()
     joints.extend([j1, j2, j3, j4, j5, j6, j7, j8])
     */
     float scale = 1;
-    Vector2 bias(100, 100);
+    Vector2 bias(100, 000);
 
     BodyPart* body = new BodyPart(nullptr, { Vector2(40, 20)*scale+bias, Vector2(140, 20)*scale+bias, Vector2(120, 50)*scale+bias}, false, 0);
     
@@ -245,7 +245,7 @@ Creature* Creature::createBasicCreature()
         ConstraintType::MUSCLE, 
         Vector2(150, 30)*scale+bias, 
         Vector2(150, 50)*scale+bias, 
-        rest, stiffness, damping);
+        rest, stiffness, damping/2);
     Constraint* m6 = new Constraint(
         rl2, rl3,
         ConstraintType::MUSCLE, 
@@ -274,12 +274,8 @@ Creature* Creature::createBasicCreature()
     std::vector<BodyPart*> bodyParts = {body, ll1, ll2, ll3, rl1, rl2, rl3, t1, h1};
     std::vector<Constraint*> constraints = {j1, j2, j3, j4, j5, j6, j7, j8, m1, m2, m3, m4, m5, m6, m7, m8};
     
-    Brain* brain = new Brain(std::vector<unsigned short>{1}, std::vector<std::vector<double>>{
-        {0.5, 0.5, 0.5, 0.5},
-        {0.5, 0.5, 0.5, 0.5},
-        {0.5, 0.5, 0.5, 0.5},
-        {0.5, 0.5, 0.5, 0.5}
-    }, std::vector<double>{0.5, 0.5, 0.5, 0.5});
+    std::vector<size_t> layers = {1};
+    Brain* brain = new Brain({2, 3, 4});
 
     Creature* creature = new Creature(bodyParts, constraints, brain);
     

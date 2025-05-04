@@ -3,14 +3,9 @@ project(evolution VERSION 0.1.0 LANGUAGES CXX)
 
 add_compile_options(
     -Wall -Wextra -Werror -Wno-unused
-    -O2
     -march=native
     -fstack-protector-strong
 )
-
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    add_compile_options(-Weverything)
-endif()
 
 set(3RD_PARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party")
 
