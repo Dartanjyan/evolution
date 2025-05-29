@@ -71,7 +71,7 @@ void PhysicsManager::run() {
 
         // Calculate required sleep time to maintain target frame rate
         const auto sleep_time = TARGET_FRAME_TIME - processing_time;
-        std::cout << sleep_time.count() << " ms" << std::endl;
+        // std::cout << sleep_time.count() << " ms" << std::endl;
         if (sleep_time > 0ms) {
             // If we have time left, sleep to maintain consistent frame rate
             std::this_thread::sleep_for(sleep_time);

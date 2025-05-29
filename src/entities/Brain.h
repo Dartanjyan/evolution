@@ -8,13 +8,13 @@ class Brain {
 public:
     Brain();
     Brain(
-        const std::vector<size_t>& layer_sizes, 
+        const std::vector<std::size_t>& layer_sizes, 
         const std::vector<double>& weights = {}, 
         const std::vector<double>& biases = {}
     );
 
     unsigned getId() { return id; }
-    const std::vector<size_t>& getLayerSizes() const noexcept;
+    const std::vector<std::size_t>& getLayerSizes() const noexcept;
     const std::vector<double>& getWeights() const noexcept;
     const std::vector<double>& getBiases() const noexcept;
 
@@ -32,7 +32,7 @@ private:
 	unsigned id;
 	static unsigned last_id;
 
-    std::vector<size_t> layer_sizes_;
+    std::vector<std::size_t> layer_sizes_;
 
     // Flat array: [i][j] will be [i*column + j]
     std::vector<double> weights_;
