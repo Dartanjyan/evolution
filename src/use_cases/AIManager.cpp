@@ -1,7 +1,7 @@
 #include "AIManager.h"
 
 AIManager::AIManager(std::unique_ptr<IAICalculator> calculator)
-    : calculator(std::move(calculator))
+    : calculator(std::move(calculator)), running(false)
 {
 }
 
@@ -24,6 +24,7 @@ void AIManager::start() {
 void AIManager::stop() {
     if (running.load()) {
         running.store(false);
+        cv.notify_one(); // awoke thread to end it
         if (aiThread.joinable())
             aiThread.join();
         calculator->shutdown();
@@ -31,6 +32,39 @@ void AIManager::stop() {
     }
 }
 
+void AIManager::requestCalculation() {
+    std::lock_guard<std::mutex> lock(mtx);
+    calculationRequested = true;
+    calculationCompleted = false;
+    cv.notify_one();
+}
+
+bool AIManager::isCalculationCompleted() {
+    return calculationCompleted.load();
+}
+
 void AIManager::run() {
-    std::cout << "AIManager::run() is now placeholder!\n";
+    while (running.load()) {
+        std::unique_lock<std::mutex> lock(mtx);
+        
+        // Sleep
+        cv.wait(lock, [this] {
+            return calculationRequested.load() || !running.load();
+        });
+        
+        if (!running.load()) break;
+        
+        // Reset flag
+        calculationRequested.store(false);
+        lock.unlock();
+        
+        // TODO: before calculating need to collect data from PhysicsEngine!
+        // calculator->calculate();
+        
+        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        std::cout << "AIManager::run() - Calc! :)ᦀ\n";
+        
+        calculationCompleted.store(true);
+    }
+    std::cout << "AI thread exiting\n";
 }

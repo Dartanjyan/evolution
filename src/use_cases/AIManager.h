@@ -28,9 +28,8 @@ public:
 
     void start();
     void stop();
-    void requestCalculation();  // Запрос расчета от PhysicsManager
-    bool isCalculationCompleted(); // Проверка завершения расчета
-    void notifyCompletion();    // Уведомление о завершении (для PhysicsManager)
+    void requestCalculation();  // Calculation request from PhysicsManager
+    bool isCalculationCompleted(); // Check if calculations are done
 };
 
 #endif

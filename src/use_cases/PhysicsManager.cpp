@@ -63,12 +63,24 @@ void PhysicsManager::run() {
     std::chrono::_V2::system_clock::time_point current_time;
     std::chrono::nanoseconds elapsed_time;
 
+    unsigned long long frameCounter = 0;
+    const int AI_UPDATE_INTERVAL = 10;
+
     while (running.load()) {
         // Measure elapsed time since last frame
         current_time = high_resolution_clock::now();
         elapsed_time = current_time - previous_time;
         previous_time = current_time;
         
+        if (ai_manager && frameCounter % AI_UPDATE_INTERVAL == 0) {
+            // TODO: Somehow AIManager needs to get the data to work with
+            ai_manager->requestCalculation();
+        }
+
+        if (ai_manager && ai_manager->isCalculationCompleted()) {
+            applyAIResults();
+        }
+
         const float dt = 0.01f;
         engine->update(dt);
 
@@ -95,5 +107,16 @@ void PhysicsManager::run() {
             // This will reduce sleep time in subsequent frames to catch up
             // accumulated_lag = -sleep_time;
         }
+
+        frameCounter++;
     }
+}
+
+// TODO: implement function
+// Get data from AIManager and apply to creatures
+void PhysicsManager::applyAIResults() {
+    // Здесь получаем результаты от IAICalculator и применяем их
+    // Например:
+    // auto results = ai_manager->getCalculator()->getResults();
+    // engine->applyForces(results);
 }

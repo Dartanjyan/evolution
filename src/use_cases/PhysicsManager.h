@@ -13,6 +13,7 @@
 class PhysicsManager {
 private:
     void run();
+    void applyAIResults();
 
     std::queue<Creature*> creaturesQueue;
 
