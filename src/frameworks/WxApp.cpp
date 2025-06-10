@@ -3,7 +3,7 @@
 
 bool WxApp::OnInit()
 {
-    WxFrame *frame = new WxFrame(physicsManager, "Simulation", wxDefaultPosition, wxDefaultSize);
+    WxFrame *frame = new WxFrame(physicsManager, "Simulation", wxDefaultPosition, wxSize(400, 300));
     frame->Show(true);
     return true;
 }

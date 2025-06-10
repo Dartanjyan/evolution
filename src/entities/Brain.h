@@ -4,7 +4,16 @@
 #include <vector>
 
 class Brain {
+private:
+	unsigned id;
 	// TODO: Do something with layer_sizes. Maybe remove it from constructor args
+	static unsigned last_id;
+
+    std::vector<std::size_t> layer_sizes_;
+
+    // Flat array: [i][j] will be [i*column + j]
+    std::vector<double> weights_;
+    std::vector<double> biases_;
 public:
     Brain();
     Brain(
@@ -28,15 +37,6 @@ public:
 
 	static unsigned newId();
     static void resetId();
-private:
-	unsigned id;
-	static unsigned last_id;
-
-    std::vector<std::size_t> layer_sizes_;
-
-    // Flat array: [i][j] will be [i*column + j]
-    std::vector<double> weights_;
-    std::vector<double> biases_;
 };
 
 #endif // BRAIN_H

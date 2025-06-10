@@ -3,6 +3,7 @@
 #include <stdexcept> // runtime_error
 #include <random>
 
+// static unsigned int last_id
 unsigned Brain::last_id = 0;
 
 Brain::Brain() : 
