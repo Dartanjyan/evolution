@@ -4,12 +4,24 @@
 #include <memory>
 #include <thread>
 #include <atomic>
-#include "IPhysicsEngine.h"
-#include "Creature.h"
 #include <queue>
+#include "IPhysicsEngine.h"
+#include "IAICalculator.h"
+#include "AIManager.h"
+#include "Creature.h"
 
 class PhysicsManager {
+private:
+    void run();
+
+    std::queue<Creature*> creaturesQueue;
+
+    std::unique_ptr<IPhysicsEngine> engine;
+    std::unique_ptr<AIManager> ai_manager;
+    std::thread physicsThread;
+    std::atomic<bool> running;
 public:
+    PhysicsManager(std::unique_ptr<IPhysicsEngine> engine, std::unique_ptr<IAICalculator> ai_calculator);
     PhysicsManager(std::unique_ptr<IPhysicsEngine> engine);
     ~PhysicsManager();
 
@@ -24,15 +36,6 @@ public:
 
     // A function to add creature to a queue of adding chipmunkCreatures
     void addCreature(Creature* creature) { creaturesQueue.push(creature); }
-
-private:
-    void run();
-
-    std::queue<Creature*> creaturesQueue;
-
-    std::unique_ptr<IPhysicsEngine> engine;
-    std::thread physicsThread;
-    std::atomic<bool> running;
 };
 
 #endif

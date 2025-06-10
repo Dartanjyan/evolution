@@ -6,7 +6,7 @@ SRC_DIR="${CHIPMUNK_DIR}/src"
 INSTALL_DIR="${CHIPMUNK_DIR}/install"
 
 mkdir -p "${SRC_DIR}"
-git clone https://github.com/slembcke/Chipmunk2D "${SRC_DIR}"
+git clone https://github.com/slembcke/Chipmunk2D "${SRC_DIR}" --depth=1
 cd "${SRC_DIR}"
 
 cmake -B build \

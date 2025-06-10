@@ -22,7 +22,7 @@ WxFrame::WxFrame(PhysicsManager* physicsManager, const wxString &title, const wx
     SetStatusText("Simulation Running");
 	
     SetMinSize(wxSize(400, 300));
-    SetSize(wxSize(800, 600));
+    SetSize(size);
     Center();
 
     // Filling frame with gui stuff

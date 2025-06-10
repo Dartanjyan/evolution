@@ -17,8 +17,10 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    std::unique_ptr<ChipmunkEngine> engine = std::make_unique<ChipmunkEngine>();
+    auto engine = std::make_unique<ChipmunkEngine>();
 
+    // TODO: call here fabric to get IAICalculator object 
+    // (GPU or CPU implementation) and pass to PhysicsManager constructor
     PhysicsManager* physicsManager = new PhysicsManager(std::move(engine));
 
     WxApp* app = new WxApp();
@@ -31,7 +33,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    std::unique_ptr<UI> ui = std::make_unique<UI>(app, nullptr);
+    auto ui = std::make_unique<UI>(app, nullptr);
 
     int result = ApplicationManager::Run(argc, argv, std::move(ui));
     wxEntryCleanup();

@@ -6,11 +6,10 @@ SRC_DIR="${WX_DIR}/src"
 INSTALL_DIR="${WX_DIR}/install"
 
 mkdir -p "${SRC_DIR}"
-git clone https://github.com/wxWidgets/wxWidgets.git "${SRC_DIR}"
+git clone https://github.com/wxWidgets/wxWidgets.git "${SRC_DIR}" -b v3.2.8 --depth=1
 git config --global --add safe.directory ${SRC_DIR}
 cd "${SRC_DIR}"
-git checkout v3.2.8
-git submodule update --init 3rdparty/*
+git submodule update --init
 
 cmake -B build \
     --fresh \

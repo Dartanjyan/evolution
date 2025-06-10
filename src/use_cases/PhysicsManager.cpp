@@ -1,9 +1,19 @@
 #include "PhysicsManager.h"
 #include <chrono>
+#include "AIManager.h"
+
+PhysicsManager::PhysicsManager(std::unique_ptr<IPhysicsEngine> engine, std::unique_ptr<IAICalculator> ai_calculator)
+    : engine(std::move(engine)), running(false)
+{
+    // Create AI manager with given ai calculator
+    this->ai_manager = std::make_unique<AIManager>(std::move(ai_calculator));
+}
 
 PhysicsManager::PhysicsManager(std::unique_ptr<IPhysicsEngine> engine)
     : engine(std::move(engine)), running(false)
-{}
+{
+    // TODO: Delete this constructor
+}
 
 
 void PhysicsManager::getRenderObjects(std::vector<BodyObject> &bodies, std::vector<ShapeObject> &shapes, std::vector<ConstraintObject> &constraints) const
@@ -20,6 +30,10 @@ PhysicsManager::~PhysicsManager() {
 void PhysicsManager::start() {
     if (!running.load()) {
         running.store(true);
+        if (ai_manager.get() != nullptr)
+            ai_manager->start();
+        else
+            std::cout << "PhysicsManager::start(): ai_manager = nullptr. Skipping AIManager::start() call\n";
         engine->initialize();
         physicsThread = std::thread(&PhysicsManager::run, this);
         std::cout << "Created new physics thread\n";
@@ -83,4 +97,3 @@ void PhysicsManager::run() {
         }
     }
 }
-
