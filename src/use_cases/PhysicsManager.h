@@ -23,7 +23,7 @@ private:
     std::atomic<bool> running;
 public:
     PhysicsManager(std::unique_ptr<IPhysicsEngine> engine, std::unique_ptr<IAICalculator> ai_calculator);
-    PhysicsManager(std::unique_ptr<IPhysicsEngine> engine);
+    // FIXME PhysicsManager(std::unique_ptr<IPhysicsEngine> engine);
     ~PhysicsManager();
 
     // physics thread

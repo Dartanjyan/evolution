@@ -1,10 +1,11 @@
 #include <iostream>
+
 #include "ApplicationManager.h"
 #include "PhysicsManager.h"
 #include "UI.h"
 #include "WxApp.h"
 #include "ChipmunkEngine.h"
-
+#include "CPUAICalculator.h"
 #include "PhysicsObjects.h"
 
 wxDECLARE_APP(WxApp);
@@ -18,10 +19,11 @@ int main(int argc, char** argv) {
     }
 
     auto engine = std::make_unique<ChipmunkEngine>();
+    auto calculator = std::make_unique<CPUAICalculator>();
 
     // TODO: call here fabric to get IAICalculator object 
     // (GPU or CPU implementation) and pass to PhysicsManager constructor
-    PhysicsManager* physicsManager = new PhysicsManager(std::move(engine));
+    PhysicsManager* physicsManager = new PhysicsManager(std::move(engine), std::move(calculator));
 
     WxApp* app = new WxApp();
     app->setPhysicsManager(physicsManager);

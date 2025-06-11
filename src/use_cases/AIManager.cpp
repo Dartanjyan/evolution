@@ -59,7 +59,7 @@ void AIManager::run() {
         lock.unlock();
         
         // TODO: before calculating need to collect data from PhysicsEngine!
-        // calculator->calculate();
+        calculator->calculate();
         
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         std::cout << "AIManager::run() - Calc! :)ᦀ\n";

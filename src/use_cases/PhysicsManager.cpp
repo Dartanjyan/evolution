@@ -9,11 +9,11 @@ PhysicsManager::PhysicsManager(std::unique_ptr<IPhysicsEngine> engine, std::uniq
     this->ai_manager = std::make_unique<AIManager>(std::move(ai_calculator));
 }
 
-PhysicsManager::PhysicsManager(std::unique_ptr<IPhysicsEngine> engine)
+/*PhysicsManager::PhysicsManager(std::unique_ptr<IPhysicsEngine> engine)
     : engine(std::move(engine)), running(false)
 {
     // TODO: Delete this constructor
-}
+}*/
 
 
 void PhysicsManager::getRenderObjects(std::vector<BodyObject> &bodies, std::vector<ShapeObject> &shapes, std::vector<ConstraintObject> &constraints) const
