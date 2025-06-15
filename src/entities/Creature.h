@@ -48,7 +48,14 @@ public:
     // Return all the body parts that are not children of other parts
     std::vector<BodyPart*> getMainBodyParts() const { return bodyParts; }
     const BodyPart* getBodyPartById(unsigned id) const;
+    std::vector<Constraint*> getJoints() const;
+    std::vector<Constraint*> getMuscles() const;
+    std::vector<BodyPart*> getSightParts() const;
     
+    // Set new memory vector in Brain and apply
+    // new muscle restLength (and stiffness?)
+    void applyAIResults(std::vector<float> results);
+
     static Creature* createBasicCreature();
     
     static unsigned newId();

@@ -23,7 +23,6 @@ private:
     std::atomic<bool> running;
 public:
     PhysicsManager(std::unique_ptr<IPhysicsEngine> engine, std::unique_ptr<IAICalculator> ai_calculator);
-    // FIXME PhysicsManager(std::unique_ptr<IPhysicsEngine> engine);
     ~PhysicsManager();
 
     // physics thread
@@ -35,8 +34,10 @@ public:
         std::vector<ShapeObject>& shapes,
         std::vector<ConstraintObject>& constraints) const;
 
-    // A function to add creature to a queue of adding chipmunkCreatures
+    // Add new creature to the adding queue
     void addCreature(Creature* creature) { creaturesQueue.push(creature); }
+    // Get necessary data from physics engine and send it to every Creature's Brain
+    void updateCreaturesInputs();
 };
 
 #endif

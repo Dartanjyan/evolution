@@ -9,8 +9,21 @@
 #include "Constraint.h"
 #include "Vector2.h"
 #include "ChipmunkCreature.h"
+#include "CreaturePhysicsInputs.h"
 
 class ChipmunkEngine : public IPhysicsEngine {
+private:
+    cpSpace* space;
+    std::map<unsigned, ChimpmunkCreature*> chipmunkCreatures;
+    
+    // A mutex to prevent adding bodies and shapes while computing step
+    std::mutex step_mutex;
+    // A mutex to protect std::map<unsigned, ChimpmunkCreature*> chipmunkCreatures
+    std::mutex data_mutex;
+    
+    std::vector<cpShape*> world_shapes;
+    std::vector<cpBody*> world_bodies;
+
 public:
     ChipmunkEngine();
     ~ChipmunkEngine() override;
@@ -33,19 +46,7 @@ public:
         std::vector<ShapeObject>& shapes,
         std::vector<ConstraintObject>& constraints
     ) override;
-
-
-private:
-    cpSpace* space;
-    std::map<unsigned, ChimpmunkCreature*> chipmunkCreatures;
-    
-    // A mutex to prevent adding bodies and shapes while computing step
-    std::mutex step_mutex;
-    // A mutex to protect std::map<unsigned, ChimpmunkCreature*> chipmunkCreatures
-    std::mutex data_mutex;
-    
-    std::vector<cpShape*> world_shapes;
-    std::vector<cpBody*> world_bodies;
+    void getPhysicsData(std::vector<CreaturePhysicsInputs>& out) override;
 };
 
 #endif

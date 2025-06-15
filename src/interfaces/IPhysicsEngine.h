@@ -6,6 +6,7 @@
 #include "Vector2.h"
 #include "Creature.h"
 #include "PhysicsObjects.h"
+#include "CreaturePhysicsInputs.h"
 
 class IPhysicsEngine {
 public:
@@ -27,7 +28,7 @@ public:
         std::vector<BodyObject>& bodies,
         std::vector<ShapeObject>& shapes,
         std::vector<ConstraintObject>& constraints) = 0;
-
+    virtual void getPhysicsData(std::vector<CreaturePhysicsInputs>& out) = 0;
 };
 
 #endif

@@ -5,16 +5,8 @@
 PhysicsManager::PhysicsManager(std::unique_ptr<IPhysicsEngine> engine, std::unique_ptr<IAICalculator> ai_calculator)
     : engine(std::move(engine)), running(false)
 {
-    // Create AI manager with given ai calculator
-    this->ai_manager = std::make_unique<AIManager>(std::move(ai_calculator));
+    ai_manager = std::make_unique<AIManager>(std::move(ai_calculator));
 }
-
-/*PhysicsManager::PhysicsManager(std::unique_ptr<IPhysicsEngine> engine)
-    : engine(std::move(engine)), running(false)
-{
-    // TODO: Delete this constructor
-}*/
-
 
 void PhysicsManager::getRenderObjects(std::vector<BodyObject> &bodies, std::vector<ShapeObject> &shapes, std::vector<ConstraintObject> &constraints) const
 {
@@ -119,4 +111,16 @@ void PhysicsManager::applyAIResults() {
     // Например:
     // auto results = ai_manager->getCalculator()->getResults();
     // engine->applyForces(results);
+}
+
+void PhysicsManager::updateCreaturesInputs() {
+    // a vector that'll be filled with engine.
+    // But getPhysicsInputs() takes this vector
+    // as an argument so before calling it
+    // it's needed to specify, for which creatures 
+    // we want to get inputs. Normally for all
+    // the creatures simultaneously but later
+    // there will be an ability calculate 
+    // creatures in batches
+    std::vector<CreaturePhysicsInputs> inputs;
 }

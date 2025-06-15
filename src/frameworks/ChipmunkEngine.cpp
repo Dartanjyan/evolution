@@ -274,6 +274,7 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
 
     std::map<unsigned, size_t> bodyPartIdToBodiesId;
 
+    // NOTE
     for (auto& creature : chipmunkCreatures) {
         for (auto& bodyPair : creature.second->bodies) {
             BodyObject obj_body;
@@ -344,4 +345,27 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
     
     terrain_shape.initShapeType();
     shapes.push_back(terrain_shape);
+}
+
+void ChipmunkEngine::getPhysicsData(std::vector<CreaturePhysicsInputs>& out) {
+    // root part angle sin and cos
+    // each joint's relative angle between two connected body parts - sin and cos
+    // for each sight part: 5 raycasts
+    // NOT NOW: bool for every sensitive part: 1 if touches ground, else 0
+    //
+    // In result, length will be:
+    // 2 + joints_amount*2 + eyes_amount*5
+    for (auto& cpi : out) {
+        Creature* creature = cpi.creature;
+        std::vector<Constraint*> joints = creature->getJoints();
+        std::vector<BodyPart*> eyes = creature->getSightParts();
+        int amount = 2 + joints.size()*2 + eyes.size()*5;
+        std::cout << "ChipmunkEngine::getPhysicsData(): data has length of " << amount << std::endl;
+        
+        cpi.features.reserve(amount);
+
+        // TODO: get data from ChipmunkCreatures
+        float angle = 
+        cpi.features[0] = 
+    }
 }

@@ -285,3 +285,31 @@ Creature* Creature::createBasicCreature()
 unsigned Creature::newId() { return ++Creature::last_id; }
 
 void Creature::resetId() { Creature::last_id = 0; }
+
+std::vector<Constraint*> Creature::getJoints() const {
+    // TODO: Create Joint and Muscle classes and not just Constraint that holds its type    
+    std::vector<Constraint*> ret_constr;
+    for (auto *constr : constraints) {
+        if (constr->getType() == ConstraintType::JOINT)
+            ret_constr.push_back(constr);
+    }
+    return ret_constr;
+}
+
+std::vector<Constraint*> Creature::getMuscles() const {
+    std::vector<Constraint*> ret_constr;
+    for (auto *constr : constraints) {
+        if (constr->getType() == ConstraintType::MUSCLE)
+            ret_constr.push_back(constr);
+    }
+    return ret_constr;
+}
+
+std::vector<BodyPart*> Creature::getSightParts() const {
+    std::vector<BodyPart*> eyes;
+    for (auto* bp : getAllBodyParts()) {
+        if (bp->isSensor())
+            eyes.push_back(bp);
+    }
+    return eyes;
+}
