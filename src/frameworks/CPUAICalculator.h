@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include "IAICalculator.h"
+#include "CreaturePhysicsInputs.h"
 
 class CPUAICalculator: public IAICalculator {
 public:
@@ -11,7 +12,7 @@ public:
 
     void initialize() override;
     void shutdown() override;
-    void calculate() override;
+    void calculate(std::vector<CreaturePhysicsInputs>& data) override;
 };
 
 #endif

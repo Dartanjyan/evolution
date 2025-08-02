@@ -48,7 +48,7 @@ void PhysicsManager::run() {
     using namespace std::chrono;
     
     // Constants for fixed timestep and target frame rate
-    constexpr milliseconds TARGET_FRAME_TIME(16); // ~60 FPS (1000ms/60 ≈ 16.66ms)
+    constexpr milliseconds TARGET_FRAME_TIME(15); // 16 ms is ~60 FPS (1000ms/60 ≈ 16.66ms)
     auto previous_time = high_resolution_clock::now();
     auto accumulated_lag = 0ms; // Tracks accumulated processing delays
 
@@ -65,12 +65,13 @@ void PhysicsManager::run() {
         previous_time = current_time;
         
         if (ai_manager && frameCounter % AI_UPDATE_INTERVAL == 0) {
-            // TODO: Somehow AIManager needs to get the data to work with
-            ai_manager->requestCalculation();
+            std::vector<CreaturePhysicsInputs> data;
+            engine->getPhysicsData(data);
+            ai_manager->requestCalculation(data);
         }
 
         if (ai_manager && ai_manager->isCalculationCompleted()) {
-            applyAIResults();
+            engine->applyAIResults(ai_manager->getResults());
         }
 
         const float dt = 0.01f;
@@ -102,15 +103,6 @@ void PhysicsManager::run() {
 
         frameCounter++;
     }
-}
-
-// TODO: implement function
-// Get data from AIManager and apply to creatures
-void PhysicsManager::applyAIResults() {
-    // Здесь получаем результаты от IAICalculator и применяем их
-    // Например:
-    // auto results = ai_manager->getCalculator()->getResults();
-    // engine->applyForces(results);
 }
 
 void PhysicsManager::updateCreaturesInputs() {

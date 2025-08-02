@@ -32,8 +32,9 @@ void AIManager::stop() {
     }
 }
 
-void AIManager::requestCalculation() {
+void AIManager::requestCalculation(std::vector<CreaturePhysicsInputs> data) {
     std::lock_guard<std::mutex> lock(mtx);
+    currentData = std::move(data);
     calculationRequested = true;
     calculationCompleted = false;
     cv.notify_one();
@@ -47,24 +48,26 @@ void AIManager::run() {
     while (running.load()) {
         std::unique_lock<std::mutex> lock(mtx);
         
-        // Sleep
+        // Sleep until calculation is requested (or app quit)
         cv.wait(lock, [this] {
             return calculationRequested.load() || !running.load();
         });
-        
         if (!running.load()) break;
         
         // Reset flag
         calculationRequested.store(false);
         lock.unlock();
         
-        // TODO: before calculating need to collect data from PhysicsEngine!
-        calculator->calculate();
+        calculator->calculate(currentData);
         
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        std::cout << "AIManager::run() - Calc! :)ᦀ\n";
+        // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         
         calculationCompleted.store(true);
     }
     std::cout << "AI thread exiting\n";
+}
+
+const std::vector<CreaturePhysicsInputs>& AIManager::getResults() {
+    calculationCompleted.store(false);
+    return currentData;
 }

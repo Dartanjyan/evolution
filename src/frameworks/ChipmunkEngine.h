@@ -24,6 +24,8 @@ private:
     std::vector<cpShape*> world_shapes;
     std::vector<cpBody*> world_bodies;
 
+    ChimpmunkCreature* findChipmunkCreatureForCreature(Creature* creature);
+
 public:
     ChipmunkEngine();
     ~ChipmunkEngine() override;
@@ -47,6 +49,8 @@ public:
         std::vector<ConstraintObject>& constraints
     ) override;
     void getPhysicsData(std::vector<CreaturePhysicsInputs>& out) override;
+
+    void applyAIResults(const std::vector<CreaturePhysicsInputs>& data) override;
 };
 
 #endif

@@ -29,6 +29,7 @@ public:
         std::vector<ShapeObject>& shapes,
         std::vector<ConstraintObject>& constraints) = 0;
     virtual void getPhysicsData(std::vector<CreaturePhysicsInputs>& out) = 0;
+    virtual void applyAIResults(const std::vector<CreaturePhysicsInputs>& data) = 0;
 };
 
 #endif

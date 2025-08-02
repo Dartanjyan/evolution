@@ -143,7 +143,7 @@ std::vector<BodyPart*> Creature::getAllBodyParts() const
     return std::vector<BodyPart*>(allParts);
 }
 
-const BodyPart* Creature::getBodyPartById(unsigned id) const
+const BodyPart *Creature::getBodyPartById(unsigned id) const
 {
     for (auto* bodyPart : this->getAllBodyParts()) {
         if (bodyPart->getId() == id) { 
@@ -213,7 +213,7 @@ Creature* Creature::createBasicCreature()
     Constraint* j7 = new Constraint(body, t1, ConstraintType::JOINT, Vector2(40, 20)*scale+bias, false);
     Constraint* j8 = new Constraint(body, h1, ConstraintType::JOINT, Vector2(140, 20)*scale+bias, false);
     
-    float stiffness = 4e2;
+    float stiffness = 8e2;
     float damping = 4e1;
     float rest = 0;
     Constraint* m1 = new Constraint(

@@ -14,7 +14,7 @@ Constraint::Constraint(BodyPart* partA, BodyPart* partB, ConstraintType type, Ve
     collideConnected(collideConnected),
     type(type)
 {
-    // std::cout << "Creating Joint, id = "<<id<< "\n";
+    neutralSize = (anchorA-anchorB).length();
 }
 
 Constraint::Constraint(BodyPart* partA, BodyPart* partB, ConstraintType type, Vector2 anchorA, float rest, float stiffness, float damping, bool collideConnected): 
@@ -29,7 +29,6 @@ Constraint::Constraint(BodyPart* partA, BodyPart* partB, ConstraintType type, Ve
     collideConnected(collideConnected),
     type(type)
 {
-    // std::cout << "Creating Joint, id = "<<id<< "\n";
 }
 
 Constraint::~Constraint() {
