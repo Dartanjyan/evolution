@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <stdexcept> // runtime_error
 #include <random>
+#include <iostream>
 
 // static unsigned int last_id
 unsigned Brain::last_id = 0;
@@ -10,13 +11,15 @@ Brain::Brain() :
     id(Brain::newId()),
     layer_sizes_({1}), 
     weights_({}), 
-    biases_({})
+    biases_({}),
+    memory_({})
 {}
 
 Brain::Brain(const std::vector<size_t>& layer_sizes, 
              const std::vector<double>& weights,
-             const std::vector<double>& biases)
-  : id(Brain::newId()), layer_sizes_(layer_sizes), weights_(weights), biases_(biases)
+             const std::vector<double>& biases,
+             const std::vector<double>& memory)
+  : id(Brain::newId()), layer_sizes_(layer_sizes), weights_(weights), biases_(biases), memory_(memory)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -26,6 +29,7 @@ Brain::Brain(const std::vector<size_t>& layer_sizes,
     for (size_t i = 0; i < layer_sizes_.size() - 1; ++i) {
         total_weights += layer_sizes_[i] * layer_sizes_[i + 1];
     }
+    std::cout << "Brain::Brain(): total_weights = " << total_weights << "\n";
 
     // If weights and biases are not given then generate them
     if (weights_.empty() && biases_.empty()) {
@@ -44,6 +48,10 @@ Brain::Brain(const std::vector<size_t>& layer_sizes,
     else if (total_weights != weights_.size() || 
              biases_.size() != (layer_sizes_.size() - 1)) {
         throw std::runtime_error("Invalid weights/biases dimensions");
+    }
+
+    if (memory.size() == 0) {
+        memory_ = std::vector<double>(DEFAULT_MEMORY_SIZE, 0);
     }
 }
 
@@ -67,8 +75,10 @@ void Brain::decodeGenome(const std::vector<double>& genome) {
 const std::vector<size_t>& Brain::getLayerSizes() const noexcept { return layer_sizes_; }
 const std::vector<double>& Brain::getWeights() const noexcept { return weights_; }
 const std::vector<double>& Brain::getBiases() const noexcept { return biases_; }
-void Brain::setWeights(const std::vector<double>& w) { weights_ = w; }
-void Brain::setBiases (const std::vector<double>& b) { biases_  = b; }
+const std::vector<double>& Brain::getMemory() const noexcept { return memory_; }
+void Brain::setWeights(const std::vector<double>& new_weights) { weights_ = new_weights; }
+void Brain::setBiases (const std::vector<double>& new_biases) { biases_  = new_biases; }
+void Brain::setMemory(const std::vector<double> &new_memory) { memory_ = new_memory; }
 
 unsigned Brain::newId() { return ++Brain::last_id; }
 void Brain::resetId() { Brain::last_id = 0; }

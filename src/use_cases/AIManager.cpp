@@ -54,17 +54,14 @@ void AIManager::run() {
         });
         if (!running.load()) break;
         
-        // Reset flag
         calculationRequested.store(false);
         lock.unlock();
         
         calculator->calculate(currentData);
         
-        // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-        
         calculationCompleted.store(true);
     }
-    std::cout << "AI thread exiting\n";
+    std::cout << "AI thread exit\n";
 }
 
 const std::vector<CreaturePhysicsInputs>& AIManager::getResults() {

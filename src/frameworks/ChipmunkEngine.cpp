@@ -357,11 +357,11 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
     shapes.push_back(terrain_shape);
 }
 
-// Placeholder for a function to get all physics data about creatures
-void ChipmunkEngine::getPhysicsData(std::vector<CreaturePhysicsInputs>& out) {
+void ChipmunkEngine::getCreatureAIInputs(std::vector<CreaturePhysicsInputs>& out) {
     // root part angle sin and cos
     // each joint's relative angle between two connected body parts - sin and cos
     // for each sight part: 5 raycasts
+    // memory of the creature
     // NOT NOW: bool for every sensitive part: 1 if touches ground, else 0
     //
     // In result, length will be (without sensitive parts):
@@ -374,7 +374,8 @@ void ChipmunkEngine::getPhysicsData(std::vector<CreaturePhysicsInputs>& out) {
 
         std::vector<Constraint*> joints = data.creature->getJoints();
         std::vector<BodyPart*> eyes = data.creature->getSightParts();
-        int amount = 2 + joints.size()*2 + eyes.size()*5;
+        std::vector<double> memory = data.creature->getBrain()->getMemory();
+        int amount = 2 + joints.size()*2 + eyes.size()*5 + memory.size();
         data.inputs.reserve(amount);
 
         const float angle = cpBodyGetAngle((*creature_pair.second->bodies.begin()).second);
@@ -387,17 +388,17 @@ void ChipmunkEngine::getPhysicsData(std::vector<CreaturePhysicsInputs>& out) {
                 data.inputs.emplace_back(std::sin(relativeAngle));
                 data.inputs.emplace_back(std::cos(relativeAngle));
             }
-            // TODO: fill data
         }
         for (size_t i = 0; i < eyes.size()*5; i++) {
             // placeholder until eyesight is implemented
             data.inputs.emplace_back(0.0f);
         }
+        data.inputs.insert(data.inputs.end(), memory.begin(), memory.end());
         out.push_back(data);
         
         static bool outputted = false;
         if (!outputted) {
-            std::cout << "ChipmunkEngine::getPhysicsData(): data has length of " << amount << std::endl;
+            std::cout << "ChipmunkEngine::getCreatureAIInputs(): data has length of " << amount << std::endl;
             outputted = true;
         }
     }
@@ -409,7 +410,7 @@ void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &da
         ChimpmunkCreature *creature = findChipmunkCreatureForCreature(d.creature);
         auto muscles = creature->creature->getMuscles();
         if (d.outputs.size() != muscles.size()) {
-            std::cout << "ChipmunkEngine::applyAIResults: Got incompatible output size to muscle amount";
+            std::cout << "ChipmunkEngine::applyAIResults: Got incompatible output size to muscle amount\n";
             continue;
         }
         
@@ -418,7 +419,7 @@ void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &da
             Constraint* muscle = muscles[i];
             cpConstraint* chipmunkMuscle = creature->constraints[muscle->getId()];
 
-            float new_rest = muscle->getNeutralSize() * 4 * d.outputs[i];
+            float new_rest = muscle->getNeutralSize() * 5 * d.outputs[i];
             cpDampedSpringSetRestLength(chipmunkMuscle, new_rest);
         }
     }

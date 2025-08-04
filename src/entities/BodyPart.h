@@ -25,6 +25,7 @@ private:
     float friction;
     float elasticity;
     bool isSensorPart;
+    bool isSightPart;
 
     static unsigned last_id;
     static unsigned newId();

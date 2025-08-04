@@ -1,7 +1,7 @@
 #ifndef CONSTRAINT_H
 #define CONSTRAINT_H
-#include "BodyPart.h"
 #include <iostream>
+#include "BodyPart.h"
 
 enum ConstraintType {
     JOINT,

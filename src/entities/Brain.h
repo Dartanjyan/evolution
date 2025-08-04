@@ -2,38 +2,42 @@
 #define BRAIN_H
 
 #include <vector>
+#define DEFAULT_MEMORY_SIZE 4
 
 class Brain {
 private:
 	unsigned id;
-	// TODO: Do something with layer_sizes. Maybe remove it from constructor args
 	static unsigned last_id;
-
+    
     std::vector<std::size_t> layer_sizes_;
 
     // Flat array: [i][j] will be [i*column + j]
     std::vector<double> weights_;
     std::vector<double> biases_;
+    std::vector<double> memory_;
 public:
     Brain();
     Brain(
-        const std::vector<std::size_t>& layer_sizes, 
+        const std::vector<std::size_t>& layer_sizes,
         const std::vector<double>& weights = {}, 
-        const std::vector<double>& biases = {}
+        const std::vector<double>& biases = {}, 
+        const std::vector<double>& memory = {}
     );
 
     unsigned getId() { return id; }
     const std::vector<std::size_t>& getLayerSizes() const noexcept;
     const std::vector<double>& getWeights() const noexcept;
     const std::vector<double>& getBiases() const noexcept;
+    const std::vector<double>& getMemory() const noexcept;
 
 	// Genome is simply a single vector like (weights_ + biases_)
     
 	std::vector<double> encodeGenome() const;
     void decodeGenome(const std::vector<double>& genome);
     
-	void setWeights(const std::vector<double>& w);
-    void setBiases (const std::vector<double>& b);
+	void setWeights(const std::vector<double>& new_weights);
+    void setBiases (const std::vector<double>& new_biases);
+    void setMemory(const std::vector<double>& new_memory);
 
 	static unsigned newId();
     static void resetId();

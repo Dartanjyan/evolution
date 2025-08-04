@@ -13,7 +13,7 @@
 class Creature {
 private:
     unsigned id;
-    // only these parts that don't have parent
+    // only these parts that don't have a parent
     std::vector<BodyPart*> bodyParts;
     std::vector<Constraint*> constraints;
     Brain* brain;
@@ -52,9 +52,10 @@ public:
     std::vector<Constraint*> getMuscles() const;
     std::vector<BodyPart*> getSightParts() const;
     
+    
     // Set new memory vector in Brain and apply
     // new muscle restLength (and stiffness?)
-    void applyAIResults(std::vector<float> results);
+    // void applyAIResults(std::vector<float> results);
 
     static Creature* createBasicCreature();
     

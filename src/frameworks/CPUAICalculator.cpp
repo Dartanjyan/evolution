@@ -1,6 +1,8 @@
 #include <vector>
 #include <random>
 #include "CPUAICalculator.h"
+#include <iostream>
+#include <Eigen/Dense>
 
 CPUAICalculator::CPUAICalculator() {
 
@@ -20,8 +22,14 @@ void CPUAICalculator::shutdown() {
 
 void CPUAICalculator::calculate(std::vector<CreaturePhysicsInputs>& data) {
     // std::cout << "CPUAICalculator::calculate() called!\n";
-    // TODO: Now this is a placeholder that returns random numbers
-    
+    // TODO: This is a placeholder that returns random numbers
+
+    for (auto &d : data) {
+        const Brain* brain = d.creature->getBrain();
+        auto weights = brain->getWeights();
+        auto biases = brain->getBiases();
+    }
+
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<float> dist(0.0f, 1.0f);

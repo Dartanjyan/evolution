@@ -1,8 +1,8 @@
 #ifndef CHIPMUNK_ENGINE_H
 #define CHIPMUNK_ENGINE_H
 
-#include <chipmunk/chipmunk.h>
 #include <mutex>
+#include <chipmunk/chipmunk.h>
 
 #include "IPhysicsEngine.h"
 #include "BodyPart.h"
@@ -48,7 +48,7 @@ public:
         std::vector<ShapeObject>& shapes,
         std::vector<ConstraintObject>& constraints
     ) override;
-    void getPhysicsData(std::vector<CreaturePhysicsInputs>& out) override;
+    void getCreatureAIInputs(std::vector<CreaturePhysicsInputs>& out) override;
 
     void applyAIResults(const std::vector<CreaturePhysicsInputs>& data) override;
 };

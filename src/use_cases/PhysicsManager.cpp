@@ -66,7 +66,8 @@ void PhysicsManager::run() {
         
         if (ai_manager && frameCounter % AI_UPDATE_INTERVAL == 0) {
             std::vector<CreaturePhysicsInputs> data;
-            engine->getPhysicsData(data);
+
+            engine->getCreatureAIInputs(data);
             ai_manager->requestCalculation(data);
         }
 

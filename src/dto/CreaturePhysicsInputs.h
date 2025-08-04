@@ -6,8 +6,8 @@
 typedef struct CreaturePhysicsInputs {
 public:
     Creature* creature;
-    std::vector<float> inputs;
-    std::vector<float> outputs;
+    std::vector<double> inputs;
+    std::vector<double> outputs;
 } CreaturePhysicsInputs;
 
 #endif

@@ -274,8 +274,7 @@ Creature* Creature::createBasicCreature()
     std::vector<BodyPart*> bodyParts = {body, ll1, ll2, ll3, rl1, rl2, rl3, t1, h1};
     std::vector<Constraint*> constraints = {j1, j2, j3, j4, j5, j6, j7, j8, m1, m2, m3, m4, m5, m6, m7, m8};
     
-    std::vector<size_t> layers = {1};
-    Brain* brain = new Brain({2, 3, 4});
+    Brain* brain = new Brain({22, 3, 4});
 
     Creature* creature = new Creature(bodyParts, constraints, brain);
     

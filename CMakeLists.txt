@@ -46,4 +46,5 @@ target_include_directories(evolution PRIVATE
     src/interfaces
     src/frameworks
     src/dto
+    3rd_party/eigen
 )
