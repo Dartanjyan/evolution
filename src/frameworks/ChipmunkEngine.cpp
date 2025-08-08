@@ -284,7 +284,6 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
 
     std::map<unsigned, size_t> bodyPartIdToBodiesId;
 
-    // NOTE
     for (auto& creature : chipmunkCreatures) {
         for (auto& bodyPair : creature.second->bodies) {
             BodyObject obj_body;
@@ -330,10 +329,23 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
     for (auto& creature : chipmunkCreatures) {
         for (auto& constraintPair : creature.second->constraints) {
             cpConstraint* cp_constraint = constraintPair.second;
-            Constraint* constraint = static_cast<Constraint*>(cpConstraintGetUserData(cp_constraint));
-            
             ConstraintObject obj_constraint;
+            Constraint* basic_constraint = static_cast<Constraint*>(cpConstraintGetUserData(cp_constraint));
+            cpBody *cp_bodyA = cpConstraintGetBodyA(cp_constraint);
+            cpBody *cp_bodyB = cpConstraintGetBodyB(cp_constraint);
+            // TODO: fix this AI shitty implementation
             obj_constraint.id = constraintPair.first;
+            obj_constraint.constraintType = basic_constraint->getType();
+            obj_constraint.partA = static_cast<BodyObject*>(cpConstraintGetBodyA(cp_constraint)->data);
+            obj_constraint.partB = static_cast<BodyObject*>(cpConstraintGetBodyB(cp_constraint)->data);
+            obj_constraint.anchorA = Vector2(cpConstraintGetAnchorA(cp_constraint).x, cpConstraintGetAnchorA(cp_constraint).y);
+            obj_constraint.anchorB = Vector2(cpConstraintGetAnchorB(cp_constraint).x, cpConstraintGetAnchorB(cp_constraint).y);
+            obj_constraint.rest = cpDampedSpringGetRestLength(cp_constraint);
+            obj_constraint.stiffness = cpDampedSpringGetStiffness(cp_constraint);
+            obj_constraint.damping = cpDampedSpringGetDamping(cp_constraint);
+            obj_constraint.collideConnected = cpConstraintGetCollideBodies(cp_constraint);
+
+            constraints.push_back(obj_constraint);
         }
     }
 

@@ -55,6 +55,7 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
     
     physicsManager->getRenderObjects(bodies, shapes, constraints);
     std::vector<const ShapeObject*> circles, segments, polygons, world_circles, world_segments, world_polygons;
+    std::vector<const ConstraintObject*> constraints_objects;
 
     wxBufferedPaintDC dc(this);
 
@@ -81,6 +82,14 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
         if (!s.body) {
             std::cout<<"Shape with id="<<s.id<<" has no body\n";
             continue;
+        }
+    }
+    for (auto& c: constraints) {
+        switch (c.constraintType) {
+            case ConstraintType::MUSCLE:
+                constraints_objects.push_back(&c);
+                break;
+            default: break;
         }
     }
 
@@ -133,7 +142,23 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
             dc.DrawCircle(wxPoint(v.x, v.y), radius);
         }
     }
-    
+
+    // First draw constraints
+    if (constraints_objects.size() > 0) {
+        setPen(dc, wxPen("black", 5), false);
+        dc.SetBrush(wxBrush(muscle_color));
+        for (const auto *constraint : constraints_objects) {
+            const BodyObject* partA = constraint->partA;
+            const BodyObject* partB = constraint->partB;
+            if (!partA || !partB) {
+                std::cout << "Constraint with id=" << constraint->id << " has no partA or partB\n";
+                continue;
+            }
+            const Vector2 anchorA = constraint->anchorA + partA->position;
+            const Vector2 anchorB = constraint->anchorB + partB->position;
+            dc.DrawLine(wxPoint(anchorA.x, anchorA.y), wxPoint(anchorB.x, anchorB.y));
+        }
+    }
 
     // First draw polygons in order for segments to be on top
     if (polygons.size() > 0) {
@@ -202,14 +227,14 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
         }
     }
     
-    auto now = std::chrono::system_clock::now();
-    auto now_time = std::chrono::system_clock::to_time_t(now);
-    std::string time_str = std::ctime(&now_time);
-    time_str.pop_back();
-    dc.SetTextForeground(*wxBLACK);
+    // auto now = std::chrono::system_clock::now();
+    // auto now_time = std::chrono::system_clock::to_time_t(now);
+    // std::string time_str = std::ctime(&now_time);
+    // time_str.pop_back();
+    dc.SetTextForeground(*wxColor("gray"));
     wxFont font(12, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     dc.SetFont(font);
-    dc.DrawText("Current time: " + wxString(time_str), 10, 30);
+    // dc.DrawText("Current time: " + wxString(time_str), 10, 30);
 
     // FPS counter
     static wxStopWatch sw;
