@@ -1,6 +1,6 @@
 #ifndef BRAIN_MUTATOR_H
 #define BRAIN_MUTATOR_H
-
+/*
 #include "Brain.h"
 #include <random>
 
@@ -20,5 +20,5 @@ private:
     double mutation_strength_;
     std::mt19937 rng_;
 };
-
+*/
 #endif // BRAIN_MUTATOR_H

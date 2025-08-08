@@ -1,6 +1,6 @@
 #include "BrainMutator.h"
 #include <algorithm>
-
+/*
 BrainMutator::BrainMutator(double mut_rate, double mut_strength)
   : mutation_rate_(mut_rate),
   mutation_strength_(mut_strength),
@@ -36,3 +36,4 @@ Brain* BrainMutator::crossover(const Brain& p1, const Brain& p2) {
     child->decodeGenome(child_genome);
     return child;
 }
+*/

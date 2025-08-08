@@ -15,11 +15,17 @@ Brain::Brain() :
     memory_({})
 {}
 
-Brain::Brain(const std::vector<size_t>& layer_sizes, 
-             const std::vector<double>& weights,
-             const std::vector<double>& biases,
-             const std::vector<double>& memory)
-  : id(Brain::newId()), layer_sizes_(layer_sizes), weights_(weights), biases_(biases), memory_(memory)
+// layer_sizes is {input, h1, h2, ..., output}
+//
+// Each vector in weights is plained matrix of weights. If weights.size() must be equal to layer_sizes.size() - 1
+//
+
+Brain::Brain(const std::vector<std::size_t>& layer_sizes,
+             const std::size_t memory,
+             const std::vector<std::vector<double>>& weights,
+             const std::vector<double>& biases
+             )
+  : id(Brain::newId()), layer_sizes_(layer_sizes), weights_(weights), biases_(biases), memory_(std::vector<double>(memory, 0))
 {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -33,9 +39,12 @@ Brain::Brain(const std::vector<size_t>& layer_sizes,
 
     // If weights and biases are not given then generate them
     if (weights_.empty() && biases_.empty()) {
-        weights_.resize(total_weights);
-        for (auto& w : weights_) {
-            w = dist(gen);
+        // TODO: resize vectors
+        for (size_t i = 0; i < layer_sizes_.size()-1; i++) {
+            weights_.push_back(std::vector<double>(layer_sizes_[i] * layer_sizes_[i + 1]));
+            for (auto& w : weights_[i]) {
+                w = dist(gen);
+            }
         }
 
         biases_.resize(layer_sizes_.size() - 1);
@@ -49,12 +58,9 @@ Brain::Brain(const std::vector<size_t>& layer_sizes,
              biases_.size() != (layer_sizes_.size() - 1)) {
         throw std::runtime_error("Invalid weights/biases dimensions");
     }
-
-    if (memory.size() == 0) {
-        memory_ = std::vector<double>(DEFAULT_MEMORY_SIZE, 0);
-    }
 }
 
+/*
 // Get "Genome" of this Brain
 std::vector<double> Brain::encodeGenome() const {
     std::vector<double> genome;
@@ -71,12 +77,13 @@ void Brain::decodeGenome(const std::vector<double>& genome) {
     std::copy_n(genome.begin(), w,           weights_.begin());
     std::copy_n(genome.begin() + w, biases_.size(), biases_.begin());
 }
+*/
 
 const std::vector<size_t>& Brain::getLayerSizes() const noexcept { return layer_sizes_; }
-const std::vector<double>& Brain::getWeights() const noexcept { return weights_; }
+const std::vector<std::vector<double>>& Brain::getWeights() const noexcept { return weights_; }
 const std::vector<double>& Brain::getBiases() const noexcept { return biases_; }
 const std::vector<double>& Brain::getMemory() const noexcept { return memory_; }
-void Brain::setWeights(const std::vector<double>& new_weights) { weights_ = new_weights; }
+void Brain::setWeights(const std::vector<std::vector<double>>& new_weights) { weights_ = new_weights; }
 void Brain::setBiases (const std::vector<double>& new_biases) { biases_  = new_biases; }
 void Brain::setMemory(const std::vector<double> &new_memory) { memory_ = new_memory; }
 
