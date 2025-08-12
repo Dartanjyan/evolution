@@ -45,7 +45,6 @@ public:
     Vector2 anchorB;
     ConstraintType constraintType;
     unsigned id;
-    // float maxForce;
 };
 
 #endif

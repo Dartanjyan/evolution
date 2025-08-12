@@ -48,6 +48,7 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
     static const wxColour segment_color = wxColour(115, 126, 137);
     static const wxColour circle_color = segment_color;
     static const wxColour muscle_color = wxColour(255, 129, 110);
+    const int muscle_width = 5;
 
     std::vector<BodyObject> bodies {};
     std::vector<ShapeObject> shapes {};
@@ -145,8 +146,6 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
 
     // First draw constraints
     if (constraints_objects.size() > 0) {
-        setPen(dc, wxPen("black", 5), false);
-        dc.SetBrush(wxBrush(muscle_color));
         for (const auto *constraint : constraints_objects) {
             const BodyObject* partA = constraint->partA;
             const BodyObject* partB = constraint->partB;
@@ -156,14 +155,29 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
             }
             const Vector2 anchorA = constraint->anchorA + partA->position;
             const Vector2 anchorB = constraint->anchorB + partB->position;
+
+            setPen(dc, wxPen("black", muscle_width), false);
+            dc.DrawLine(wxPoint(anchorA.x, anchorA.y), wxPoint(anchorB.x, anchorB.y));
+        }
+        for (const auto *constraint : constraints_objects) {
+            const BodyObject* partA = constraint->partA;
+            const BodyObject* partB = constraint->partB;
+            if (!partA || !partB) {
+                std::cout << "Constraint with id=" << constraint->id << " has no partA or partB\n";
+                continue;
+            }
+            const Vector2 anchorA = constraint->anchorA + partA->position;
+            const Vector2 anchorB = constraint->anchorB + partB->position;
+
+            setPen(dc, wxPen(muscle_color, muscle_width-2), false);
             dc.DrawLine(wxPoint(anchorA.x, anchorA.y), wxPoint(anchorB.x, anchorB.y));
         }
     }
 
-    // First draw polygons in order for segments to be on top
+    // Second draw polygons in order for segments to be on top
     if (polygons.size() > 0) {
         dc.SetBrush(wxBrush(poly_color));
-        dc.SetPen(wxPen("black"));
+        setPen(dc, wxPen("black"));
         for (const auto *shape : polygons) {
             const BodyObject* body = shape->body;
             const float angle = body->angle;

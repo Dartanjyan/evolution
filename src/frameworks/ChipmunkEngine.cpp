@@ -336,16 +336,16 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             // TODO: fix this AI shitty implementation
             obj_constraint.id = constraintPair.first;
             obj_constraint.constraintType = basic_constraint->getType();
-            obj_constraint.partA = static_cast<BodyObject*>(cpConstraintGetBodyA(cp_constraint)->data);
-            obj_constraint.partB = static_cast<BodyObject*>(cpConstraintGetBodyB(cp_constraint)->data);
-            obj_constraint.anchorA = Vector2(cpConstraintGetAnchorA(cp_constraint).x, cpConstraintGetAnchorA(cp_constraint).y);
-            obj_constraint.anchorB = Vector2(cpConstraintGetAnchorB(cp_constraint).x, cpConstraintGetAnchorB(cp_constraint).y);
-            obj_constraint.rest = cpDampedSpringGetRestLength(cp_constraint);
-            obj_constraint.stiffness = cpDampedSpringGetStiffness(cp_constraint);
-            obj_constraint.damping = cpDampedSpringGetDamping(cp_constraint);
-            obj_constraint.collideConnected = cpConstraintGetCollideBodies(cp_constraint);
+            if (obj_constraint.constraintType == ConstraintType::MUSCLE) {
+                obj_constraint.partA = static_cast<BodyObject*>(cpBodyGetUserData(cpConstraintGetBodyA(cp_constraint)));
+                obj_constraint.partB = static_cast<BodyObject*>(cpBodyGetUserData(cpConstraintGetBodyB(cp_constraint)));
+                cpVect anchorA = cpDampedSpringGetAnchorA(cp_constraint);
+                cpVect anchorB = cpDampedSpringGetAnchorB(cp_constraint);
+                obj_constraint.anchorA = Vector2(anchorA.x, anchorA.y);
+                obj_constraint.anchorB = Vector2(anchorB.x, anchorB.y);
 
-            constraints.push_back(obj_constraint);
+                constraints.push_back(obj_constraint);
+            }
         }
     }
 
