@@ -48,7 +48,7 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
     static const wxColour segment_color = wxColour(115, 126, 137);
     static const wxColour circle_color = segment_color;
     static const wxColour muscle_color = wxColour(255, 129, 110);
-    const int muscle_width = 5;
+    const int muscle_width = 4;
 
     std::vector<BodyObject> bodies {};
     std::vector<ShapeObject> shapes {};
