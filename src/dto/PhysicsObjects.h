@@ -15,6 +15,7 @@ class BodyObject {
 public:
     unsigned id;
     Vector2 position;
+    Vector2 initPosition;
     float angle;
     float mass;
     // float inertia;

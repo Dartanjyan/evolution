@@ -298,6 +298,8 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             obj_body.velocity = Vector2(velocity.x, velocity.y);
             obj_body.angle = cpBodyGetAngle(cp_body);
             obj_body.mass = cpBodyGetMass(cp_body);
+            // TODO: 
+            obj_body.initPosition = bodyPart->getBodyPosBias();
 
             bodies.push_back(obj_body);
             bodyPartIdToBodiesId[obj_body.id] = bodies.size() - 1;
@@ -337,7 +339,7 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             obj_constraint.constraintType = basic_constraint->getType();
             if (obj_constraint.constraintType == ConstraintType::MUSCLE) {
                 
-                // Для partA
+                // partA
                 BodyPart* bodyPartA = static_cast<BodyPart*>(cpBodyGetUserData(cpConstraintGetBodyA(cp_constraint)));
                 auto itA = bodyPartIdToBodiesId.find(bodyPartA->getId());
                 if (itA != bodyPartIdToBodiesId.end()) {
@@ -347,7 +349,7 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
                     std::cerr << "BodyObject not found for BodyPart ID: " << bodyPartA->getId() << std::endl;
                 }
 
-                // Для partB
+                // partB
                 BodyPart* bodyPartB = static_cast<BodyPart*>(cpBodyGetUserData(cpConstraintGetBodyB(cp_constraint)));
                 auto itB = bodyPartIdToBodiesId.find(bodyPartB->getId());
                 if (itB != bodyPartIdToBodiesId.end()) {
@@ -359,8 +361,8 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
 
                 cpVect anchorA = cpDampedSpringGetAnchorA(cp_constraint);
                 cpVect anchorB = cpDampedSpringGetAnchorB(cp_constraint);
-                obj_constraint.anchorA = Vector2(anchorA.x, anchorA.y);
-                obj_constraint.anchorB = Vector2(anchorB.x, anchorB.y);
+                obj_constraint.anchorA = Vector2(anchorA.x, anchorA.y) + obj_constraint.partA->initPosition;
+                obj_constraint.anchorB = Vector2(anchorB.x, anchorB.y) + obj_constraint.partB->initPosition;
 
                 constraints.push_back(obj_constraint);
             }
