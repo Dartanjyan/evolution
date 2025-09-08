@@ -1,8 +1,8 @@
 #include <vector>
-#include <random>
+// #include <random>
 #include "CPUAICalculator.h"
-#include <iostream>
-#include <Eigen/Dense>
+// #include <iostream>
+// #include <Eigen/Dense>
 
 CPUAICalculator::CPUAICalculator() {
 
@@ -21,25 +21,42 @@ void CPUAICalculator::shutdown() {
 }
 
 void CPUAICalculator::calculate(std::vector<CreaturePhysicsInputs>& data) {
-    // std::cout << "CPUAICalculator::calculate() called!\n";
-    // TODO: This is a placeholder that returns random numbers
-
     for (auto &d : data) {
         const Brain* brain = d.creature->getBrain();
         auto weights = brain->getWeights();
         auto biases = brain->getBiases();
-    }
-
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-
-    for (auto& d : data) {
-        int num_muscles = d.creature->getMuscles().size();
-        d.outputs.resize(num_muscles);
+        auto layer_sizes = brain->getLayerSizes();
+        auto memory = brain->getMemory();
         
-        for (int i = 0; i < num_muscles; i++) {
-            d.outputs[i] = dist(gen);
+        // Prepare input vector (including memory)
+        // TODO: Calculator is not the best place to insert memory into inputs
+        std::vector<double> current_layer = d.inputs;
+        current_layer.insert(current_layer.end(), memory.begin(), memory.end());
+        
+        // Forward pass through all layers
+        for (size_t layer = 0; layer < weights.size(); ++layer) {
+            std::vector<double> next_layer(layer_sizes[layer + 1], biases[layer]);
+            
+            // Matrix multiplication: next = weights * current + bias
+            for (size_t out_neuron = 0; out_neuron < layer_sizes[layer + 1] - 1; ++out_neuron) {
+                for (size_t in_neuron = 0; in_neuron < current_layer.size(); ++in_neuron) {
+                    next_layer[out_neuron] += current_layer[in_neuron] * weights[layer][out_neuron * current_layer.size() + in_neuron];
+                }
+                
+                // Activation function (tanh for hidden layers, sigmoid for output)
+                if (layer < weights.size() - 1) {
+                    next_layer[out_neuron] = std::tanh(next_layer[out_neuron]);
+                } else {
+                    next_layer[out_neuron] = 1.0 / (1.0 + std::exp(-next_layer[out_neuron]));
+                }
+            }
+            
+            current_layer = std::move(next_layer);
         }
+        
+        d.outputs = current_layer;
+        
+        // Update memory (last N activations)
+        // This should be saved back to Brain via a separate mechanism
     }
 }
