@@ -333,12 +333,30 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             Constraint* basic_constraint = static_cast<Constraint*>(cpConstraintGetUserData(cp_constraint));
             cpBody *cp_bodyA = cpConstraintGetBodyA(cp_constraint);
             cpBody *cp_bodyB = cpConstraintGetBodyB(cp_constraint);
-            // TODO: fix this AI shitty implementation
             obj_constraint.id = constraintPair.first;
             obj_constraint.constraintType = basic_constraint->getType();
             if (obj_constraint.constraintType == ConstraintType::MUSCLE) {
-                obj_constraint.partA = static_cast<BodyObject*>(cpBodyGetUserData(cpConstraintGetBodyA(cp_constraint)));
-                obj_constraint.partB = static_cast<BodyObject*>(cpBodyGetUserData(cpConstraintGetBodyB(cp_constraint)));
+                
+                // Для partA
+                BodyPart* bodyPartA = static_cast<BodyPart*>(cpBodyGetUserData(cpConstraintGetBodyA(cp_constraint)));
+                auto itA = bodyPartIdToBodiesId.find(bodyPartA->getId());
+                if (itA != bodyPartIdToBodiesId.end()) {
+                    obj_constraint.partA = &bodies.at(itA->second);
+                } else {
+                    obj_constraint.partA = nullptr;
+                    std::cerr << "BodyObject not found for BodyPart ID: " << bodyPartA->getId() << std::endl;
+                }
+
+                // Для partB
+                BodyPart* bodyPartB = static_cast<BodyPart*>(cpBodyGetUserData(cpConstraintGetBodyB(cp_constraint)));
+                auto itB = bodyPartIdToBodiesId.find(bodyPartB->getId());
+                if (itB != bodyPartIdToBodiesId.end()) {
+                    obj_constraint.partB = &bodies.at(itB->second);
+                } else {
+                    obj_constraint.partB = nullptr;
+                    std::cerr << "BodyObject not found for BodyPart ID: " << bodyPartB->getId() << std::endl;
+                }
+
                 cpVect anchorA = cpDampedSpringGetAnchorA(cp_constraint);
                 cpVect anchorB = cpDampedSpringGetAnchorB(cp_constraint);
                 obj_constraint.anchorA = Vector2(anchorA.x, anchorA.y);
