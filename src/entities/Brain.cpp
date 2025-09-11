@@ -63,25 +63,6 @@ Brain::Brain(const std::vector<std::size_t>& layer_sizes,
     }
 }
 
-/*
-// Get "Genome" of this Brain
-std::vector<double> Brain::encodeGenome() const {
-    std::vector<double> genome;
-    genome.reserve(weights_.size() + biases_.size());
-    genome.insert(genome.end(), weights_.begin(), weights_.end());
-    genome.insert(genome.end(), biases_ .begin(), biases_ .end());
-    return genome;
-}
-
-// Decode "Genome" and set weights and biases
-void Brain::decodeGenome(const std::vector<double>& genome) {
-    const size_t w = weights_.size();
-    // Assume, that genome.size()==w + biases_.size()
-    std::copy_n(genome.begin(), w,           weights_.begin());
-    std::copy_n(genome.begin() + w, biases_.size(), biases_.begin());
-}
-*/
-
 const std::vector<size_t>& Brain::getLayerSizes() const noexcept { return layer_sizes_; }
 const std::vector<std::vector<double>>& Brain::getWeights() const noexcept { return weights_; }
 const std::vector<double>& Brain::getBiases() const noexcept { return biases_; }
