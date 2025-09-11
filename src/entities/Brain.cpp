@@ -29,13 +29,17 @@ Brain::Brain(const std::vector<std::size_t>& layer_sizes,
 {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<> dist(0.0, 0.5); // mean=0, stddev=0.1
+    std::normal_distribution<> dist(0.0, 1);
 
     size_t total_weights = 0;
     for (size_t i = 0; i < layer_sizes_.size() - 1; ++i) {
-        total_weights += layer_sizes_[i] * layer_sizes_[i + 1];
+        total_weights += layer_sizes_[i] * layer_sizes_[i + 1] + 1;
     }
-    std::cout << "Brain::Brain(): total_weights = " << total_weights << "\n";
+    std::cout << "Brain::Brain(): layers: {";
+    for (auto layer : layer_sizes_) {
+        std::cout << layer << ", ";
+    }
+    std::cout << "\b\b}, total_weights = " << total_weights << " (" << sizeof(double) * total_weights << " bytes)\n";
 
     // If weights and biases are not given then generate them
     if (weights_.empty() && biases_.empty()) {

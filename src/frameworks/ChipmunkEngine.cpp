@@ -428,11 +428,11 @@ void ChipmunkEngine::getCreatureAIInputs(std::vector<CreaturePhysicsInputs>& out
         data.inputs.insert(data.inputs.end(), memory.begin(), memory.end());
         out.push_back(data);
         
-        static bool outputted = false;
-        if (!outputted) {
-            std::cout << "ChipmunkEngine::getCreatureAIInputs(): data has length of " << amount << std::endl;
-            outputted = true;
-        }
+        // static bool outputted = false;
+        // if (!outputted) {
+        //     std::cout << "ChipmunkEngine::getCreatureAIInputs(): data has length of " << amount << std::endl;
+        //     outputted = true;
+        // }
     }
 }
 
