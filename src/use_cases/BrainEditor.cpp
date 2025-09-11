@@ -15,7 +15,7 @@ void BrainEditor::updateMemory(std::vector<CreaturePhysicsInputs> &data)
         
         const std::vector<double> new_memory(d.outputs.end() - brain->getMemory().size(), d.outputs.end());
         const std::vector<double> new_outputs(d.outputs.begin(), d.outputs.end() - brain->getMemory().size());
-        d.outputs = new_outputs;
+        d.outputs = std::move(new_outputs);
         brain->setMemory(new_memory);
     }
 }

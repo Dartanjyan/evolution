@@ -1,8 +1,5 @@
 #include <vector>
-// #include <random>
 #include "CPUAICalculator.h"
-// #include <iostream>
-// #include <Eigen/Dense>
 
 CPUAICalculator::CPUAICalculator() {
 
@@ -28,8 +25,6 @@ void CPUAICalculator::calculate(std::vector<CreaturePhysicsInputs>& data) {
         auto layer_sizes = brain->getLayerSizes();
         auto memory = brain->getMemory();
         
-        // Prepare input vector (including memory)
-        // TODO: Calculator is not the best place to insert memory into inputs
         std::vector<double> current_layer = d.inputs;
         
         // Forward pass through all layers
@@ -56,7 +51,5 @@ void CPUAICalculator::calculate(std::vector<CreaturePhysicsInputs>& data) {
         }
         
         d.outputs = current_layer;
-        
-        // TODO: Update memory (last N activations). This should be saved back to Brain via a separate mechanism
     }
 }
