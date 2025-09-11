@@ -1,6 +1,7 @@
 #include "PhysicsManager.h"
 #include <chrono>
 #include "AIManager.h"
+#include "BrainEditor.h"
 
 PhysicsManager::PhysicsManager(std::unique_ptr<IPhysicsEngine> engine, std::unique_ptr<IAICalculator> ai_calculator)
     : engine(std::move(engine)), running(false)
@@ -72,7 +73,9 @@ void PhysicsManager::run() {
         }
 
         if (ai_manager && ai_manager->isCalculationCompleted()) {
-            engine->applyAIResults(ai_manager->getResults());
+            auto results = ai_manager->getResults();
+            BrainEditor::updateMemory(results);
+            engine->applyAIResults(results);
         }
 
         const float dt = 0.01f;

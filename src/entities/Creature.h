@@ -34,7 +34,7 @@ public:
     
     unsigned getId() const { return id; }
     const std::vector<Constraint*> getConstraints() const { return constraints; }
-    const Brain* getBrain() const { return brain; }
+    Brain* getBrain() const { return brain; }
     float getFitness() const { return fitness; }
     
     void setFitness(float value) { fitness = value; }

@@ -442,7 +442,7 @@ void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &da
         ChimpmunkCreature *creature = findChipmunkCreatureForCreature(d.creature);
         auto muscles = creature->creature->getMuscles();
         if (d.outputs.size() != muscles.size()) {
-            std::cout << "ChipmunkEngine::applyAIResults: Got incompatible output size to muscle amount\n";
+            std::cout << "ChipmunkEngine::applyAIResults: Got incompatible output size to muscle amount (got "<<d.outputs.size()<<", expected "<<muscles.size()<<")\n";
             continue;
         }
         

@@ -31,7 +31,6 @@ void CPUAICalculator::calculate(std::vector<CreaturePhysicsInputs>& data) {
         // Prepare input vector (including memory)
         // TODO: Calculator is not the best place to insert memory into inputs
         std::vector<double> current_layer = d.inputs;
-        current_layer.insert(current_layer.end(), memory.begin(), memory.end());
         
         // Forward pass through all layers
         for (size_t layer = 0; layer < weights.size(); ++layer) {
