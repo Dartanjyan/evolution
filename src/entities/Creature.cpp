@@ -275,11 +275,14 @@ Creature* Creature::createBasicCreature()
     std::vector<Constraint*> constraints = {j1, j2, j3, j4, j5, j6, j7, j8, m1, m2, m3, m4, m5, m6, m7, m8};
     
     int joints = 8;
+    int muscles = 8;
     int eyes = 0;
     int memory = 4;
     std::size_t input_layer = 2 + joints*2 + eyes*5 + memory;
-    std::cout << "Creature input size "<<input_layer<<"\n";
-    Brain* brain = new Brain({input_layer, 3, 4}, memory);
+    std::size_t output_layer = muscles + memory;
+
+    std::cout << "Creature input size "<<input_layer<<", output size "<<output_layer<<"\n";
+    Brain* brain = new Brain({input_layer, ((input_layer + output_layer)/(std::size_t)2*(std::size_t)1.5), output_layer}, memory);
 
     Creature* creature = new Creature(bodyParts, constraints, brain);
     

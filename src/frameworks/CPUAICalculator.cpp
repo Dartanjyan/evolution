@@ -40,12 +40,12 @@ void CPUAICalculator::calculate(std::vector<CreaturePhysicsInputs>& data) {
             // Matrix multiplication: next = weights * current + bias
             for (size_t out_neuron = 0; out_neuron < layer_sizes[layer + 1]; ++out_neuron) {
                 for (size_t in_neuron = 0; in_neuron < current_layer.size(); ++in_neuron) {
-                    // TODO: FIX THIS
-                    if (out_neuron == 2 && in_neuron == 14) {
-                        int stop = 1;
+                    if (out_neuron == 14 && in_neuron == 10) {
+                        int debug = 1;
                     }
+
                     auto cur = current_layer[in_neuron];
-                    auto w = weights[layer][out_neuron * current_layer.size() + in_neuron];
+                    auto w = weights[layer][out_neuron * current_layer.size() + in_neuron];  // here fail
                     next_layer[out_neuron] += cur * w;
                 }
                 
