@@ -29,7 +29,7 @@ Brain::Brain(const std::vector<std::size_t>& layer_sizes,
 {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<> dist(0.0, 0.1); // mean=0, stddev=0.1
+    std::normal_distribution<> dist(0.0, 0.5); // mean=0, stddev=0.1
 
     size_t total_weights = 0;
     for (size_t i = 0; i < layer_sizes_.size() - 1; ++i) {
@@ -39,7 +39,6 @@ Brain::Brain(const std::vector<std::size_t>& layer_sizes,
 
     // If weights and biases are not given then generate them
     if (weights_.empty() && biases_.empty()) {
-        // TODO: resize vectors
         for (size_t i = 0; i < layer_sizes_.size()-1; i++) {
             weights_.push_back(std::vector<double>(layer_sizes_[i] * layer_sizes_[i + 1]));
             for (auto& w : weights_[i]) {

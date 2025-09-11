@@ -282,7 +282,12 @@ Creature* Creature::createBasicCreature()
     std::size_t output_layer = muscles + memory;
 
     std::cout << "Creature input size "<<input_layer<<", output size "<<output_layer<<"\n";
-    Brain* brain = new Brain({input_layer, ((input_layer + output_layer)/(std::size_t)2*(std::size_t)1.5), output_layer}, memory);
+    Brain* brain = new Brain({
+            input_layer,
+            (input_layer + output_layer)/(std::size_t)2*(std::size_t)1.5,
+            output_layer
+        }, 
+        memory);
 
     Creature* creature = new Creature(bodyParts, constraints, brain);
     

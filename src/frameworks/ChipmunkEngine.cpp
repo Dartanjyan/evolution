@@ -451,8 +451,9 @@ void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &da
             Constraint* muscle = muscles[i];
             cpConstraint* chipmunkMuscle = creature->constraints[muscle->getId()];
 
-            float new_rest = muscle->getNeutralSize() * 5 * d.outputs[i];
+            float new_rest = d.outputs[i] * muscle->getNeutralSize() * 4;
             cpDampedSpringSetRestLength(chipmunkMuscle, new_rest);
+            // std::cout << "New rest: " << d.outputs[i] << "\n";
         }
     }
 }

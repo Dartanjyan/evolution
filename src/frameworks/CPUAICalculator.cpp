@@ -39,21 +39,17 @@ void CPUAICalculator::calculate(std::vector<CreaturePhysicsInputs>& data) {
             // Matrix multiplication: next = weights * current + bias
             for (size_t out_neuron = 0; out_neuron < layer_sizes[layer + 1]; ++out_neuron) {
                 for (size_t in_neuron = 0; in_neuron < current_layer.size(); ++in_neuron) {
-                    if (out_neuron == 14 && in_neuron == 10) {
-                        int debug = 1;
-                    }
-
                     auto cur = current_layer[in_neuron];
                     auto w = weights[layer][out_neuron * current_layer.size() + in_neuron];  // here fail
                     next_layer[out_neuron] += cur * w;
                 }
                 
                 // Activation function (tanh for hidden layers, sigmoid for output)
-                if (layer < weights.size() - 1) {
+                // if (layer < weights.size() - 1) {
                     next_layer[out_neuron] = std::tanh(next_layer[out_neuron]);
-                } else {
-                    next_layer[out_neuron] = 1.0 / (1.0 + std::exp(-next_layer[out_neuron]));
-                }
+                // } else {
+                //     next_layer[out_neuron] = 1.0 / (1.0 + std::exp(-next_layer[out_neuron]));
+                // }
             }
             
             current_layer = std::move(next_layer);
