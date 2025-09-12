@@ -1,8 +1,8 @@
-#include "WxFrame.h"
+#include "SimulationFrame.h"
 #include "DrawPanel.h"
 #include <wx/dcbuffer.h>
 
-WxFrame::WxFrame(PhysicsManager* physicsManager, const wxString &title, const wxPoint &pos, const wxSize &size)
+SimulationFrame::SimulationFrame(PhysicsManager* physicsManager, const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(nullptr, wxID_ANY, title, pos, size), physicsManager(physicsManager)
 {
     // Setting up a menu bar
@@ -32,56 +32,56 @@ WxFrame::WxFrame(PhysicsManager* physicsManager, const wxString &title, const wx
     wxPanel *controlPanel = new wxPanel(this, wxID_ANY);
     controlPanel->SetBackgroundColour(wxColour(255, 255, 255));
     // wxButton *startButton = new wxButton(controlPanel, ID_START, "Stop", wxDefaultPosition, wxSize(60, wxDefaultSize.y));
-    wxButton *addButton = new wxButton(controlPanel, ID_ADD_CREATURE, "+", wxPoint(60, 0), wxSize(60, wxDefaultSize.y));
+    wxButton *addButton = new wxButton(controlPanel, ID_ADD_CREATURE, "+", wxPoint(0, 0), wxSize(60, wxDefaultSize.y));
 
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(controlPanel, 0, wxEXPAND | wxBOTTOM, 1);
     sizer->Add(drawPanel, 1, wxEXPAND | wxALL);
     this->SetSizer(sizer);
 
-    Bind(wxEVT_MENU, &WxFrame::OnQuit, this, wxID_EXIT);
-    Bind(wxEVT_CLOSE_WINDOW, &WxFrame::OnCloseWindow, this, wxID_EXIT);
-    Bind(wxEVT_MENU, &WxFrame::OnAbout, this, wxID_ABOUT);
-    Bind(wxEVT_BUTTON, &WxFrame::OnStart, this, ID_START);
-    Bind(wxEVT_BUTTON, &WxFrame::OnAdd, this, ID_ADD_CREATURE);
+    Bind(wxEVT_MENU, &SimulationFrame::OnQuit, this, wxID_EXIT);
+    Bind(wxEVT_CLOSE_WINDOW, &SimulationFrame::OnCloseWindow, this, wxID_EXIT);
+    Bind(wxEVT_MENU, &SimulationFrame::OnAbout, this, wxID_ABOUT);
+    Bind(wxEVT_BUTTON, &SimulationFrame::OnStart, this, ID_START);
+    Bind(wxEVT_BUTTON, &SimulationFrame::OnAdd, this, ID_ADD_CREATURE);
 
     this->physicsManager->start();
 }
 
-WxFrame::~WxFrame()
+SimulationFrame::~SimulationFrame()
 {
 }
 
-void WxFrame::OnQuit(wxCommandEvent& event)
+void SimulationFrame::OnQuit(wxCommandEvent& event)
 {
     HandleExit();
 }
 
-void WxFrame::OnCloseWindow(wxCloseEvent &event)
+void SimulationFrame::OnCloseWindow(wxCloseEvent &event)
 {
     HandleExit();
     event.Skip();
 }
 
-void WxFrame::HandleExit()
+void SimulationFrame::HandleExit()
 {
     std::cout << "Exiting application" << std::endl;
     this->physicsManager->stop();
     Close(true);
 }
 
-void WxFrame::OnAbout(wxCommandEvent& event)
+void SimulationFrame::OnAbout(wxCommandEvent& event)
 {
     wxMessageBox("Physics Simulation using Chipmunk and wxWidgets",
         "About", wxOK | wxICON_INFORMATION | wxSTAY_ON_TOP | wxCENTER);
 }
 
-void WxFrame::OnStart(wxCommandEvent &event)
+void SimulationFrame::OnStart(wxCommandEvent &event)
 {
     this->physicsManager->stop();
 }
 
-void WxFrame::OnAdd(wxCommandEvent &event)
+void SimulationFrame::OnAdd(wxCommandEvent &event)
 {
     for (int i=0; i<1; i++) {
         this->physicsManager->addCreature(Creature::createBasicCreature());

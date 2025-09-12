@@ -1,0 +1,45 @@
+#include "MainMenuFrame.h"
+#include "SimulationFrame.h"
+#include "SettingsFrame.h"
+#include "WxIds.h"
+
+MainMenuFrame::MainMenuFrame(PhysicsManager* physicsManager, const wxString &title, const wxPoint &pos, const wxSize &size)
+    : wxFrame(nullptr, wxID_ANY, title, pos, size), physicsManager(physicsManager) {
+    
+    wxPanel* panel = new wxPanel(this);
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+    
+    // Menu buttons
+    wxButton* simulationBtn = new wxButton(panel, ID_MENU_SIMULATION, "Simulation");
+    wxButton* settingsBtn = new wxButton(panel, ID_MENU_SETTINGS, "Settings");
+    wxButton* exitBtn = new wxButton(panel, wxID_EXIT, "Exit");
+    
+    sizer->Add(simulationBtn, 0, wxALL | wxEXPAND, 10);
+    sizer->Add(settingsBtn, 0, wxALL | wxEXPAND, 10);
+    sizer->Add(exitBtn, 0, wxALL | wxEXPAND, 10);
+    
+    panel->SetSizer(sizer);
+    SetClientSize(300, 200);
+    Center();
+    
+    Bind(wxEVT_BUTTON, &MainMenuFrame::OnSimulation,this, ID_MENU_SIMULATION);
+    Bind(wxEVT_BUTTON, &MainMenuFrame::OnSettings, this, ID_MENU_SETTINGS);
+    Bind(wxEVT_BUTTON, &MainMenuFrame::OnExit, this, wxID_EXIT);
+}
+
+void MainMenuFrame::OnSimulation(wxCommandEvent& event) {
+    std::cout << "Simulation clicked!\n";
+    SimulationFrame* simulationFrame = new SimulationFrame(physicsManager, "Simulation");
+    simulationFrame->Show(true);
+    this->Hide(); // Hide menu
+}
+
+void MainMenuFrame::OnSettings(wxCommandEvent& event) {
+    SettingsFrame* settingsFrame = new SettingsFrame();
+    settingsFrame->Show(true);
+    this->Hide(); // Hide menu
+}
+
+void MainMenuFrame::OnExit(wxCommandEvent& event) {
+    Close(true);
+}
