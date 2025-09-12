@@ -4,7 +4,6 @@
 
 bool WxApp::OnInit()
 {
-    //WxFrame *frame = new WxFrame(physicsManager, "Simulation", wxDefaultPosition, wxSize(800, 600));
     MainMenuFrame *frame = new MainMenuFrame(physicsManager, "Main menu", wxDefaultPosition, wxSize(800, 600));
     frame->Show(true);
     return true;

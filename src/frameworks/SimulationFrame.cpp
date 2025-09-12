@@ -45,6 +45,10 @@ SimulationFrame::SimulationFrame(PhysicsManager* physicsManager, const wxString 
     Bind(wxEVT_BUTTON, &SimulationFrame::OnStart, this, ID_START);
     Bind(wxEVT_BUTTON, &SimulationFrame::OnAdd, this, ID_ADD_CREATURE);
 
+    Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& evt) {
+        wxTheApp->ExitMainLoop();
+    });
+
     this->physicsManager->start();
 }
 
