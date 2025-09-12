@@ -9,6 +9,7 @@ class Brain {
 private:
 	unsigned id;
 	static unsigned last_id;
+    static bool is_config_printed;
     
     std::vector<std::size_t> layer_sizes_;
 

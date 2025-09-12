@@ -6,6 +6,7 @@
 
 // static unsigned int last_id
 unsigned Brain::last_id = 0;
+bool Brain::is_config_printed = false;
 
 Brain::Brain() : 
     id(Brain::newId()),
@@ -35,11 +36,15 @@ Brain::Brain(const std::vector<std::size_t>& layer_sizes,
     for (size_t i = 0; i < layer_sizes_.size() - 1; ++i) {
         total_weights += layer_sizes_[i] * layer_sizes_[i + 1] + 1;
     }
-    std::cout << "Brain::Brain(): layers: {";
-    for (auto layer : layer_sizes_) {
-        std::cout << layer << ", ";
+
+    if (!Brain::is_config_printed){
+        std::cout << "Brain::Brain(): layers: {";
+        for (auto layer : layer_sizes_) {
+            std::cout << layer << ", ";
+        }
+        std::cout << "\b\b}, total_weights = " << total_weights << " (" << sizeof(double) * total_weights << " bytes)\n";
+        Brain::is_config_printed = true;
     }
-    std::cout << "\b\b}, total_weights = " << total_weights << " (" << sizeof(double) * total_weights << " bytes)\n";
 
     // If weights and biases are not given then generate them
     if (weights_.empty() && biases_.empty()) {
