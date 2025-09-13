@@ -9,17 +9,28 @@ MainMenuFrame::MainMenuFrame(PhysicsManager* physicsManager, const wxString &tit
     wxPanel* panel = new wxPanel(this);
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     
+    int margin = 15;
+    int padding = 10;
+    wxGridSizer* gridSizer = new wxGridSizer(2, 2, padding, padding);
+    
     // Menu buttons
     wxButton* simulationBtn = new wxButton(panel, ID_MENU_SIMULATION, "Simulation");
     wxButton* settingsBtn = new wxButton(panel, ID_MENU_SETTINGS, "Settings");
     wxButton* exitBtn = new wxButton(panel, wxID_EXIT, "Exit");
     
-    sizer->Add(simulationBtn, 0, wxALL | wxEXPAND, 10);
-    sizer->Add(settingsBtn, 0, wxALL | wxEXPAND, 10);
-    sizer->Add(exitBtn, 0, wxALL | wxEXPAND, 10);
+
+    // sizer->Add(simulationBtn, 0, sizerFlags, margin);
+    // sizer->Add(settingsBtn, 0, sizerFlags, margin);
+    // sizer->Add(exitBtn, 0, sizerFlags, margin);
     
-    panel->SetSizer(sizer);
-    SetClientSize(300, 200);
+    gridSizer->Add(simulationBtn, 0, wxLEFT | wxUP | wxEXPAND, margin);
+    gridSizer->AddSpacer(0);
+    gridSizer->Add(settingsBtn, 0, wxLEFT | wxDOWN | wxEXPAND, margin);
+    gridSizer->Add(exitBtn, 0, wxRIGHT | wxDOWN | wxEXPAND, margin);
+    
+    panel->SetSizer(gridSizer);
+    SetClientSize(250, 150);
+    SetMinClientSize(wxSize(250, 150));
     Center();
     
     Bind(wxEVT_BUTTON, &MainMenuFrame::OnSimulation,this, ID_MENU_SIMULATION);

@@ -1,9 +1,6 @@
 #ifndef SIMULATIONFRAME_H
 #define SIMULATIONFRAME_H
 
-// #include <memory>
-// #include <vector>
-
 #include <wx/wx.h>
 
 #include "Frame.h"
