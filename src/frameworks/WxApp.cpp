@@ -1,10 +1,9 @@
 #include "WxApp.h"
-#include "SimulationFrame.h"
-#include "MainMenuFrame.h"
+#include "MainFrame.h"
 
 bool WxApp::OnInit()
 {
-    MainMenuFrame *frame = new MainMenuFrame(physicsManager, "Main menu", wxDefaultPosition, wxSize(800, 600));
+    MainFrame *frame = new MainFrame(physicsManager);
     frame->Show(true);
     return true;
 }

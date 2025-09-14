@@ -10,6 +10,8 @@ DrawPanel::DrawPanel(PhysicsManager* physicsManager, wxWindow* parent, wxWindowI
     
     if (!physicsManager) {
         std::cout << "DrawPanel constructor: got nullptr as physicsManager\n";
+    } else {
+        this->physicsManager->start();
     }
         
     SetBackgroundColour(wxColour(240, 240, 240));
@@ -21,6 +23,7 @@ DrawPanel::DrawPanel(PhysicsManager* physicsManager, wxWindow* parent, wxWindowI
     Bind(wxEVT_SIZE, &DrawPanel::OnSize, this);
     Bind(wxEVT_PAINT, &DrawPanel::OnPaint, this);
     Bind(wxEVT_TIMER, &DrawPanel::OnTimer, this, ID_TIMER);
+
 }
 
 DrawPanel::~DrawPanel()
