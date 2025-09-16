@@ -34,7 +34,7 @@ void ChipmunkEngine::initialize() {
 
     // Creating terrain
     cpFloat x = 1000;
-    cpFloat y = 450;
+    cpFloat y = 350;
     cpVect a = cpv(-x, y);
     cpVect b = cpv(x, y);
     cpBody* body = cpSpaceGetStaticBody(space);

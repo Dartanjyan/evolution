@@ -12,6 +12,8 @@ MainFrame::MainFrame(PhysicsManager* physicsManager)
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& evt) {
         wxTheApp->ExitMainLoop();
     });
+
+    SetMinSize(wxSize(600, 480));
 }
 
 void MainFrame::ClearCurrentPanel() {

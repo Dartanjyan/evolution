@@ -36,8 +36,9 @@ DrawPanel::~DrawPanel()
 }
 
 // Cache last used wxPen to reduce pen switching
-inline void setPen(wxDC &dc, wxPen pen, bool force = false) {
+void setPen(wxDC &dc, wxPen pen, bool force = false) {
     static wxPen last_pen;
+    
     if (force || last_pen != pen) {
         dc.SetPen(pen);
         last_pen = pen;
@@ -45,12 +46,12 @@ inline void setPen(wxDC &dc, wxPen pen, bool force = false) {
 }
 
 void DrawPanel::OnPaint(wxPaintEvent& event) {
-    static const wxColour world_shape_color = wxColour(79, 73, 85);
+    const wxColour world_shape_color = wxColour(79, 73, 85);
 
-    static const wxColour poly_color = wxColour(170, 153, 137);
-    static const wxColour segment_color = wxColour(115, 126, 137);
-    static const wxColour circle_color = segment_color;
-    static const wxColour muscle_color = wxColour(255, 129, 110);
+    const wxColour poly_color = wxColour(170, 153, 137);
+    const wxColour segment_color = wxColour(115, 126, 137);
+    const wxColour circle_color = segment_color;
+    const wxColour muscle_color = wxColour(255, 129, 110);
     const int muscle_width = 4;
 
     std::vector<BodyObject> bodies {};
@@ -58,6 +59,7 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
     std::vector<ConstraintObject> constraints {};
     
     physicsManager->getRenderObjects(bodies, shapes, constraints);
+    
     std::vector<const ShapeObject*> circles, segments, polygons, world_circles, world_segments, world_polygons;
     std::vector<const ConstraintObject*> constraints_objects;
 
@@ -74,8 +76,7 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
                 case ShapeType::Segment:  world_segments.push_back(&s); break;
                 case ShapeType::Polygon:  world_polygons.push_back(&s); break;
             }
-        }
-        else {
+        } else {
             switch (s.shapeType) {
                 case ShapeType::Circle:   circles.push_back(&s); break;
                 case ShapeType::Segment:  segments.push_back(&s); break;
@@ -276,5 +277,6 @@ void DrawPanel::OnTimer(wxTimerEvent& event) {
 void DrawPanel::OnSize(wxSizeEvent& event) {
     Refresh();
     event.Skip();
+    // std::cout<<"resize\n";
 }
 
