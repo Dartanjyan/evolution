@@ -7,7 +7,6 @@
 class SimulationPanel : public wxPanel {
 public:
     SimulationPanel(wxWindow* parent, PhysicsManager* physicsManager);
-
 private:
     PhysicsManager* physicsManager;
     void OnBackToMenu(wxCommandEvent& event);

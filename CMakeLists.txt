@@ -6,6 +6,7 @@ add_compile_options(
     -march=native
     -fstack-protector-strong
     -g
+    # -std=c++14
 )
 
 set(3RD_PARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party")

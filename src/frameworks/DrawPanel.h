@@ -3,9 +3,11 @@
 
 #include <wx/wx.h>
 #include <wx/panel.h>
+#include <memory>
 #include "WxIds.h"
 #include "PhysicsManager.h"
 #include "PhysicsObjects.h"
+#include "BufferDrawer.h"
 
 class DrawPanel : public wxPanel {
 public:
@@ -16,10 +18,13 @@ public:
     ~DrawPanel();
 private:
     void OnPaint(wxPaintEvent& event);
+    void OnPaint1(wxPaintEvent& event);
     void OnTimer(wxTimerEvent& event);
     void OnSize(wxSizeEvent& event);
     PhysicsManager* physicsManager;
     wxTimer* timer;
+
+    std::unique_ptr<BufferDrawer> bufferDrawer;
 };
 
 #endif
