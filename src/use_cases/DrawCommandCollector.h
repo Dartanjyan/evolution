@@ -5,6 +5,7 @@
 #include <atomic>
 #include <mutex>
 #include <vector>
+#include <string>
 #include "PhysicsManager.h"
 #include "Vector2.h"
 
@@ -27,7 +28,7 @@ struct DrawCommand {
     struct Color color;
     std::vector<Vector2> points;
     int32_t width = 1;
-    char text[20];
+    std::string text;
 
     DrawCommand(DrawCommandType type, struct Color color, std::vector<Vector2> points, int32_t width = 1)
         : type(type), color(color), points(points), width(width) {}
@@ -35,7 +36,7 @@ struct DrawCommand {
         : type(type), color(color), points(std::vector<Vector2>{point}), width(width) {}
     
 };
-auto a=sizeof(DrawCommand);
+// auto a=sizeof(DrawCommand);
 
 
 class DrawCommandCollector {

@@ -7,7 +7,7 @@
 #include "WxIds.h"
 #include "PhysicsManager.h"
 #include "PhysicsObjects.h"
-#include "BufferDrawer.h"
+#include "DrawCommandCollector.h"
 
 class DrawPanel : public wxPanel {
 public:
@@ -24,7 +24,7 @@ private:
     PhysicsManager* physicsManager;
     wxTimer* timer;
 
-    std::unique_ptr<BufferDrawer> bufferDrawer;
+    std::unique_ptr<DrawCommandCollector> drawCommandCollector;
 };
 
 #endif

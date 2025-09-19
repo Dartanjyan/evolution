@@ -227,7 +227,7 @@ void DrawCommandCollector::updateBackBuffer()
 
     frameCount++;
     const auto now = std::chrono::_V2::high_resolution_clock::now();
-    const auto time = std::chrono::milliseconds((now - lastTime).count());
+    const auto time = std::chrono::milliseconds((now - lastTime).count()/1000000);
     if (time > std::chrono::milliseconds(500)) {
         fps = frameCount / ((float)time.count() / 1000.0f);
         frameCount = 0;
@@ -235,7 +235,11 @@ void DrawCommandCollector::updateBackBuffer()
     }
 
     struct DrawCommand command(DrawCommandType::TEXT, Color(100, 100, 100), std::vector<Vector2>{Vector2(10, 10)}, 12);  // 12 is font size
-    snprintf(command.text, sizeof(command.text), "FPS: %.1f", fps);
+    
+    char buf[20];
+    snprintf(buf, sizeof(buf), "FPS: %.1f", fps);
+    command.text = buf;
+    backBuffer->emplace_back(command);
 }
 
 void DrawCommandCollector::start()
