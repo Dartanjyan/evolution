@@ -43,6 +43,11 @@ void setPen(wxDC &dc, wxPen pen, bool force = false) {
     }
 }
 
+void drawCircle(wxDC& dc, DrawCommand& command) {
+    dc.SetBrush(wxColour(command.color.red, command.color.green, command.color.blue, command.color.alpha));
+    dc.DrawCircle(command.points[0].x, command.points[0].y, command.width);
+}
+
 void drawText(wxDC& dc, DrawCommand& command) {
     dc.SetTextForeground(*wxColor(command.color.red, command.color.green, command.color.blue, command.color.alpha));
     wxFont font(command.width, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
@@ -55,17 +60,29 @@ void drawLine(wxDC& dc, DrawCommand& command) {
     dc.DrawLine(wxPoint(command.points[0].x, command.points[0].y), wxPoint(command.points[1].x, command.points[1].y));
 }
 
+void drawPolygon(wxDC& dc, DrawCommand& command) {
+    dc.SetBrush(wxColour(command.color.red, command.color.green, command.color.blue, command.color.alpha));
+    setPen(dc, wxPen("black"));
+    std::vector<wxPoint> points;
+    for (const auto& v : command.points) {
+        points.emplace_back(v.x, v.y);
+    }
+    dc.DrawPolygon(points.size(), points.data());
+}
+
 void executeCommand(wxDC& dc, DrawCommand& command) {
     switch (command.type) {
         case DrawCommandType::TEXT:
             drawText(dc, command);
             break;
         case DrawCommandType::CIRCLE:
+            drawCircle(dc, command);
             break;
         case DrawCommandType::LINE:
             drawLine(dc, command);
             break;
         case DrawCommandType::POLYGON:
+            drawPolygon(dc, command);
             break;
     }
 }
@@ -77,6 +94,7 @@ void DrawPanel::OnPaint(wxPaintEvent& event) {
     wxBufferedPaintDC dc(this);
     dc.SetBackground(*wxWHITE);
     dc.Clear();
+    setPen(dc, wxPen(wxColour("black"), 0), true);
 
     std::vector<DrawCommand> commands;
     drawCommandCollector->getCommands(commands);

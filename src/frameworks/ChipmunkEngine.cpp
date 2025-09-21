@@ -3,7 +3,7 @@
 #define CATEGORY_ENTITY  0b0001
 #define CATEGORY_TERRAIN 0b0010
 
-ChimpmunkCreature* ChipmunkEngine::findChipmunkCreatureForCreature(Creature *creature)
+ChipmunkCreature* ChipmunkEngine::findChipmunkCreatureForCreature(Creature *creature)
 {
     auto it = chipmunkCreatures.find(creature->getId());
     if (it != chipmunkCreatures.end()) {
@@ -223,7 +223,7 @@ void ChipmunkEngine::addCreature(Creature *creature)
 {
     std::lock_guard<std::mutex> lock(data_mutex);
 
-    ChimpmunkCreature* chimpmunkCreature = new ChimpmunkCreature();
+    ChipmunkCreature* chimpmunkCreature = new ChipmunkCreature();
     chimpmunkCreature->creature = creature;
     chipmunkCreatures[creature->getId()] = chimpmunkCreature;
 
@@ -241,7 +241,7 @@ void ChipmunkEngine::removeBodyPart(unsigned creature_id, BodyPart *bodyPart)
 {
     auto it = chipmunkCreatures.find(creature_id);
     if (it != chipmunkCreatures.end()) {
-        ChimpmunkCreature* chimpmunkCreature = it->second;
+        ChipmunkCreature* chimpmunkCreature = it->second;
         auto bodyIt = chimpmunkCreature->bodies.find(bodyPart->getId());
         if (bodyIt != chimpmunkCreature->bodies.end()) {
             cpBody* body = bodyIt->second;
@@ -256,7 +256,7 @@ void ChipmunkEngine::removeConstraint(unsigned creature_id, Constraint *constrai
 {
     auto it = chipmunkCreatures.find(creature_id);
     if (it != chipmunkCreatures.end()) {
-        ChimpmunkCreature* chimpmunkCreature = it->second;
+        ChipmunkCreature* chimpmunkCreature = it->second;
         auto constraintIt = chimpmunkCreature->constraints.find(constraint->getId());
         if (constraintIt != chimpmunkCreature->constraints.end()) {
             cpConstraint* constraint = constraintIt->second;
@@ -276,6 +276,7 @@ void ChipmunkEngine::removeCreature(unsigned creature_id)
     // TODO: Implement removing chipmunkCreatures
 }
 
+const size_t MAX_PROCESSED_CREATURES = 20;
 void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies, 
     std::vector<ShapeObject> &shapes, 
     std::vector<ConstraintObject> &constraints)
@@ -283,8 +284,12 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
     std::lock_guard<std::mutex> lock(data_mutex);
 
     std::map<unsigned, size_t> bodyPartIdToBodiesId;
+    
+    std::map<unsigned int, ChipmunkCreature *> shownCreatures = chipmunkCreatures;
 
+    size_t creatureCount = 0;
     for (auto& creature : chipmunkCreatures) {
+        if (creatureCount++ >= MAX_PROCESSED_CREATURES) break;
         for (auto& bodyPair : creature.second->bodies) {
             BodyObject obj_body;
             cpBody* cp_body = bodyPair.second;
@@ -305,7 +310,11 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             bodyPartIdToBodiesId[obj_body.id] = bodies.size() - 1;
         }
     }
+
+    creatureCount = 0;
     for (auto& creature : chipmunkCreatures) {
+        if (creatureCount++ >= MAX_PROCESSED_CREATURES) break;
+
         for (auto& shapePair : creature.second->shapes) {
             cpShape* cp_shape = shapePair.second;
             BodyPart* bodyPart = static_cast<BodyPart*>(cpShapeGetUserData(cp_shape));
@@ -327,8 +336,12 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             obj_shape.initShapeType();
             shapes.push_back(obj_shape);
         }
-    }
-    for (auto& creature : chipmunkCreatures) {
+
+    // }
+    // creatureCount = 0;
+    // for (auto& creature : chipmunkCreatures) {
+    //     if (creatureCount++ >= MAX_PROCESSED_CREATURES) break;
+
         for (auto& constraintPair : creature.second->constraints) {
             cpConstraint* cp_constraint = constraintPair.second;
             ConstraintObject obj_constraint;
@@ -439,7 +452,7 @@ void ChipmunkEngine::getCreatureAIInputs(std::vector<CreaturePhysicsInputs>& out
 void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &data)
 {
     for (const auto& d : data) {
-        ChimpmunkCreature *creature = findChipmunkCreatureForCreature(d.creature);
+        ChipmunkCreature *creature = findChipmunkCreatureForCreature(d.creature);
         auto muscles = creature->creature->getMuscles();
         if (d.outputs.size() != muscles.size()) {
             std::cout << "ChipmunkEngine::applyAIResults: Got incompatible output size to muscle amount (got "<<d.outputs.size()<<", expected "<<muscles.size()<<")\n";

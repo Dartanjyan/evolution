@@ -6,6 +6,8 @@ DrawCommandCollector::DrawCommandCollector(PhysicsManager *physicsManager)
 {
     backBufferReady.store(false);
     frontBufferReady.store(false);
+
+    physicsManager->start();
 }
 
 DrawCommandCollector::~DrawCommandCollector()
@@ -49,6 +51,7 @@ void DrawCommandCollector::stop() {
     running.store(false);
     if (collectorThread.joinable())
         collectorThread.join();
+    physicsManager->stop();
     std::cout << "DrawCommandCollector::stop(): Stopped successfully.\n";
 }
 
@@ -128,7 +131,7 @@ void DrawCommandCollector::updateBackBuffer()
     for (const auto *shape : world_segments) {
         const BodyObject* body = shape->body;
         
-        std::vector<Vector2> points;
+        std::vector<Vector2> points {Vector2(0, 0), Vector2(0, 0)};
         for (int i = 0; i < 2; ++i) {
             points[i] = shape->vertices[i].rotated(body->angle) + body->position;
         }
@@ -189,8 +192,7 @@ void DrawCommandCollector::updateBackBuffer()
         const float angle = body->angle;
         const float radius = shape->radius;
         
-        std::vector<Vector2> points;
-        points.reserve(2);
+        std::vector<Vector2> points {Vector2(0, 0), Vector2(0, 0)};
         for (int i = 0; i < 2; ++i) {
             points[i] = shape->vertices[i].rotated(angle) + body->position;
         }
@@ -202,7 +204,7 @@ void DrawCommandCollector::updateBackBuffer()
         const float angle = body->angle;
         const float radius = shape->radius;
         
-        std::vector<Vector2> points;
+        std::vector<Vector2> points {Vector2(0, 0), Vector2(0, 0)};
         points.reserve(2);
         for (int i = 0; i < 2; ++i) {
             points[i] = shape->vertices[i].rotated(angle) + body->position;

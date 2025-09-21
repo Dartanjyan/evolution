@@ -5,7 +5,7 @@
 #include <chipmunk/chipmunk.h>
 #include "Creature.h"
 
-struct ChimpmunkCreature {
+struct ChipmunkCreature {
     Creature* creature;
     std::map<unsigned, cpBody*> bodies;
     std::map<unsigned, cpShape*> shapes;
