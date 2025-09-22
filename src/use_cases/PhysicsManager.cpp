@@ -22,11 +22,17 @@ void PhysicsManager::getRenderObjects(std::vector<BodyObject> &bodies, std::vect
     }
 }
 
+void PhysicsManager::getCreatures(std::vector<Creature *>& out)
+{
+    engine->getCreatures(out);
+}
+
 PhysicsManager::~PhysicsManager() {
     stop();
 }
 
 void PhysicsManager::start() {
+    generationManager = std::make_unique<GenerationManager>(this);
     if (!running.load()) {
         running.store(true);
         if (ai_manager.get() != nullptr)
@@ -39,7 +45,6 @@ void PhysicsManager::start() {
     } else {
         std::cout << "Physics thread already running\n";
     }
-    generationManager = std::make_unique<GenerationManager>(this, 1);
 }
 
 void PhysicsManager::stop() {

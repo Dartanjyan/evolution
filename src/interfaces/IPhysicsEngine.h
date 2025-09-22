@@ -39,6 +39,7 @@ public:
 
     // Collect inputs for every creature's ai + their memory
     virtual void getCreatureAIInputs(std::vector<CreaturePhysicsInputs>& out) = 0;
+    virtual void getCreatures(std::vector<Creature *>& out) = 0;
     // Apply AI decisions to Creature's physics model (muscles) + save their memory
     virtual void applyAIResults(const std::vector<CreaturePhysicsInputs>& data) = 0;
 };

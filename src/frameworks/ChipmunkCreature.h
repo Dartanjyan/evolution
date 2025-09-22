@@ -10,6 +10,8 @@ struct ChipmunkCreature {
     std::map<unsigned, cpBody*> bodies;
     std::map<unsigned, cpShape*> shapes;
     std::map<unsigned, cpConstraint*> constraints;
+    Vector2 lastPos;
+    bool posInitialized = false;
 };
 
 #endif

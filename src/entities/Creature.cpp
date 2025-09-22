@@ -1,6 +1,7 @@
 #include "Creature.h"
-//#include <queue>
 #include <algorithm>
+#include <map>
+#include <functional>
 
 unsigned Creature::last_id = 0;
 

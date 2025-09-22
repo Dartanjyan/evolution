@@ -49,6 +49,7 @@ public:
         std::vector<ConstraintObject>& constraints
     ) override;
     void getCreatureAIInputs(std::vector<CreaturePhysicsInputs>& out) override;
+    void getCreatures(std::vector<Creature *>& out) override;
 
     void applyAIResults(const std::vector<CreaturePhysicsInputs>& data) override;
 };

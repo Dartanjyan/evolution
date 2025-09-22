@@ -63,6 +63,8 @@ public:
 
     // Add new creature to the adding queue
     void addCreature(Creature* creature) { creaturesQueue.push(creature); }
+    
+    void getCreatures(std::vector<Creature *>& out);
 
     #if USE_HOOKS
     /*

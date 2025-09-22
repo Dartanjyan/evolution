@@ -1,4 +1,5 @@
 #include "ChipmunkEngine.h"
+#include <memory>
 
 #define CATEGORY_ENTITY  0b0001
 #define CATEGORY_TERRAIN 0b0010
@@ -470,8 +471,18 @@ void ChipmunkEngine::getCreatureAIInputs(std::vector<CreaturePhysicsInputs>& out
     }
 }
 
+void ChipmunkEngine::getCreatures(std::vector<Creature *>& out)
+{
+    for (auto& creaturePair : chipmunkCreatures) {
+        out.emplace_back(creaturePair.second->creature);
+    }
+}
+
 void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &data)
 {
+    const float MUSCLE_WORK_FITNESS_IMPACT = 0.001;
+    const float X_DISTANCE_FITNESS_IMPACT = 0.001;
+
     for (const auto& d : data) {
         ChipmunkCreature *creature = findChipmunkCreatureForCreature(d.creature);
         auto muscles = creature->creature->getMuscles();
@@ -480,14 +491,33 @@ void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &da
             continue;
         }
         
-        
         for (size_t i = 0; i < muscles.size(); i++) {
             Constraint* muscle = muscles[i];
             cpConstraint* chipmunkMuscle = creature->constraints[muscle->getId()];
 
+            float old_rest = cpDampedSpringGetRestLength(chipmunkMuscle);
             float new_rest = d.outputs[i] * muscle->getNeutralSize() * 4;
             cpDampedSpringSetRestLength(chipmunkMuscle, new_rest);
+
+            // A little penalty for every muscle work
+            d.creature->setFitness(d.creature->getFitness() - std::abs(old_rest - new_rest)*MUSCLE_WORK_FITNESS_IMPACT);
             // std::cout << "New rest: " << d.outputs[i] << "\n";
+            // std::cout << "Rest diff: " << old_rest - new_rest << "\n";
+        }
+        
+        if (!creature->bodies.empty()) {
+            auto firstBodyIt = creature->bodies.begin();
+            cpBody* firstBody = firstBodyIt->second;
+            auto cpPos = cpBodyGetPosition(firstBody);
+            if (!creature->posInitialized) {
+                creature->posInitialized = true;
+                creature->lastPos = Vector2(cpPos.x, cpPos.y);
+            } else {
+                auto pos = Vector2(cpPos.x, cpPos.y);
+                Vector2 distance = creature->lastPos - pos;
+                creature->creature->setFitness(creature->creature->getFitness() + distance.x*X_DISTANCE_FITNESS_IMPACT);
+                creature->lastPos = pos;
+            }
         }
     }
 }

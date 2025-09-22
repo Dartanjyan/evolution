@@ -3,9 +3,6 @@
 #define CREATURE_H
 
 #include <vector>
-#include <memory>
-#include <map>
-#include <functional>
 #include "BodyPart.h"
 #include "Constraint.h"
 #include "Brain.h"
