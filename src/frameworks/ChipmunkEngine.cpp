@@ -56,21 +56,30 @@ void ChipmunkEngine::update(float dt) {
     step_mutex.unlock();
 }
 
+void ChipmunkEngine::removeCreature(unsigned creature_id)
+{
+    ChipmunkCreature* creature = chipmunkCreatures[creature_id];
+    if (creature == nullptr) {
+        return;
+    }
+    for (auto& body : creature->bodies) {
+        cpSpaceRemoveBody(space, body.second);
+        cpBodyFree(body.second);
+    }
+    for (auto& shape : creature->shapes) {
+        cpSpaceRemoveShape(space, shape.second);
+        cpShapeFree(shape.second);
+    }
+    for (auto& constraint : creature->constraints) {
+        cpSpaceRemoveConstraint(space, constraint.second);
+        cpConstraintFree(constraint.second);
+    }
+    delete creature;
+}
+
 void ChipmunkEngine::shutdown() {
     for (auto& creature : chipmunkCreatures) {
-        for (auto& body : creature.second->bodies) {
-            cpSpaceRemoveBody(space, body.second);
-            cpBodyFree(body.second);
-        }
-        for (auto& shape : creature.second->shapes) {
-            cpSpaceRemoveShape(space, shape.second);
-            cpShapeFree(shape.second);
-        }
-        for (auto& constraint : creature.second->constraints) {
-            cpSpaceRemoveConstraint(space, constraint.second);
-            cpConstraintFree(constraint.second);
-        }
-        delete creature.second;
+        removeCreature(creature.first);
     }
     for (auto& shape : world_shapes) {
         cpSpaceRemoveShape(space, shape);
@@ -237,6 +246,7 @@ void ChipmunkEngine::addCreature(Creature *creature)
     }
 }
 
+// NOTE: Maybe not useful
 void ChipmunkEngine::removeBodyPart(unsigned creature_id, BodyPart *bodyPart)
 {
     auto it = chipmunkCreatures.find(creature_id);
@@ -252,6 +262,7 @@ void ChipmunkEngine::removeBodyPart(unsigned creature_id, BodyPart *bodyPart)
     }
 }
 
+// NOTE: Maybe not useful
 void ChipmunkEngine::removeConstraint(unsigned creature_id, Constraint *constraint)
 {
     auto it = chipmunkCreatures.find(creature_id);
@@ -265,15 +276,6 @@ void ChipmunkEngine::removeConstraint(unsigned creature_id, Constraint *constrai
             chimpmunkCreature->constraints.erase(constraintIt);
         }
     }
-}
-
-void ChipmunkEngine::removeCreature(unsigned creature_id)
-{
-    Creature* creature = chipmunkCreatures[creature_id]->creature;
-    if (creature == nullptr) {
-        return;
-    }
-    // TODO: Implement removing chipmunkCreatures
 }
 
 const size_t MAX_PROCESSED_CREATURES = 20;

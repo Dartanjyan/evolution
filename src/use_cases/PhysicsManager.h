@@ -5,14 +5,33 @@
 #include <thread>
 #include <atomic>
 #include <queue>
+#include <set>
+#include <condition_variable>
 #include "IPhysicsEngine.h"
 #include "IAICalculator.h"
 #include "AIManager.h"
 #include "Creature.h"
+#include "GenerationManager.h"
+
+#define USE_HOOKS 0
+#if USE_HOOKS
+struct tickHook {
+    unsigned long targetTick;
+    std::condition_variable* cv;
+};
+
+// Comparator for std::multiset
+struct TickHookCompare {
+    bool operator()(const tickHook& a, const tickHook& b) const {
+        return a.targetTick < b.targetTick;
+    }
+};
+#endif
 
 class PhysicsManager {
 private:
     void run();
+    void checkHooks(unsigned long currentTick);
 
     std::queue<Creature*> creaturesQueue;
 
@@ -20,6 +39,15 @@ private:
     std::unique_ptr<AIManager> ai_manager;
     std::thread physicsThread;
     std::atomic<bool> running;
+
+    std::unique_ptr<GenerationManager> generationManager;
+
+    #if USE_HOOKS
+    std::multiset<tickHook, TickHookCompare> hooks;
+    std::mutex hooksMutex;
+    #endif
+
+    unsigned long tickCounter;
 public:
     PhysicsManager(std::unique_ptr<IPhysicsEngine> engine, std::unique_ptr<IAICalculator> ai_calculator);
     ~PhysicsManager();
@@ -35,8 +63,14 @@ public:
 
     // Add new creature to the adding queue
     void addCreature(Creature* creature) { creaturesQueue.push(creature); }
-    // Get necessary data from physics engine and send it to every Creature's Brain
-    void updateCreaturesInputs();
+
+    #if USE_HOOKS
+    /*
+     * struct tickHook {unsigned long targetTick; std::condition_variable* cv; };
+     * Add new hook that'll fire conditional_variable after targetTick ticks.
+     */
+    void addHook(tickHook& newHook);
+    #endif
 };
 
 #endif

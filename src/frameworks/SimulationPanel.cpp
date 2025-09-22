@@ -6,7 +6,7 @@
 SimulationPanel::SimulationPanel(wxWindow* parent, PhysicsManager* physicsManager)
     : wxPanel(parent, wxID_ANY), physicsManager(physicsManager)
 {
-    DrawPanel *drawPanel = new DrawPanel(std::move(physicsManager), this, wxID_ANY);
+    DrawPanel *drawPanel = new DrawPanel(physicsManager, this, wxID_ANY);
     drawPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
     
     wxButton *addButton = new wxButton(this, ID_ADD_CREATURE, "+");
