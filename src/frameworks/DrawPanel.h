@@ -18,7 +18,7 @@ public:
     ~DrawPanel();
 private:
     void OnPaint(wxPaintEvent& event);
-    void OnPaint1(wxPaintEvent& event);
+    // void OnPaint1(wxPaintEvent& event);
     void OnTimer(wxTimerEvent& event);
     void OnSize(wxSizeEvent& event);
     PhysicsManager* physicsManager;

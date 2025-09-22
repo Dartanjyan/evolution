@@ -50,18 +50,18 @@ BodyPart::BodyPart(const BodyPart &other, BodyPart* parent):
 BodyPart::~BodyPart()
 {
     /*
-    // std::cout << "Deleting BodyPart, id = "<<id<<", which has ";
+    std::cout << "Deleting BodyPart, id = "<<id<<", which has ";
     if (children.size() > 0) { 
-        // std::cout << children.size(); 
+        std::cout << children.size(); 
         if (children.size()%10 == 1) { 
-            // std::cout << " child"; 
+            std::cout << " child"; 
         } else {
-            // std::cout << " children";
+            std::cout << " children";
         }
     } else {
-        // std::cout << "no children";
+        std::cout << "no children";
     }
-    // std::cout << "\n";
+    std::cout << "\n";
     */
 
     for(auto* child: children) {

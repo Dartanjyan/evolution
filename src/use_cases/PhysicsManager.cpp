@@ -3,11 +3,16 @@
 #include "AIManager.h"
 #include "BrainEditor.h"
 
+// TODO: Call this somewhere on simulation start
+// Creature::resetId();
+// BodyPart::resetId();
+// Constraint::resetId();
+// Brain::resetId();
+
 PhysicsManager::PhysicsManager(std::unique_ptr<IPhysicsEngine> engine, std::unique_ptr<IAICalculator> ai_calculator)
     : engine(std::move(engine)), running(false), tickCounter(0)
 {
     ai_manager = std::make_unique<AIManager>(std::move(ai_calculator));
-    generationManager = std::make_unique<GenerationManager>(this);
 }
 
 void PhysicsManager::getRenderObjects(std::vector<BodyObject> &bodies, std::vector<ShapeObject> &shapes, std::vector<ConstraintObject> &constraints) const
@@ -25,15 +30,16 @@ void PhysicsManager::start() {
     if (!running.load()) {
         running.store(true);
         if (ai_manager.get() != nullptr)
-            ai_manager->start();
+        ai_manager->start();
         else
-            std::cout << "PhysicsManager::start(): ai_manager = nullptr. Skipping AIManager::start() call\n";
+        std::cout << "PhysicsManager::start(): ai_manager = nullptr. Skipping AIManager::start() call\n";
         engine->initialize();
         physicsThread = std::thread(&PhysicsManager::run, this);
         std::cout << "Created new physics thread\n";
     } else {
         std::cout << "Physics thread already running\n";
     }
+    generationManager = std::make_unique<GenerationManager>(this, 1);
 }
 
 void PhysicsManager::stop() {
@@ -41,7 +47,14 @@ void PhysicsManager::stop() {
         running.store(false);
         if (physicsThread.joinable())
             physicsThread.join();
+        if (ai_manager.get() != nullptr)
+            ai_manager->stop();
         engine->shutdown();
+        while (!creaturesQueue.empty()) {
+            creaturesQueue.pop();
+        }
+        if (generationManager.get())
+            generationManager.reset();
         std::cout<<"Physics engine has been shut down\n";
     }
 }

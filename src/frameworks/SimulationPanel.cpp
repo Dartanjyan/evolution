@@ -27,6 +27,7 @@ SimulationPanel::SimulationPanel(wxWindow* parent, PhysicsManager* physicsManage
 }
 
 void SimulationPanel::OnBackToMenu(wxCommandEvent& event) {
+    physicsManager->stop();
     static_cast<MainFrame*>(GetParent())->ShowMenu();
 }
 

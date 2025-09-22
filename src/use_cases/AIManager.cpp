@@ -28,6 +28,10 @@ void AIManager::stop() {
         if (aiThread.joinable())
             aiThread.join();
         calculator->shutdown();
+        std::lock_guard<std::mutex> lock(mtx);
+        currentData.clear();
+        calculationRequested = false;
+        calculationCompleted = false;
         std::cout<<"AI engine has been shut down\n";
     }
 }

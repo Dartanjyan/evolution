@@ -44,6 +44,8 @@ void ChipmunkEngine::initialize() {
     cpShapeSetFilter(terrain, cpShapeFilterNew(0, CATEGORY_TERRAIN, CATEGORY_ENTITY));
     this->world_shapes.push_back(terrain);
     cpSpaceAddShape(space, terrain);
+
+    std::cout << "ChipmunkEngine initialized\n";
 }
 
 void ChipmunkEngine::update(float dt) {
@@ -74,23 +76,34 @@ void ChipmunkEngine::removeCreature(unsigned creature_id)
         cpSpaceRemoveConstraint(space, constraint.second);
         cpConstraintFree(constraint.second);
     }
+    delete creature->creature;
     delete creature;
+    // std::cout << "Removed creature " << creature_id << "\n";
 }
 
 void ChipmunkEngine::shutdown() {
-    for (auto& creature : chipmunkCreatures) {
-        removeCreature(creature.first);
+    std::vector<unsigned> creatureIds;
+    for (const auto& pair : chipmunkCreatures) {
+        creatureIds.push_back(pair.first);
     }
+    for (unsigned id : creatureIds) {
+        removeCreature(id);
+    }
+    chipmunkCreatures.clear();
     for (auto& shape : world_shapes) {
         cpSpaceRemoveShape(space, shape);
         cpShapeFree(shape);
     }
+    world_shapes.clear();
     for (auto& body : world_bodies) {
         cpSpaceRemoveBody(space, body);
         cpBodyFree(body);
     }
+    world_bodies.clear();
     cpSpaceFree(space);
     space = nullptr;
+
+    std::cout << "ChipmunkEngine has been shut down.\n";
 }
 
 cpShape* createShapeForBodyPart(cpBody* body, const BodyPart *bodyPart, cpVect bias) {
@@ -296,6 +309,8 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             BodyObject obj_body;
             cpBody* cp_body = bodyPair.second;
             BodyPart* bodyPart = static_cast<BodyPart*>(cpBodyGetUserData(cp_body));
+            if (cp_body == nullptr || bodyPart == nullptr)
+                continue;
 
             cpVect position = cpBodyGetPosition(cp_body);
             cpVect velocity = cpBodyGetVelocity(cp_body);
@@ -305,7 +320,6 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             obj_body.velocity = Vector2(velocity.x, velocity.y);
             obj_body.angle = cpBodyGetAngle(cp_body);
             obj_body.mass = cpBodyGetMass(cp_body);
-            // TODO: 
             obj_body.initPosition = bodyPart->getBodyPosBias();
 
             bodies.push_back(obj_body);
@@ -320,6 +334,8 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
         for (auto& shapePair : creature.second->shapes) {
             cpShape* cp_shape = shapePair.second;
             BodyPart* bodyPart = static_cast<BodyPart*>(cpShapeGetUserData(cp_shape));
+            if (cp_shape == nullptr || bodyPart == nullptr)
+                continue;
 
             ShapeObject obj_shape;
             obj_shape.id = shapePair.first;
@@ -350,6 +366,9 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             Constraint* basic_constraint = static_cast<Constraint*>(cpConstraintGetUserData(cp_constraint));
             cpBody *cp_bodyA = cpConstraintGetBodyA(cp_constraint);
             cpBody *cp_bodyB = cpConstraintGetBodyB(cp_constraint);
+            if (basic_constraint == nullptr || cp_bodyA == nullptr || cp_bodyB == nullptr)
+                continue;
+
             obj_constraint.id = constraintPair.first;
             obj_constraint.constraintType = basic_constraint->getType();
             if (obj_constraint.constraintType == ConstraintType::MUSCLE) {

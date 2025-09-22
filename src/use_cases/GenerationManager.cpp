@@ -1,12 +1,18 @@
 #include "GenerationManager.h"
 #include "PhysicsManager.h"
 
-GenerationManager::GenerationManager(PhysicsManager *physicsManager, unsigned long ticksPerGeneration, unsigned creaturesPerGeneration)
-    : physicsManager(physicsManager), ticksPerGeneration(ticksPerGeneration), creaturesPerGeneration(creaturesPerGeneration)
+GenerationManager::GenerationManager(PhysicsManager *physicsManager, unsigned creaturesPerGeneration, unsigned long ticksPerGeneration)
+    : physicsManager(physicsManager), creaturesPerGeneration(creaturesPerGeneration), ticksPerGeneration(ticksPerGeneration)
 {
     for (unsigned int i=0; i<creaturesPerGeneration; ++i) {
         physicsManager->addCreature(Creature::createBasicCreature());
     }
+    std::cout << "Created GenerationManager\n";
+}
+
+GenerationManager::~GenerationManager()
+{
+    std::cout << "Deleted GeneraionManager\n";
 }
 
 void GenerationManager::onTick(unsigned long tick)

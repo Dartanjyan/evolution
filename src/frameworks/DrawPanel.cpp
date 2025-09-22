@@ -115,7 +115,7 @@ void DrawPanel::OnSize(wxSizeEvent& event) {
     
     auto _size = GetClientSize();
     drawCommandCollector->setPanelSize(Vector2(_size.x, _size.y));
-    std::cout<<"Size: "<<_size.x<<", "<<_size.y<<"\n";
+    // std::cout<<"Size: "<<_size.x<<", "<<_size.y<<"\n";
     // std::cout<<"resize\n";
 }
 
