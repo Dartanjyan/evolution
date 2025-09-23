@@ -42,6 +42,7 @@ public:
     void removeBodyPart(unsigned creature_id, BodyPart* bodyPart) override;
     void removeConstraint(unsigned creature_id, Constraint* constraint) override;
     void removeCreature(unsigned creature_id) override;
+    void removeAllCreatures() override;
 
     void getRenderObjects(
         std::vector<BodyObject>& bodies,

@@ -22,14 +22,13 @@ void PhysicsManager::getRenderObjects(std::vector<BodyObject> &bodies, std::vect
     }
 }
 
-void PhysicsManager::getCreatures(std::vector<Creature *>& out)
-{
-    engine->getCreatures(out);
-}
+void PhysicsManager::removeCreature(Creature *creature) { engine->removeCreature(creature->getId()); }
 
-PhysicsManager::~PhysicsManager() {
-    stop();
-}
+void PhysicsManager::removeAllCreatures() { engine->removeAllCreatures(); }
+
+void PhysicsManager::getCreatures(std::vector<Creature *> &out) { engine->getCreatures(out); }
+
+PhysicsManager::~PhysicsManager() { stop(); }
 
 void PhysicsManager::start() {
     generationManager = std::make_unique<GenerationManager>(this);

@@ -10,7 +10,7 @@ ChipmunkCreature* ChipmunkEngine::findChipmunkCreatureForCreature(Creature *crea
     if (it != chipmunkCreatures.end()) {
         return it->second;
     } else {
-        throw std::runtime_error("ChipmunkEngine::findChipmunkCreatureForCreature: Creature not found");
+        return nullptr;
     }
 }
 
@@ -61,6 +61,8 @@ void ChipmunkEngine::update(float dt) {
 
 void ChipmunkEngine::removeCreature(unsigned creature_id)
 {
+    std::lock_guard<std::mutex> lock(data_mutex);
+
     ChipmunkCreature* creature = chipmunkCreatures[creature_id];
     if (creature == nullptr) {
         return;
@@ -79,7 +81,15 @@ void ChipmunkEngine::removeCreature(unsigned creature_id)
     }
     delete creature->creature;
     delete creature;
+    chipmunkCreatures.erase(creature_id);
     // std::cout << "Removed creature " << creature_id << "\n";
+}
+
+void ChipmunkEngine::removeAllCreatures()
+{
+    for (auto c : chipmunkCreatures) {
+        removeCreature(c.second->creature->getId());
+    }
 }
 
 void ChipmunkEngine::shutdown() {
@@ -485,6 +495,9 @@ void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &da
 
     for (const auto& d : data) {
         ChipmunkCreature *creature = findChipmunkCreatureForCreature(d.creature);
+        if (creature == nullptr)
+            continue;
+        
         auto muscles = creature->creature->getMuscles();
         if (d.outputs.size() != muscles.size()) {
             std::cout << "ChipmunkEngine::applyAIResults: Got incompatible output size to muscle amount (got "<<d.outputs.size()<<", expected "<<muscles.size()<<")\n";

@@ -54,7 +54,7 @@ public:
     // new muscle restLength (and stiffness?)
     // void applyAIResults(std::vector<float> results);
 
-    static Creature* createBasicCreature();
+    static Creature* createBasicCreature(Brain* brain = nullptr);
     
     static unsigned newId();
     static void resetId();

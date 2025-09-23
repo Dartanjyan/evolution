@@ -30,6 +30,7 @@ public:
     // Remove Creature from physics engine
     // This will remove all BodyParts and Constraints that refer to this Creature
     virtual void removeCreature(unsigned creature_id) = 0;
+    virtual void removeAllCreatures() = 0;
 
     // Get all physics objects that are used for rendering
     virtual void getRenderObjects(

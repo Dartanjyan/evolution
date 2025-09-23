@@ -63,7 +63,9 @@ public:
 
     // Add new creature to the adding queue
     void addCreature(Creature* creature) { creaturesQueue.push(creature); }
-    
+    void removeCreature(Creature* creature);
+    void removeAllCreatures();
+
     void getCreatures(std::vector<Creature *>& out);
 
     #if USE_HOOKS

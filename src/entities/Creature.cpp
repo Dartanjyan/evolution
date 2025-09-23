@@ -27,7 +27,7 @@ Creature::Creature(std::vector<BodyPart*> bodyParts,
     fitness(0.0f),
     immunity(immunity)
 {
-    // std::cout << "Creating Creature, id = " << id << "\n";
+    std::cout << "Creating Creature, id = " << id << ", brain id = " << this->brain->getId() << "\n";
 }
 
 Creature::Creature(const Creature &other):
@@ -154,7 +154,7 @@ const BodyPart *Creature::getBodyPartById(unsigned id) const
     return nullptr;
 }
 
-Creature* Creature::createBasicCreature()
+Creature* Creature::createBasicCreature(Brain* brain)
 {
     /*
     p1 = myCreature.PolySegment(
@@ -275,20 +275,24 @@ Creature* Creature::createBasicCreature()
     std::vector<BodyPart*> bodyParts = {body, ll1, ll2, ll3, rl1, rl2, rl3, t1, h1};
     std::vector<Constraint*> constraints = {j1, j2, j3, j4, j5, j6, j7, j8, m1, m2, m3, m4, m5, m6, m7, m8};
     
-    int joints = 8;
-    int muscles = 8;
-    int eyes = 0;
-    int memory = 4;
-    std::size_t input_layer = 2 + joints*2 + eyes*5 + memory;
-    std::size_t output_layer = muscles + memory;
-
-    // std::cout << "Creature input size "<<input_layer<<", output size "<<output_layer<<"\n";
-    Brain* brain = new Brain({
-            input_layer,
-            (input_layer + output_layer)/(std::size_t)2*(std::size_t)1.5,
-            output_layer
-        }, 
-        memory);
+    
+    if (brain == nullptr) {
+        int joints = 8;
+        int muscles = 8;
+        int eyes = 0;
+        int memory = 4;
+        std::size_t input_layer = 2 + joints*2 + eyes*5 + memory;
+        std::size_t output_layer = muscles + memory;
+        // std::cout << "Creature input size "<<input_layer<<", output size "<<output_layer<<"\n";
+        brain = new Brain({
+                    input_layer,
+                    (input_layer + output_layer)/(std::size_t)2*(std::size_t)1.5,
+                    output_layer
+                }, 
+                memory);
+    } else {
+        int stop = 1;
+    }
 
     Creature* creature = new Creature(bodyParts, constraints, brain);
     
