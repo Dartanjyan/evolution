@@ -46,7 +46,7 @@ void GenerationManager::endGeneration()
     }
     
     BrainMutator mutator(0.1, 0.1);
-    std::vector<Brain *> newGenerationBrains {bestCreature->getBrain()};
+    std::vector<Brain *> newGenerationBrains {new Brain(*(bestCreature->getBrain()))};
     for (unsigned i=0; i < creaturesPerGeneration-LEAVE_OLD_CREATURES; i++) {
         Brain* childBrain = mutator.createChildBrain(
             *(creatures[i]->getBrain()), 
