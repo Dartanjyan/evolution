@@ -34,16 +34,16 @@ void GenerationManager::endGeneration()
 
     // std::cout << "Cut creatures from "<<creatures.size()<<" to "<<creatures.size()/2<<"\n";
     // creatures.resize(creatures.size() / 2);
+    for (unsigned i=0; i < creatures.size()/2; i++) {
+        Creature* c = creatures[i];
+        std::cout << "Creature " << c->getId() << ": fitness=" << c->getFitness() << "\n";
+    }
     
     Creature* bestCreature = creatures[0];
     
     std::random_device rd;
     std::mt19937 gen(rd());
     std::shuffle(creatures.begin(), creatures.end()-(creatures.size()/2), gen);
-    for (unsigned i=0; i < creatures.size()/2; i++) {
-        Creature* c = creatures[i];
-        std::cout << "Creature " << c->getId() << ": fitness=" << c->getFitness() << "\n";
-    }
     
     BrainMutator mutator(0.1, 0.1);
     std::vector<Brain *> newGenerationBrains {new Brain(*(bestCreature->getBrain()))};
@@ -59,7 +59,10 @@ void GenerationManager::endGeneration()
 
     // std::cout << "New gen size is now " << newGenerationBrains.size() << " :)\n";
 
-    physicsManager->removeAllCreatures();
+    // physicsManager->removeAllCreatures();
+    std::cout << "Rebooting physicsManager\n";
+    physicsManager->stopInternal();
+    physicsManager->startInternal();
     for (auto b : newGenerationBrains) {
         physicsManager->addCreature(Creature::createBasicCreature(b));
     }

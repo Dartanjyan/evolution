@@ -24,21 +24,32 @@ void PhysicsManager::getRenderObjects(std::vector<BodyObject> &bodies, std::vect
 
 void PhysicsManager::removeCreature(Creature *creature) { engine->removeCreature(creature->getId()); }
 
-void PhysicsManager::removeAllCreatures() { engine->removeAllCreatures(); }
-
 void PhysicsManager::getCreatures(std::vector<Creature *> &out) { engine->getCreatures(out); }
 
 PhysicsManager::~PhysicsManager() { stop(); }
+
+void PhysicsManager::startInternal() {
+    if (ai_manager.get() != nullptr)
+        ai_manager->start();
+    else
+        std::cout << "PhysicsManager::start(): ai_manager = nullptr. Skipping AIManager::start() call\n";
+    engine->initialize();
+}
+
+void PhysicsManager::stopInternal() {
+    if (ai_manager.get() != nullptr)
+        ai_manager->stop();
+    engine->shutdown();
+    while (!creaturesQueue.empty()) {
+        creaturesQueue.pop();
+    }
+}
 
 void PhysicsManager::start() {
     generationManager = std::make_unique<GenerationManager>(this);
     if (!running.load()) {
         running.store(true);
-        if (ai_manager.get() != nullptr)
-        ai_manager->start();
-        else
-        std::cout << "PhysicsManager::start(): ai_manager = nullptr. Skipping AIManager::start() call\n";
-        engine->initialize();
+        startInternal();
         physicsThread = std::thread(&PhysicsManager::run, this);
         std::cout << "Created new physics thread\n";
     } else {
@@ -51,16 +62,16 @@ void PhysicsManager::stop() {
         running.store(false);
         if (physicsThread.joinable())
             physicsThread.join();
-        if (ai_manager.get() != nullptr)
-            ai_manager->stop();
-        engine->shutdown();
-        while (!creaturesQueue.empty()) {
-            creaturesQueue.pop();
-        }
+        stopInternal();
         if (generationManager.get())
             generationManager.reset();
         std::cout<<"Physics engine has been shut down\n";
     }
+}
+
+void PhysicsManager::removeAllCreatures() { 
+    tickCounter = 0;
+    engine->removeAllCreatures();
 }
 
 void PhysicsManager::run() {
@@ -83,7 +94,7 @@ void PhysicsManager::run() {
         
         if (ai_manager && tickCounter % AI_UPDATE_INTERVAL == 0) {
             std::vector<CreaturePhysicsInputs> data;
-
+            
             engine->getCreatureAIInputs(data);
             ai_manager->requestCalculation(data);
         }

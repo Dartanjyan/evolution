@@ -27,7 +27,7 @@ Creature::Creature(std::vector<BodyPart*> bodyParts,
     fitness(0.0f),
     immunity(immunity)
 {
-    std::cout << "Creating Creature, id = " << id << ", brain id = " << this->brain->getId() << "\n";
+    // std::cout << "Creating Creature, id = " << id << ", brain id = " << this->brain->getId() << "\n";
 }
 
 Creature::Creature(const Creature &other):
@@ -191,7 +191,7 @@ Creature* Creature::createBasicCreature(Brain* brain)
     joints.extend([j1, j2, j3, j4, j5, j6, j7, j8])
     */
     float scale = 1;
-    Vector2 bias(100, 000);
+    Vector2 bias(100, 250);
 
     BodyPart* body = new BodyPart(nullptr, { Vector2(40, 20)*scale+bias, Vector2(140, 20)*scale+bias, Vector2(120, 50)*scale+bias}, false, 0);
     

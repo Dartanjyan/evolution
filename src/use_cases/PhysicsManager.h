@@ -55,6 +55,8 @@ public:
     // physics thread
     void start();
     void stop();
+    void stopInternal();
+    void startInternal();
 
     void getRenderObjects(
         std::vector<BodyObject>& bodies,

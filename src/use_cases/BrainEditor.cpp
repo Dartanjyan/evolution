@@ -5,11 +5,11 @@ void BrainEditor::updateMemory(std::vector<CreaturePhysicsInputs> &data)
     for (auto &d : data) {
         Brain* brain = d.creature->getBrain();
         if (brain == nullptr) {
-            std::cout << "BrainEditor::updateMemory: Creature has no brain\n";
+            std::cout << "BrainEditor.cpp::updateMemory: Creature "<<d.creature->getId()<<" has no brain\n";
             continue;
         }
         if (d.outputs.size() < brain->getMemory().size()) {
-            std::cout << "BrainEditor::updateMemory: Not enough outputs to update memory (got "<<d.outputs.size()<<", expected "<<brain->getMemory().size()<<")\n";
+            std::cout << "BrainEditor.cpp::updateMemory: Not enough outputs to update memory of Creature "<<d.creature->getId()<<" (got "<<d.outputs.size()<<", expected "<<brain->getMemory().size()<<")\n";
             continue;
         }
         
