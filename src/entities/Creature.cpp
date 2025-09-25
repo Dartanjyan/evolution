@@ -30,6 +30,7 @@ Creature::Creature(std::vector<BodyPart*> bodyParts,
     // std::cout << "Creating Creature, id = " << id << ", brain id = " << this->brain->getId() << "\n";
 }
 
+/*
 Creature::Creature(const Creature &other):
     id(Creature::newId()),
     fitness(other.fitness),
@@ -84,6 +85,7 @@ Creature::Creature(const Creature &other):
     
     brain = new Brain(*other.brain);
 }
+*/
 
 Creature::~Creature()
 {

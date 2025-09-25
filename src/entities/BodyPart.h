@@ -42,7 +42,7 @@ public:
             float density = 0.1, 
             float friction = 1,
             float elasticity = 0.5);
-    BodyPart(const BodyPart &other, BodyPart* parent);
+    // BodyPart(const BodyPart &other, BodyPart* parent);
     ~BodyPart();
 
     // getters

@@ -34,7 +34,7 @@ public:
         Vector2 anchorA = Vector2{},
         float rest = 0.0f, float stiffness = 8e5, 
         float damping = 4e4, bool collideConnected = false);
-    Constraint(const Constraint& other);
+    // Constraint(const Constraint& other);
     ~Constraint();
 
     unsigned getId() const { return id; }

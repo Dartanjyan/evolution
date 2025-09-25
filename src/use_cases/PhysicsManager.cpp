@@ -78,7 +78,7 @@ void PhysicsManager::run() {
     using namespace std::chrono;
     
     // Constants for fixed timestep and target frame rate
-    constexpr milliseconds TARGET_FRAME_TIME(16); // 16 ms is ~60 FPS (1000ms/60 ≈ 16.66ms)
+    constexpr milliseconds TARGET_FRAME_TIME(0); // 16 ms is ~60 FPS (1000ms/60 ≈ 16.66ms)
     auto previous_time = high_resolution_clock::now();
 
     std::chrono::_V2::system_clock::time_point current_time;

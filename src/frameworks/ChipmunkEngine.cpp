@@ -490,7 +490,7 @@ void ChipmunkEngine::getCreatures(std::vector<Creature *>& out)
 
 void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &data)
 {
-    const float MUSCLE_WORK_FITNESS_IMPACT = -0.01;
+    const float MUSCLE_WORK_FITNESS_IMPACT = -0.005;
     const float X_DISTANCE_FITNESS_IMPACT = 0.001;
 
     for (const auto& d : data) {

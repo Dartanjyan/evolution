@@ -30,6 +30,7 @@ BodyPart::BodyPart(
     // std::cout << "Creating BodyPart, id = "<<id<< "\n";
 }
 
+/*
 BodyPart::BodyPart(const BodyPart &other, BodyPart* parent):
     parent(parent),
     id(BodyPart::newId()),
@@ -46,6 +47,7 @@ BodyPart::BodyPart(const BodyPart &other, BodyPart* parent):
         children.push_back(new BodyPart(*child));
     }
 }
+*/
 
 BodyPart::~BodyPart()
 {

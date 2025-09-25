@@ -26,7 +26,7 @@ public:
         std::vector<Constraint*> constraints, 
         Brain* brain,
         unsigned immunity = 0);
-    Creature(const Creature& other);
+    // Creature(const Creature& other);
     ~Creature();
     
     unsigned getId() const { return id; }

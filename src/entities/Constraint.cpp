@@ -34,7 +34,7 @@ Constraint::Constraint(BodyPart* partA, BodyPart* partB, ConstraintType type, Ve
 Constraint::~Constraint() {
     // std::cout << "Deleting Joint, id = " << id << "\n";
 }
-
+/*
 Constraint::Constraint(const Constraint &other): 
     id(Constraint::newId()), 
     partA(other.partA), 
@@ -49,7 +49,7 @@ Constraint::Constraint(const Constraint &other):
 {
     // std::cout << "Copying Joint, id "<<other.id<<"->"<<id<< "\n";
 }
-
+*/
 unsigned Constraint::newId() { return ++Constraint::last_id; }
 
 void Constraint::resetId() { Constraint::last_id = 0; }
