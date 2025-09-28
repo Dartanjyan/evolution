@@ -18,18 +18,23 @@ GenerationManager::~GenerationManager()
 
 void GenerationManager::onTick(unsigned long tick)
 {
-    if (tick > 0 && tick % ticksPerGeneration == 0) {
+    if (tick % ticksPerGeneration == 0) {
         endGeneration();
     }
 }
 
 const unsigned LEAVE_OLD_CREATURES = 1;
+const unsigned NEW_RANDOM_CREATURES = 2;
 void GenerationManager::endGeneration()
 {
     std::cout << "=== End of generation " << generation << " ===" << std::endl;
     
     std::vector<Creature *> creatures;
     physicsManager->getCreatures(creatures);
+    if (creatures.size() == 0) {
+        std::cout << "Got 0 creatures at the end of generation. Skipping.\n";
+        return;
+    }
     std::sort(creatures.begin(), creatures.end(), [] (Creature* a, Creature* b) { return a->getFitness() > b->getFitness(); });
 
     // std::cout << "Cut creatures from "<<creatures.size()<<" to "<<creatures.size()/2<<"\n";
@@ -45,26 +50,32 @@ void GenerationManager::endGeneration()
     std::mt19937 gen(rd());
     std::shuffle(creatures.begin(), creatures.end()-(creatures.size()/2), gen);
     
-    BrainMutator mutator(0.1, 0.1);
+    // 90% of better parent's genes
+    // 0.1 mutation random distribution
+    BrainMutator mutator(0.9, 0.1);
     std::vector<Brain *> newGenerationBrains {new Brain(*(bestCreature->getBrain()))};
-    for (unsigned i=0; i < creaturesPerGeneration-LEAVE_OLD_CREATURES; i++) {
+
+    for (unsigned i=0; i < creaturesPerGeneration-LEAVE_OLD_CREATURES-NEW_RANDOM_CREATURES; i++) {
         Brain* childBrain = mutator.createChildBrain(
             *(creatures[i]->getBrain()), 
             *(creatures[i+1]->getBrain()),
-            BrainMutator::CrossoverMethod::UNIFORM_50_50,
+            BrainMutator::CrossoverMethod::PROPORTIONAL,
             BrainMutator::MutationMethod::CHANCE_FOR_EVERY_WEIGHT
         );
         newGenerationBrains.emplace_back(childBrain);
     }
-
+    
     // std::cout << "New gen size is now " << newGenerationBrains.size() << " :)\n";
-
+    
     // physicsManager->removeAllCreatures();
     std::cout << "Rebooting physicsManager\n";
     physicsManager->stopInternal();
     physicsManager->startInternal();
     for (auto b : newGenerationBrains) {
         physicsManager->addCreature(Creature::createBasicCreature(b));
+    }
+    for (unsigned i=0; i < NEW_RANDOM_CREATURES; i++) {
+        physicsManager->addCreature(Creature::createBasicCreature());
     }
     
     generation++;

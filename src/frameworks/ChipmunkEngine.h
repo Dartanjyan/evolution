@@ -16,15 +16,13 @@ private:
     cpSpace* space;
     std::map<unsigned, ChipmunkCreature*> chipmunkCreatures;
     
-    // A mutex to prevent adding bodies and shapes while computing step
-    std::mutex step_mutex;
     // A mutex to protect std::map<unsigned, ChipmunkCreature*> chipmunkCreatures
     std::mutex data_mutex;
     
     std::vector<cpShape*> world_shapes;
     std::vector<cpBody*> world_bodies;
 
-    ChipmunkCreature* findChipmunkCreatureForCreature(Creature* creature);
+    ChipmunkCreature* findChipmunkCreatureForCreature(Creature* creature) const;
 
 public:
     ChipmunkEngine();

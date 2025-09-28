@@ -24,7 +24,10 @@ void PhysicsManager::getRenderObjects(std::vector<BodyObject> &bodies, std::vect
 
 void PhysicsManager::removeCreature(Creature *creature) { engine->removeCreature(creature->getId()); }
 
-void PhysicsManager::getCreatures(std::vector<Creature *> &out) { engine->getCreatures(out); }
+void PhysicsManager::getCreatures(std::vector<Creature *> &out) {
+    // NOTE: Might be not thread safe..?
+    engine->getCreatures(out);
+}
 
 PhysicsManager::~PhysicsManager() { stop(); }
 
@@ -48,9 +51,9 @@ void PhysicsManager::stopInternal() {
 void PhysicsManager::start() {
     generationManager = std::make_unique<GenerationManager>(this);
     if (!running.load()) {
-        running.store(true);
         startInternal();
         physicsThread = std::thread(&PhysicsManager::run, this);
+        running.store(true);
         std::cout << "Created new physics thread\n";
     } else {
         std::cout << "Physics thread already running\n";
@@ -63,10 +66,10 @@ void PhysicsManager::stop() {
         if (physicsThread.joinable())
             physicsThread.join();
         stopInternal();
-        if (generationManager.get())
-            generationManager.reset();
         std::cout<<"Physics engine has been shut down\n";
     }
+    if (generationManager.get())
+        generationManager.reset();
 }
 
 void PhysicsManager::removeAllCreatures() { 
@@ -78,7 +81,7 @@ void PhysicsManager::run() {
     using namespace std::chrono;
     
     // Constants for fixed timestep and target frame rate
-    constexpr milliseconds TARGET_FRAME_TIME(0); // 16 ms is ~60 FPS (1000ms/60 ≈ 16.66ms)
+    constexpr milliseconds TARGET_FRAME_TIME(16); // 16 ms is ~60 FPS (1000ms/60 ≈ 16.66ms)
     auto previous_time = high_resolution_clock::now();
 
     std::chrono::_V2::system_clock::time_point current_time;

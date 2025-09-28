@@ -51,19 +51,6 @@ Brain* BrainMutator::createChildBrain(const Brain& parent1, const Brain& parent2
     return child_brain;
 }
 
-// bool BrainMutator::validateBrainStructure(const Brain& brain1, const Brain& brain2) {
-//     auto sizes1 = brain1.getLayerSizes();
-//     auto sizes2 = brain2.getLayerSizes();
-    
-//     if (sizes1.size() != sizes2.size()) return false;
-    
-//     for (size_t i = 0; i < sizes1.size(); ++i) {
-//         if (sizes1[i] != sizes2[i]) return false;
-//     }
-    
-//     return true;
-// }
-
 void BrainMutator::copyWeightsAndBiases(const Brain& source, Brain& target) {
     target.setWeights(source.getWeights());
     target.setBiases(source.getBiases());
@@ -225,6 +212,7 @@ void BrainMutator::mutateRandomWeights(Brain& brain) {
     auto weights = brain.getWeights();
     auto biases = brain.getBiases();
     
+
     // Мутация весов
     for (auto& layer : weights) {
         for (auto& weight : layer) {

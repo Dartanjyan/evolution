@@ -40,11 +40,18 @@ void CPUAICalculator::calculate(std::vector<CreaturePhysicsInputs>& data) {
                 }
                 
                 // Activation function (tanh for hidden layers, sigmoid for output)
-                // if (layer < weights.size() - 1) {
-                    next_layer[out_neuron] = std::tanh(next_layer[out_neuron]);
-                // } else {
-                //     next_layer[out_neuron] = 1.0 / (1.0 + std::exp(-next_layer[out_neuron]));
-                // }
+                const float COMPRESS_FUNC = 1;
+                auto next_neuron = COMPRESS_FUNC * next_layer[out_neuron];
+
+                // Hidden layers
+                if (layer < weights.size() - 1) {
+                    // next_layer[out_neuron] = 1.0 / (1.0 + std::exp(-next_neuron));
+                    continue;
+                }
+                // Output layer
+                else {
+                    next_layer[out_neuron] = std::tanh(next_neuron);
+                }
             }
             
             current_layer = std::move(next_layer);

@@ -4,7 +4,7 @@
 #define CATEGORY_ENTITY  0b0001
 #define CATEGORY_TERRAIN 0b0010
 
-ChipmunkCreature* ChipmunkEngine::findChipmunkCreatureForCreature(Creature *creature)
+ChipmunkCreature* ChipmunkEngine::findChipmunkCreatureForCreature(Creature *creature) const
 {
     auto it = chipmunkCreatures.find(creature->getId());
     if (it != chipmunkCreatures.end()) {
@@ -23,7 +23,7 @@ ChipmunkEngine::~ChipmunkEngine() {
 }
 
 void ChipmunkEngine::initialize() {
-    space = cpSpaceNew();
+    this->space = cpSpaceNew();
     cpSpaceSetGravity(space, cpv(0, 981*1.5));
     cpSpaceSetSleepTimeThreshold(space, 0.5);
 
@@ -32,6 +32,7 @@ void ChipmunkEngine::initialize() {
 
     // Chipmunk attempts to correct 10% of error ever 1/60th of a second
     cpSpaceSetCollisionBias(space, cpfpow(1.0f - 0.1f, 60.0f));
+    // cpSpaceSetCollisionBias(space, cpfpow(1.0f - 0.2f, 12000.0f));
 
     // Creating terrain
     cpFloat x = 1000;
@@ -50,34 +51,30 @@ void ChipmunkEngine::initialize() {
 }
 
 void ChipmunkEngine::update(float dt) {
-    static const int STEPS = 1;
-    static const float sub_dt = dt / STEPS;
-    step_mutex.lock();
+    const int STEPS = 1;
+    const float sub_dt = dt / STEPS;
     for (int i = 0; i < STEPS; ++i) {
         cpSpaceStep(space, sub_dt);
     }
-    step_mutex.unlock();
 }
 
 void ChipmunkEngine::removeCreature(unsigned creature_id)
 {
-    std::lock_guard<std::mutex> lock(data_mutex);
-
     ChipmunkCreature* creature = chipmunkCreatures[creature_id];
     if (creature == nullptr) {
         return;
     }
-    for (auto& body : creature->bodies) {
-        cpSpaceRemoveBody(space, body.second);
-        cpBodyFree(body.second);
+    for (auto& constraint : creature->constraints) {
+        cpSpaceRemoveConstraint(space, constraint.second);
+        cpConstraintFree(constraint.second);
     }
     for (auto& shape : creature->shapes) {
         cpSpaceRemoveShape(space, shape.second);
         cpShapeFree(shape.second);
     }
-    for (auto& constraint : creature->constraints) {
-        cpSpaceRemoveConstraint(space, constraint.second);
-        cpConstraintFree(constraint.second);
+    for (auto& body : creature->bodies) {
+        cpSpaceRemoveBody(space, body.second);
+        cpBodyFree(body.second);
     }
     delete creature->creature;
     delete creature;
@@ -87,30 +84,29 @@ void ChipmunkEngine::removeCreature(unsigned creature_id)
 
 void ChipmunkEngine::removeAllCreatures()
 {
-    for (auto c : chipmunkCreatures) {
-        removeCreature(c.second->creature->getId());
+    for (const auto& pair : chipmunkCreatures) {
+        removeCreature(pair.first);
     }
+    chipmunkCreatures.clear();
 }
 
 void ChipmunkEngine::shutdown() {
-    std::vector<unsigned> creatureIds;
-    for (const auto& pair : chipmunkCreatures) {
-        creatureIds.push_back(pair.first);
-    }
-    for (unsigned id : creatureIds) {
-        removeCreature(id);
-    }
-    chipmunkCreatures.clear();
+    std::lock_guard lock(data_mutex);
+
+    removeAllCreatures();
+
     for (auto& shape : world_shapes) {
         cpSpaceRemoveShape(space, shape);
         cpShapeFree(shape);
     }
     world_shapes.clear();
+
     for (auto& body : world_bodies) {
         cpSpaceRemoveBody(space, body);
         cpBodyFree(body);
     }
     world_bodies.clear();
+
     cpSpaceFree(space);
     space = nullptr;
 
@@ -307,15 +303,16 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
     std::vector<ShapeObject> &shapes, 
     std::vector<ConstraintObject> &constraints)
 {
-    std::lock_guard<std::mutex> lock(data_mutex);
+    std::lock_guard lock(data_mutex);
 
+    // TODO: Remove this map
     std::map<unsigned, size_t> bodyPartIdToBodiesId;
-    
-    std::map<unsigned int, ChipmunkCreature *> shownCreatures = chipmunkCreatures;
 
     size_t creatureCount = 0;
     for (auto& creature : chipmunkCreatures) {
-        if (creatureCount++ >= MAX_PROCESSED_CREATURES) break;
+        if (creatureCount++ >= MAX_PROCESSED_CREATURES) 
+            break;
+        
         for (auto& bodyPair : creature.second->bodies) {
             BodyObject obj_body;
             cpBody* cp_body = bodyPair.second;
@@ -340,7 +337,8 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
 
     creatureCount = 0;
     for (auto& creature : chipmunkCreatures) {
-        if (creatureCount++ >= MAX_PROCESSED_CREATURES) break;
+        if (creatureCount++ >= MAX_PROCESSED_CREATURES) 
+            break;
 
         for (auto& shapePair : creature.second->shapes) {
             cpShape* cp_shape = shapePair.second;
@@ -413,25 +411,26 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             }
         }
     }
-
-    BodyObject terrain_body;
-    terrain_body.id= 0;
-    terrain_body.angle = 0;
-    terrain_body.position = Vector2(0, 0);
-    bodies.push_back(terrain_body);
-
-    ShapeObject terrain_shape;
-    terrain_shape.body = &bodies.back();
-    terrain_shape.id = 228;
-    terrain_shape.radius=20;
-    terrain_shape.isWorldObj = true;
-
-    cpBB terrBB = cpShapeGetBB(world_shapes[0]);
-    float y = (terrBB.b+terrBB.t)/2;
-    terrain_shape.vertices = {Vector2(terrBB.l, y), Vector2(terrBB.r, y)};
     
-    terrain_shape.initShapeType();
-    shapes.push_back(terrain_shape);
+    if (world_shapes.size() > 0) {
+        BodyObject terrain_body;
+        terrain_body.id= 0;
+        terrain_body.angle = 0;
+        terrain_body.position = Vector2(0, 0);
+        bodies.push_back(terrain_body);
+    
+        ShapeObject terrain_shape;
+        terrain_shape.body = &bodies.back();
+        terrain_shape.id = 0;
+        terrain_shape.radius=20;
+        terrain_shape.isWorldObj = true;
+        cpBB terrBB = cpShapeGetBB(world_shapes[0]);
+        float y = (terrBB.b+terrBB.t)/2;
+        terrain_shape.vertices = {Vector2(terrBB.l, y), Vector2(terrBB.r, y)};
+        
+        terrain_shape.initShapeType();
+        shapes.push_back(terrain_shape);
+    }
 }
 
 void ChipmunkEngine::getCreatureAIInputs(std::vector<CreaturePhysicsInputs>& out) {
@@ -491,7 +490,7 @@ void ChipmunkEngine::getCreatures(std::vector<Creature *>& out)
 void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &data)
 {
     const float MUSCLE_WORK_FITNESS_IMPACT = -0.005;
-    const float X_DISTANCE_FITNESS_IMPACT = 0.001;
+    const float X_DISTANCE_FITNESS_IMPACT = 0.1;
 
     for (const auto& d : data) {
         ChipmunkCreature *creature = findChipmunkCreatureForCreature(d.creature);
@@ -512,8 +511,12 @@ void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &da
             float new_rest = d.outputs[i] * muscle->getNeutralSize() * 4;
             cpDampedSpringSetRestLength(chipmunkMuscle, new_rest);
 
+            // TODO: Отношение пройденного расстояния к затраченной энергии.
+            // 
             // A little penalty for every muscle work
-            d.creature->setFitness(d.creature->getFitness() - std::abs(old_rest - new_rest)*MUSCLE_WORK_FITNESS_IMPACT);
+            //
+            // d.creature->setFitness(d.creature->getFitness() - std::abs(old_rest - new_rest)*MUSCLE_WORK_FITNESS_IMPACT);
+            //
             // std::cout << "New rest: " << d.outputs[i] << "\n";
             // std::cout << "Rest diff: " << old_rest - new_rest << "\n";
         }
@@ -522,15 +525,20 @@ void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &da
             auto firstBodyIt = creature->bodies.begin();
             cpBody* firstBody = firstBodyIt->second;
             auto cpPos = cpBodyGetPosition(firstBody);
-            if (!creature->posInitialized) {
-                creature->posInitialized = true;
-                creature->lastPos = Vector2(cpPos.x, cpPos.y);
-            } else {
-                auto pos = Vector2(cpPos.x, cpPos.y);
-                Vector2 distance = creature->lastPos - pos;
-                creature->creature->setFitness(creature->creature->getFitness() + distance.x*X_DISTANCE_FITNESS_IMPACT);
-                creature->lastPos = pos;
-            }
+            // switch (creature->posInitialized)
+            // {
+            // case false:
+            //     creature->posInitialized = true;
+            //     creature->lastPos = Vector2(cpPos.x, cpPos.y);
+            //     break;
+            // default:
+            //     auto pos = Vector2(cpPos.x, cpPos.y);
+            //     Vector2 distance = creature->lastPos - pos;
+            //     creature->creature->setFitness(creature->creature->getFitness() + distance.x*X_DISTANCE_FITNESS_IMPACT);
+            //     creature->lastPos = pos;
+            //     break;
+            // }
+            creature->creature->setFitness(cpPos.x*X_DISTANCE_FITNESS_IMPACT);
         }
     }
 }
