@@ -3,9 +3,8 @@
 #include <algorithm>
 #include <iostream>
 
-BrainMutator::BrainMutator(float mutation_rate, float mutation_strength)
-    : mutation_rate_(mutation_rate),
-      mutation_strength_(mutation_strength),
+BrainMutator::BrainMutator(MutatorConfig config)
+    : config(config),
       rng_(std::random_device{}())
 {}
 
@@ -207,7 +206,7 @@ Brain* BrainMutator::sliceReplaceCrossover(const Brain& parent1, const Brain& pa
 // Мутация: каждый вес имеет шанс мутировать
 void BrainMutator::mutateRandomWeights(Brain& brain) {
     std::uniform_real_distribution<double> chance_dist(0.0, 1.0);
-    std::normal_distribution<double> change_dist(0.0, mutation_strength_);
+    std::normal_distribution<double> change_dist(0.0, config.mutationStrength);
     
     auto weights = brain.getWeights();
     auto biases = brain.getBiases();
@@ -216,7 +215,7 @@ void BrainMutator::mutateRandomWeights(Brain& brain) {
     // Мутация весов
     for (auto& layer : weights) {
         for (auto& weight : layer) {
-            if (chance_dist(rng_) < mutation_rate_) {
+            if (chance_dist(rng_) < config.mutationChance) {
                 weight += change_dist(rng_);
             }
         }
@@ -224,7 +223,7 @@ void BrainMutator::mutateRandomWeights(Brain& brain) {
     
     // Мутация смещений
     for (auto& bias : biases) {
-        if (chance_dist(rng_) < mutation_rate_) {
+        if (chance_dist(rng_) < config.mutationChance) {
             bias += change_dist(rng_);
         }
     }
@@ -235,7 +234,7 @@ void BrainMutator::mutateRandomWeights(Brain& brain) {
 
 // Мутация: определенный процент весов мутирует
 void BrainMutator::mutatePercentageWeights(Brain& brain) {
-    std::normal_distribution<double> change_dist(0.0, mutation_strength_);
+    std::normal_distribution<double> change_dist(0.0, config.mutationChance);
     
     auto weights = brain.getWeights();
     auto biases = brain.getBiases();
@@ -248,7 +247,7 @@ void BrainMutator::mutatePercentageWeights(Brain& brain) {
     total_parameters += biases.size();
     
     // Вычисляем количество мутирующих параметров
-    size_t parameters_to_mutate = static_cast<size_t>(total_parameters * mutation_rate_);
+    size_t parameters_to_mutate = static_cast<size_t>(total_parameters * config.mutationChance);
     
     if (parameters_to_mutate == 0) return;
     

@@ -19,7 +19,9 @@ private:
     float stiffness;
     float damping;
     bool collideConnected;
-    float neutralSize;
+    float neutralRest;
+    float minRest;
+    float maxRest;
 
     ConstraintType type;
     
@@ -47,7 +49,8 @@ public:
     float getDamping() const { return damping; }
     bool getCollideConnected() const { return collideConnected; }
     ConstraintType getType() const { return type; }
-    float getNeutralSize() const { return neutralSize; }
+    float getNeutralSize() const { return neutralRest; }
+    float clampRest(float rest) const;
 
     void setBodyA(BodyPart* part) { partA = part; }
     void setBodyB(BodyPart* part) { partB = part; }
@@ -62,5 +65,4 @@ public:
     static unsigned newId();
     static void resetId();
 };
-
 #endif

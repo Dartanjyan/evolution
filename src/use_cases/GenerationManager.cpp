@@ -52,7 +52,12 @@ void GenerationManager::endGeneration()
     
     // 90% of better parent's genes
     // 0.1 mutation random distribution
-    BrainMutator mutator(0.9, 0.1);
+    struct MutatorConfig config;
+    config.crossoverChance = 0.9;
+    config.mutationChance = 0.1;
+    config.mutationStrength = 0.1;
+    
+    BrainMutator mutator(config);
     std::vector<Brain *> newGenerationBrains {new Brain(*(bestCreature->getBrain()))};
 
     for (unsigned i=0; i < creaturesPerGeneration-LEAVE_OLD_CREATURES-NEW_RANDOM_CREATURES; i++) {

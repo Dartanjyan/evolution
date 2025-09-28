@@ -5,6 +5,12 @@
 #include "Brain.h"
 #include <random>
 
+struct MutatorConfig {
+    float crossoverChance;
+    float mutationChance;
+    float mutationStrength;
+};
+
 class BrainMutator {
 public:
     enum CrossoverMethod {
@@ -21,7 +27,7 @@ public:
 
     // mutation_rate is percents
     // mutation_strength is a random distribution parameter
-    BrainMutator(float mutation_rate, float mutation_strength);
+    BrainMutator(MutatorConfig config);
     
     // Основной метод для создания нового мозга
     Brain* createChildBrain(const Brain& parent1, const Brain& parent2, 
@@ -29,8 +35,7 @@ public:
                            MutationMethod mutation_method);
 
 private:
-    double mutation_rate_;
-    double mutation_strength_;
+    MutatorConfig config;
     std::mt19937 rng_;
 
     // Алгоритмы скрещивания

@@ -28,11 +28,11 @@ void ChipmunkEngine::initialize() {
     cpSpaceSetSleepTimeThreshold(space, 0.5);
 
     // Amount of overlap between shapes that is allowed
-    cpSpaceSetCollisionSlop(space, 0.8);
+    cpSpaceSetCollisionSlop(space, 0);
 
     // Chipmunk attempts to correct 10% of error ever 1/60th of a second
-    cpSpaceSetCollisionBias(space, cpfpow(1.0f - 0.1f, 60.0f));
-    // cpSpaceSetCollisionBias(space, cpfpow(1.0f - 0.2f, 12000.0f));
+    // cpSpaceSetCollisionBias(space, cpfpow(1.0f - 0.1f, 60.0f));
+    // cpSpaceSetCollisionBias(space, cpfpow(1.0f - 0.2f, 1200000.0f));
 
     // Creating terrain
     cpFloat x = 1000;
@@ -508,7 +508,7 @@ void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &da
             cpConstraint* chipmunkMuscle = creature->constraints[muscle->getId()];
 
             float old_rest = cpDampedSpringGetRestLength(chipmunkMuscle);
-            float new_rest = d.outputs[i] * muscle->getNeutralSize() * 4;
+            float new_rest = muscle->clampRest(d.outputs[i] * muscle->getNeutralSize()) * 4;
             cpDampedSpringSetRestLength(chipmunkMuscle, new_rest);
 
             // TODO: Отношение пройденного расстояния к затраченной энергии.
