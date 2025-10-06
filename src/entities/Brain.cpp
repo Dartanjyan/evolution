@@ -30,7 +30,7 @@ Brain::Brain(const std::vector<std::size_t>& layer_sizes,
 {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<> dist(0.0, 1);
+    std::normal_distribution<> dist(0.5, 10);
 
     size_t total_weights = 0;
     for (size_t i = 0; i < layer_sizes_.size() - 1; ++i) {

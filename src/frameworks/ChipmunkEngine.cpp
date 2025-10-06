@@ -32,10 +32,10 @@ void ChipmunkEngine::initialize() {
 
     // Chipmunk attempts to correct 10% of error ever 1/60th of a second
     // cpSpaceSetCollisionBias(space, cpfpow(1.0f - 0.1f, 60.0f));
-    // cpSpaceSetCollisionBias(space, cpfpow(1.0f - 0.2f, 1200000.0f));
+    cpSpaceSetCollisionBias(space, cpfpow(1.0f - 0.1f, 1200000.0f));
 
     // Creating terrain
-    cpFloat x = 1000;
+    cpFloat x = 1500;
     cpFloat y = 350;
     cpVect a = cpv(-x, y);
     cpVect b = cpv(x, y);
@@ -51,7 +51,7 @@ void ChipmunkEngine::initialize() {
 }
 
 void ChipmunkEngine::update(float dt) {
-    const int STEPS = 1;
+    const int STEPS = 3;
     const float sub_dt = dt / STEPS;
     for (int i = 0; i < STEPS; ++i) {
         cpSpaceStep(space, sub_dt);
@@ -489,8 +489,8 @@ void ChipmunkEngine::getCreatures(std::vector<Creature *>& out)
 
 void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &data)
 {
-    const float MUSCLE_WORK_FITNESS_IMPACT = -0.005;
-    const float X_DISTANCE_FITNESS_IMPACT = 0.1;
+    const float MUSCLE_WORK_FITNESS_IMPACT = -0.003;
+    const float X_DISTANCE_FITNESS_IMPACT = 0.15;
 
     for (const auto& d : data) {
         ChipmunkCreature *creature = findChipmunkCreatureForCreature(d.creature);
@@ -508,15 +508,15 @@ void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &da
             cpConstraint* chipmunkMuscle = creature->constraints[muscle->getId()];
 
             float old_rest = cpDampedSpringGetRestLength(chipmunkMuscle);
-            float new_rest = muscle->clampRest(d.outputs[i] * muscle->getNeutralSize()) * 4;
+            float new_rest = /*muscle->clampRest(*/d.outputs[i] * muscle->getNeutralSize()/*)*/ * 6;
             cpDampedSpringSetRestLength(chipmunkMuscle, new_rest);
 
             // TODO: Отношение пройденного расстояния к затраченной энергии.
             // 
             // A little penalty for every muscle work
             //
-            // d.creature->setFitness(d.creature->getFitness() - std::abs(old_rest - new_rest)*MUSCLE_WORK_FITNESS_IMPACT);
-            //
+            d.creature->setFitness(d.creature->getFitness() - std::abs(old_rest - new_rest)*MUSCLE_WORK_FITNESS_IMPACT);
+            // 
             // std::cout << "New rest: " << d.outputs[i] << "\n";
             // std::cout << "Rest diff: " << old_rest - new_rest << "\n";
         }
@@ -525,20 +525,20 @@ void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &da
             auto firstBodyIt = creature->bodies.begin();
             cpBody* firstBody = firstBodyIt->second;
             auto cpPos = cpBodyGetPosition(firstBody);
-            // switch (creature->posInitialized)
-            // {
-            // case false:
-            //     creature->posInitialized = true;
-            //     creature->lastPos = Vector2(cpPos.x, cpPos.y);
-            //     break;
-            // default:
-            //     auto pos = Vector2(cpPos.x, cpPos.y);
-            //     Vector2 distance = creature->lastPos - pos;
-            //     creature->creature->setFitness(creature->creature->getFitness() + distance.x*X_DISTANCE_FITNESS_IMPACT);
-            //     creature->lastPos = pos;
-            //     break;
-            // }
-            creature->creature->setFitness(cpPos.x*X_DISTANCE_FITNESS_IMPACT);
+            switch (creature->posInitialized)
+            {
+            case false:
+                creature->posInitialized = true;
+                creature->lastPos = Vector2(cpPos.x, cpPos.y);
+                break;
+            default:
+                auto pos = Vector2(cpPos.x, cpPos.y);
+                Vector2 distance = creature->lastPos - pos;
+                creature->creature->setFitness(creature->creature->getFitness() + distance.x*X_DISTANCE_FITNESS_IMPACT);
+                creature->lastPos = pos;
+                break;
+            }
+            // creature->creature->setFitness(cpPos.x*X_DISTANCE_FITNESS_IMPACT);
         }
     }
 }

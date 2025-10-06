@@ -54,7 +54,7 @@ void GenerationManager::endGeneration()
     // 0.1 mutation random distribution
     struct MutatorConfig config;
     config.crossoverChance = 0.9;
-    config.mutationChance = 0.1;
+    config.mutationChance = 0.3;
     config.mutationStrength = 0.1;
     
     BrainMutator mutator(config);

@@ -18,6 +18,7 @@ Constraint::Constraint(BodyPart* partA, BodyPart* partB, ConstraintType type, Ve
     float k = 20;
     minRest = neutralRest * (1-k);
     maxRest = neutralRest * (1+k);
+    // std::cout << "NeutralRest: " << neutralRest << ", min: " << minRest << ", max: " << maxRest << "\n";
 }
 
 Constraint::Constraint(BodyPart* partA, BodyPart* partB, ConstraintType type, Vector2 anchorA, float rest, float stiffness, float damping, bool collideConnected): 

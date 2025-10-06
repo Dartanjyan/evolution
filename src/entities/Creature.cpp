@@ -194,18 +194,19 @@ Creature* Creature::createBasicCreature(Brain* brain)
     */
     float scale = 1;
     Vector2 bias(100, 250);
-
-    BodyPart* body = new BodyPart(nullptr, { Vector2(40, 20)*scale+bias, Vector2(140, 20)*scale+bias, Vector2(120, 50)*scale+bias}, false, 0);
     
     float radius = 6;
-    BodyPart* ll1 = new BodyPart(nullptr, {Vector2(40, 20)*scale+bias, Vector2(80, 40)*scale+bias}, false, radius);
-    BodyPart* ll2 = new BodyPart(nullptr, {Vector2(80, 40)*scale+bias, Vector2(40, 60)*scale+bias}, false, radius);
-    BodyPart* ll3 = new BodyPart(nullptr, {Vector2(40, 60)*scale+bias, Vector2(60, 80)*scale+bias}, false, radius);
-    BodyPart* rl1 = new BodyPart(nullptr, {Vector2(140, 20)*scale+bias, Vector2(160, 40)*scale+bias}, false, radius);
-    BodyPart* rl2 = new BodyPart(nullptr, {Vector2(160, 40)*scale+bias, Vector2(140, 60)*scale+bias}, false, radius);
-    BodyPart* rl3 = new BodyPart(nullptr, {Vector2(140, 60)*scale+bias, Vector2(160, 60)*scale+bias}, false, radius);
-    BodyPart* t1 = new BodyPart(nullptr, {Vector2(40, 20)*scale+bias, Vector2(0, 0)*scale+bias}, false, radius);
-    BodyPart* h1 = new BodyPart(nullptr, {Vector2(140, 20)*scale+bias, Vector2(160, 0)*scale+bias}, false, radius);
+    float density = 0.1f;
+
+    BodyPart* body = new BodyPart(nullptr, { Vector2(40, 20)*scale+bias, Vector2(140, 20)*scale+bias, Vector2(120, 50)*scale+bias}, false, 0, density);
+    BodyPart* ll1 = new BodyPart(nullptr, {Vector2(40, 20)*scale+bias, Vector2(80, 40)*scale+bias}, false, radius, density);
+    BodyPart* ll2 = new BodyPart(nullptr, {Vector2(80, 40)*scale+bias, Vector2(40, 60)*scale+bias}, false, radius, density);
+    BodyPart* ll3 = new BodyPart(nullptr, {Vector2(40, 60)*scale+bias, Vector2(60, 80)*scale+bias}, false, radius, density);
+    BodyPart* rl1 = new BodyPart(nullptr, {Vector2(140, 20)*scale+bias, Vector2(160, 40)*scale+bias}, false, radius, density);
+    BodyPart* rl2 = new BodyPart(nullptr, {Vector2(160, 40)*scale+bias, Vector2(140, 60)*scale+bias}, false, radius, density);
+    BodyPart* rl3 = new BodyPart(nullptr, {Vector2(140, 60)*scale+bias, Vector2(160, 60)*scale+bias}, false, radius, density);
+    BodyPart* t1 = new BodyPart(nullptr, {Vector2(40, 20)*scale+bias, Vector2(0, 0)*scale+bias}, false, radius, density);
+    BodyPart* h1 = new BodyPart(nullptr, {Vector2(140, 20)*scale+bias, Vector2(160, 0)*scale+bias}, false, radius, density);
     
     Constraint* j1 = new Constraint(body, ll1, ConstraintType::JOINT, Vector2(40, 20)*scale+bias, false);
     Constraint* j2 = new Constraint(ll1, ll2, ConstraintType::JOINT, Vector2(80, 40)*scale+bias, false);

@@ -39,7 +39,7 @@ public:
             std::vector<Vector2> vertices,
             bool isSensorPart = false,
             float radius = 0.0,
-            float density = 0.1, 
+            float density = 0.1f, 
             float friction = 1,
             float elasticity = 0.5);
     // BodyPart(const BodyPart &other, BodyPart* parent);
