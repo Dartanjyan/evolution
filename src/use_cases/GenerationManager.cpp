@@ -18,7 +18,7 @@ GenerationManager::~GenerationManager()
 
 void GenerationManager::onTick(unsigned long tick)
 {
-    if (tick % ticksPerGeneration == 0) {
+    if (tick % ticksPerGeneration == 0 && tick != 0) {
         endGeneration();
     }
 }
