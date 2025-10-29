@@ -31,7 +31,10 @@ struct TickHookCompare {
 class PhysicsManager {
 private:
     void run();
+
+    #if USE_HOOKS
     void checkHooks(unsigned long currentTick);
+    #endif
 
     std::queue<Creature*> creaturesQueue;
 
@@ -69,7 +72,7 @@ public:
     void removeAllCreatures();
 
     void getCreatures(std::vector<Creature *>& out);
-
+    unsigned int getGeneration();
     #if USE_HOOKS
     /*
      * struct tickHook {unsigned long targetTick; std::condition_variable* cv; };

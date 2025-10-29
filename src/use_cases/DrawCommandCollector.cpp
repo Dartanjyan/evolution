@@ -238,8 +238,8 @@ void DrawCommandCollector::updateBackBuffer()
 
     struct DrawCommand command(DrawCommandType::TEXT, Color(100, 100, 100), std::vector<Vector2>{Vector2(10, 10)}, 12);  // 12 is font size
     
-    char buf[20];
-    snprintf(buf, sizeof(buf), "FPS: %.1f", fps);
+    char buf[40];
+    snprintf(buf, sizeof(buf), "FPS: %.1f\nGeneration: %u", fps, physicsManager->getGeneration());
     command.text = buf;
     backBuffer->emplace_back(command);
 }

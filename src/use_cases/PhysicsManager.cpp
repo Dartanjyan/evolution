@@ -160,3 +160,7 @@ void PhysicsManager::checkHooks(unsigned long currentTick)
     }
 }
 #endif
+
+unsigned int PhysicsManager::getGeneration() {
+    return generationManager ? generationManager->getGeneration() : 0;
+}
