@@ -6,6 +6,7 @@
 #include <atomic>
 #include <queue>
 #include <set>
+#include <chrono>
 #include <condition_variable>
 #include "IPhysicsEngine.h"
 #include "IAICalculator.h"
@@ -51,6 +52,8 @@ private:
     #endif
 
     unsigned long tickCounter;
+
+    std::chrono::milliseconds updateInterval;
 public:
     PhysicsManager(std::unique_ptr<IPhysicsEngine> engine, std::unique_ptr<IAICalculator> ai_calculator);
     ~PhysicsManager();
@@ -80,6 +83,14 @@ public:
      */
     void addHook(tickHook& newHook);
     #endif
+
+    void setUpdateTimeScale(float scale) {
+        if (scale == 0) {
+            updateInterval = std::chrono::milliseconds(0);
+        } else {
+            updateInterval = std::chrono::milliseconds((int)(16.0f/scale));
+        }
+    }
 };
 
 #endif

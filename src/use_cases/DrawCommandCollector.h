@@ -25,14 +25,14 @@ typedef struct Color {
 
 struct DrawCommand {
     DrawCommandType type;
-    struct Color color;
+    Color color;
     std::vector<Vector2> points;
     int32_t width = 1;
     std::string text;
 
-    DrawCommand(DrawCommandType type, struct Color color, std::vector<Vector2> points, int32_t width = 1)
+    DrawCommand(DrawCommandType type, Color color, std::vector<Vector2> points, int32_t width = 1)
         : type(type), color(color), points(points), width(width) {}
-    DrawCommand(DrawCommandType type, struct Color color, Vector2 point, int32_t width = 1)
+    DrawCommand(DrawCommandType type, Color color, Vector2 point, int32_t width = 1)
         : type(type), color(color), points(std::vector<Vector2>{point}), width(width) {}
     
 };
