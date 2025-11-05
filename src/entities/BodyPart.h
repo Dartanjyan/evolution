@@ -13,6 +13,7 @@ private:
     // but only shape that'll connect to the parent's body.
     // Creature class object has vector of BodyParts
     // std::vector<BodyPart*> parts;
+    
     BodyPart* parent = nullptr;
 
     unsigned id;
@@ -51,6 +52,7 @@ public:
     float getFriction() const { return friction; }
     float getElasticity() const { return elasticity; }
     bool isSensor() const { return isSensorPart; }
+    bool isSightPart() const { return isSightPart; }
     std::vector<Vector2> getVertices() const { return vertices; }
     std::vector<Vector2> getBiasedVertices() const;
     float getRadius() const { return radius; }

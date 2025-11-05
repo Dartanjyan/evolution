@@ -47,6 +47,7 @@ public:
     const BodyPart* getBodyPartById(unsigned id) const;
     std::vector<Constraint*> getJoints() const;
     std::vector<Constraint*> getMuscles() const;
+    std::vector<Constraint*> getConstraints() const { return constraints; }
     std::vector<BodyPart*> getSightParts() const;
     
     

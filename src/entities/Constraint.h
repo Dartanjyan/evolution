@@ -50,6 +50,9 @@ public:
     bool getCollideConnected() const { return collideConnected; }
     ConstraintType getType() const { return type; }
     float getNeutralSize() const { return neutralRest; }
+    float getMinRest() const { return minRest; }
+    float getMaxRest() const { return maxRest; }
+
     float clampRest(float rest) const;
 
     void setBodyA(BodyPart* part) { partA = part; }
