@@ -10,7 +10,7 @@
 // Brain::resetId();
 
 PhysicsManager::PhysicsManager(std::unique_ptr<IPhysicsEngine> engine, std::unique_ptr<IAICalculator> ai_calculator)
-    : engine(std::move(engine)), running(false), tickCounter(0)
+    : engine(std::move(engine)), running(false), tickCounter(0), updateInterval(std::chrono::milliseconds(16))
 {
     ai_manager = std::make_unique<AIManager>(std::move(ai_calculator));
 }
@@ -81,7 +81,6 @@ void PhysicsManager::run() {
     using namespace std::chrono;
     
     // Constants for fixed timestep and target frame rate
-    const milliseconds TARGET_FRAME_TIME = this->updateInterval; // 16 ms is ~60 FPS (1000ms/60 ≈ 16.66ms)
     auto previous_time = high_resolution_clock::now();
 
     std::chrono::_V2::system_clock::time_point current_time;
@@ -125,7 +124,7 @@ void PhysicsManager::run() {
             high_resolution_clock::now() - current_time
         );
 
-        const auto sleep_time = TARGET_FRAME_TIME - processing_time;
+        const auto sleep_time = this->updateInterval - processing_time;
         // std::cout << sleep_time.count() << " ms" << std::endl;
         if (sleep_time > 0ms) {
             std::this_thread::sleep_for(sleep_time);
@@ -160,6 +159,17 @@ void PhysicsManager::checkHooks(unsigned long currentTick)
     }
 }
 #endif
+
+void PhysicsManager::setUpdateTimeScale(float scale)
+{
+    if (scale == 0) {
+        updateInterval = std::chrono::milliseconds(0);
+    } else {
+        updateInterval = std::chrono::milliseconds((int)(16.0f/scale));
+    }
+
+    std::cout << "Time scale: " << scale << ", interval = " << updateInterval << "\n";
+}
 
 unsigned int PhysicsManager::getGeneration() {
     return generationManager ? generationManager->getGeneration() : 0;

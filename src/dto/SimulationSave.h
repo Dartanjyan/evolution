@@ -7,7 +7,7 @@
 struct SimulationSave {
     // Maybe simulation settings like mutation algorithm, amount of creatures etc
     unsigned generation;    
-    std::vector<Creature*>& Creatures;
-}
+    std::vector<Creature*> creatures;
+};
 
 #endif

@@ -12,7 +12,7 @@ BodyPart::BodyPart():
 BodyPart::BodyPart(
     BodyPart* parent,
     std::vector<Vector2> vertices,
-    bool isSensorPart,
+    bool is_sensor_part,
     float radius,
     float density, 
     float friction, 
@@ -25,7 +25,7 @@ BodyPart::BodyPart(
     density(density),
     friction(friction), 
     elasticity(elasticity),
-    isSensorPart(isSensorPart)
+    is_sensor_part(is_sensor_part)
 {
     // std::cout << "Creating BodyPart, id = "<<id<< "\n";
 }
@@ -39,7 +39,7 @@ BodyPart::BodyPart(const BodyPart &other, BodyPart* parent):
     density(other.density), 
     friction(other.friction),
     elasticity(other.elasticity),
-    isSensorPart(other.isSensorPart)
+    is_sensor_part(other.is_sensor_part)
 {
     // std::cout << "Copying BodyPart, id "<<other.id<<"->"<<id<< "\n";
 

@@ -25,8 +25,8 @@ private:
     float density;
     float friction;
     float elasticity;
-    bool isSensorPart;
-    bool isSightPart;
+    bool is_sensor_part;
+    bool is_sight_part;
 
     static unsigned last_id;
     static unsigned newId();
@@ -38,7 +38,7 @@ public:
     BodyPart();
     BodyPart(BodyPart* parent,
             std::vector<Vector2> vertices,
-            bool isSensorPart = false,
+            bool is_sensor_part = false,
             float radius = 0.0,
             float density = 0.1f, 
             float friction = 1,
@@ -51,8 +51,8 @@ public:
     float getDensity() const { return density; }
     float getFriction() const { return friction; }
     float getElasticity() const { return elasticity; }
-    bool isSensor() const { return isSensorPart; }
-    bool isSightPart() const { return isSightPart; }
+    bool isSensor() const { return is_sensor_part; }
+    bool isSightPart() const { return is_sight_part; }
     std::vector<Vector2> getVertices() const { return vertices; }
     std::vector<Vector2> getBiasedVertices() const;
     float getRadius() const { return radius; }
@@ -66,7 +66,7 @@ public:
     void setFriction(float friction) { this->friction = friction; }
     void setElasticity(float elasticity) { this->elasticity = elasticity; }
 
-    void setSensor(bool isSensor) { this->isSensorPart = isSensor; }
+    void setSensor(bool isSensor) { this->is_sensor_part = isSensor; }
     void setVertices(const std::vector<Vector2>& new_vertices) { this->vertices = new_vertices; }
     void setRadius(float radius) { this->radius = radius; }
     void setParent(BodyPart* new_parent) { this->parent = new_parent; }

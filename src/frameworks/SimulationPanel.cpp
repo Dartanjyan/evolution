@@ -42,6 +42,25 @@ SimulationPanel::SimulationPanel(wxWindow* parent, PhysicsManager* physicsManage
 
 void SimulationPanel::OnSpeedChoice(wxCommandEvent& event) {
     wxString value = speedChoice->GetStringSelection();
+    float scale;
+
+    if (value == "0.25x") {
+        scale = 0.25;
+    } else if (value == "0.5x") {
+        scale = 0.5;
+    } else if (value == "1x") {
+        scale = 1;
+    } else if (value == "2x") {
+        scale = 2;
+    } else if (value == "4x") {
+        scale = 4;
+    } else if (value == "8x") {
+        scale = 8;
+    } else {
+        scale = 0;
+    }
+
+    physicsManager->setUpdateTimeScale(scale);
 }
 
 void SimulationPanel::OnBackToMenu(wxCommandEvent& event) {

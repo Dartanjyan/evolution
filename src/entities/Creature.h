@@ -30,7 +30,6 @@ public:
     ~Creature();
     
     unsigned getId() const { return id; }
-    const std::vector<Constraint*> getConstraints() const { return constraints; }
     Brain* getBrain() const { return brain; }
     float getFitness() const { return fitness; }
     
@@ -47,7 +46,7 @@ public:
     const BodyPart* getBodyPartById(unsigned id) const;
     std::vector<Constraint*> getJoints() const;
     std::vector<Constraint*> getMuscles() const;
-    std::vector<Constraint*> getConstraints() const { return constraints; }
+    const std::vector<Constraint*> getConstraints() const { return constraints; }
     std::vector<BodyPart*> getSightParts() const;
     
     

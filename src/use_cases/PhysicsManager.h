@@ -84,13 +84,7 @@ public:
     void addHook(tickHook& newHook);
     #endif
 
-    void setUpdateTimeScale(float scale) {
-        if (scale == 0) {
-            updateInterval = std::chrono::milliseconds(0);
-        } else {
-            updateInterval = std::chrono::milliseconds((int)(16.0f/scale));
-        }
-    }
+    void setUpdateTimeScale(float scale);
 };
 
 #endif
