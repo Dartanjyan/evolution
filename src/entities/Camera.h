@@ -18,7 +18,7 @@ private:
     unsigned trackingCreatureId;
     Vector2 pos;
 public:
-    Camera(): scale(1), pos(Vector2(0, 0)) {}
+    Camera(): scale(1.0f), pos(Vector2(0, 0)) {}
     void setScale(float s) { scale = s;}
 };
 

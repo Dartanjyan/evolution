@@ -3,7 +3,12 @@
 #include <fstream>
 #include "Vector2JSONConverter.h"
 
-void SimulationSaverJSON::saveSimulation(SimulationSave save) {
+SimulationSaverJSON::SimulationSaverJSON()
+{
+}
+
+void SimulationSaverJSON::saveSimulation(SimulationSave save)
+{
     using json = nlohmann::json;
 
     json j;
@@ -64,7 +69,7 @@ void SimulationSaverJSON::saveSimulation(SimulationSave save) {
     }
 
     std::ofstream file("simulation_save.json");
-    file << j.dump(4);
+    file << j.dump(2);
 }
 
 SimulationSave SimulationSaverJSON::loadSimulation() {

@@ -5,6 +5,8 @@
 
 class SimulationSaverJSON : public ISimulationSaver {
 public:
+    SimulationSaverJSON();
+
     void saveSimulation(SimulationSave save) override;
     SimulationSave loadSimulation() override;
 };

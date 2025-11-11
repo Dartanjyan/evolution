@@ -13,6 +13,7 @@
 #include "AIManager.h"
 #include "Creature.h"
 #include "GenerationManager.h"
+#include "ISimulationSaver.h"
 
 #define USE_HOOKS 0
 #if USE_HOOKS
@@ -39,12 +40,12 @@ private:
 
     std::queue<Creature*> creaturesQueue;
 
+    std::unique_ptr<GenerationManager> generationManager;
     std::unique_ptr<IPhysicsEngine> engine;
     std::unique_ptr<AIManager> ai_manager;
     std::thread physicsThread;
     std::atomic<bool> running;
-
-    std::unique_ptr<GenerationManager> generationManager;
+    std::unique_ptr<ISimulationSaver> simulationSaver;
 
     #if USE_HOOKS
     std::multiset<tickHook, TickHookCompare> hooks;
@@ -55,7 +56,7 @@ private:
 
     std::chrono::milliseconds updateInterval;
 public:
-    PhysicsManager(std::unique_ptr<IPhysicsEngine> engine, std::unique_ptr<IAICalculator> ai_calculator);
+    PhysicsManager(std::unique_ptr<IPhysicsEngine> engine, std::unique_ptr<IAICalculator> ai_calculator, std::unique_ptr<ISimulationSaver> simulationSaver);
     ~PhysicsManager();
 
     // physics thread

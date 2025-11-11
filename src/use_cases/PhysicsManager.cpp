@@ -9,8 +9,8 @@
 // Constraint::resetId();
 // Brain::resetId();
 
-PhysicsManager::PhysicsManager(std::unique_ptr<IPhysicsEngine> engine, std::unique_ptr<IAICalculator> ai_calculator)
-    : engine(std::move(engine)), running(false), tickCounter(0), updateInterval(std::chrono::milliseconds(16))
+PhysicsManager::PhysicsManager(std::unique_ptr<IPhysicsEngine> engine, std::unique_ptr<IAICalculator> ai_calculator, std::unique_ptr<ISimulationSaver> simulationSaver)
+    : engine(std::move(engine)), running(false), simulationSaver(std::move(simulationSaver)), tickCounter(0), updateInterval(std::chrono::milliseconds(16))
 {
     ai_manager = std::make_unique<AIManager>(std::move(ai_calculator));
 }
@@ -65,6 +65,10 @@ void PhysicsManager::stop() {
         running.store(false);
         if (physicsThread.joinable())
             physicsThread.join();
+        SimulationSave save;
+        save.generation = generationManager->getGeneration();
+        engine->getCreatures(save.creatures);
+        simulationSaver->saveSimulation(save);
         stopInternal();
         std::cout<<"Physics engine has been shut down\n";
     }
