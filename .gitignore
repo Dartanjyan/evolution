@@ -9,6 +9,7 @@ Makefile
 
 # Build directories
 build/
+build-win/
 3rd_party/
 Debug/
 Release/

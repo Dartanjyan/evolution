@@ -1,3 +1,6 @@
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include "BodyPart.h"
 
 unsigned BodyPart::last_id = 0;

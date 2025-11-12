@@ -49,7 +49,7 @@ void drawCircle(wxDC& dc, DrawCommand& command) {
 }
 
 void drawText(wxDC& dc, DrawCommand& command) {
-    dc.SetTextForeground(*wxColor(command.color.red, command.color.green, command.color.blue, command.color.alpha));
+    dc.SetTextForeground(wxColor(command.color.red, command.color.green, command.color.blue, command.color.alpha));
     wxFont font(command.width, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     dc.SetFont(font);
     dc.DrawText(command.text, command.points[0].x, command.points[0].y);
