@@ -11,8 +11,6 @@ Makefile
 build/
 build-win/
 3rd_party/
-Debug/
-Release/
 
 # Compiled binary files
 *.exe
@@ -22,6 +20,8 @@ Release/
 *.so
 *.dll
 *.dylib
+*.json
+*.bak
 
 # Logs and databases
 *.log
