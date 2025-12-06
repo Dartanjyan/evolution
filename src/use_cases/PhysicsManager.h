@@ -15,28 +15,9 @@
 #include "GenerationManager.h"
 #include "ISimulationSaver.h"
 
-#define USE_HOOKS 0
-#if USE_HOOKS
-struct tickHook {
-    unsigned long targetTick;
-    std::condition_variable* cv;
-};
-
-// Comparator for std::multiset
-struct TickHookCompare {
-    bool operator()(const tickHook& a, const tickHook& b) const {
-        return a.targetTick < b.targetTick;
-    }
-};
-#endif
-
 class PhysicsManager {
 private:
     void run();
-
-    #if USE_HOOKS
-    void checkHooks(unsigned long currentTick);
-    #endif
 
     std::queue<Creature*> creaturesQueue;
 
@@ -46,11 +27,6 @@ private:
     std::thread physicsThread;
     std::atomic<bool> running;
     std::unique_ptr<ISimulationSaver> simulationSaver;
-
-    #if USE_HOOKS
-    std::multiset<tickHook, TickHookCompare> hooks;
-    std::mutex hooksMutex;
-    #endif
 
     unsigned long tickCounter;
 
@@ -77,13 +53,6 @@ public:
 
     void getCreatures(std::vector<Creature *>& out);
     unsigned int getGeneration();
-    #if USE_HOOKS
-    /*
-     * struct tickHook {unsigned long targetTick; std::condition_variable* cv; };
-     * Add new hook that'll fire conditional_variable after targetTick ticks.
-     */
-    void addHook(tickHook& newHook);
-    #endif
 
     void setUpdateTimeScale(float scale);
 };

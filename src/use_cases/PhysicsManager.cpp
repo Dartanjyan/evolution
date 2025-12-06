@@ -3,12 +3,6 @@
 #include "AIManager.h"
 #include "BrainEditor.h"
 
-// TODO: Call this somewhere on simulation start
-// Creature::resetId();
-// BodyPart::resetId();
-// Constraint::resetId();
-// Brain::resetId();
-
 PhysicsManager::PhysicsManager(std::unique_ptr<IPhysicsEngine> engine, std::unique_ptr<IAICalculator> ai_calculator, std::unique_ptr<ISimulationSaver> simulationSaver)
     : engine(std::move(engine)), running(false), simulationSaver(std::move(simulationSaver)), tickCounter(0), updateInterval(std::chrono::milliseconds(16))
 {
@@ -110,9 +104,6 @@ void PhysicsManager::run() {
             engine->applyAIResults(results);
         }
         generationManager->onTick(tickCounter);
-        #if USE_HOOKS
-        checkHooks(tickCounter);
-        #endif
 
         const float dt = 0.01f;
         engine->update(dt);
@@ -137,32 +128,6 @@ void PhysicsManager::run() {
         tickCounter++;
     }
 }
-
-#if USE_HOOKS
-void PhysicsManager::addHook(tickHook& newHook)
-{
-    std::lock_guard<std::mutex> lock(hooksMutex);
-    newHook.targetTick += tickCounter;
-    hooks.insert(newHook);
-}
-
-void PhysicsManager::checkHooks(unsigned long currentTick)
-{
-    std::unique_lock<std::mutex> lock(hooksMutex);
-
-    while (!hooks.empty() && hooks.begin()->targetTick == currentTick) {
-        auto range = hooks.equal_range(*hooks.begin());
-
-        for (auto it = range.first; it != range.second; ++it) {
-            if (it->cv) {
-                it->cv->notify_one();
-            }
-        }
-
-        hooks.erase(range.first, range.second);
-    }
-}
-#endif
 
 void PhysicsManager::setUpdateTimeScale(float scale)
 {

@@ -307,7 +307,6 @@ unsigned Creature::newId() { return ++Creature::last_id; }
 void Creature::resetId() { Creature::last_id = 0; }
 
 std::vector<Constraint*> Creature::getJoints() const {
-    // TODO: Create Joint and Muscle classes and not just Constraint that holds its type    
     std::vector<Constraint*> ret_constr;
     for (auto *constr : constraints) {
         if (constr->getType() == ConstraintType::JOINT)

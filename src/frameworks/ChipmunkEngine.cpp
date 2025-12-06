@@ -305,7 +305,7 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
 {
     std::lock_guard lock(data_mutex);
 
-    // TODO: Remove this map
+    // NOTE: Difference here is always 1 so far, so this may be optimized
     std::map<unsigned, size_t> bodyPartIdToBodiesId;
 
     size_t creatureCount = 0;

@@ -20,7 +20,6 @@ SimulationPanel::SimulationPanel(wxWindow* parent, PhysicsManager* physicsManage
     speeds.Add("4x");
     speeds.Add("8x");
     speeds.Add("Unlimited");
-    // TODO: ID_SPEED_CHANGE
     speedChoice = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, speeds);
     speedChoice->SetSelection(2);
     speedChoice->Bind(wxEVT_CHOICE, &SimulationPanel::OnSpeedChoice, this);

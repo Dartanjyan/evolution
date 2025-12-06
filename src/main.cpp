@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
     auto calculator = std::make_unique<CPUAICalculator>();
     auto simulationSaver = std::make_unique<SimulationSaverJSON>();
 
-    // TODO: call here fabric to get IAICalculator object 
+    // TODO: call here a factory to get an IAICalculator object
     // (GPU or CPU implementation) and pass to PhysicsManager constructor
     PhysicsManager* physicsManager = new PhysicsManager(std::move(engine), std::move(calculator), std::move(simulationSaver));
 
