@@ -92,16 +92,16 @@ void PhysicsManager::run() {
         elapsed_time = current_time - previous_time;
         previous_time = current_time;
         
-        if (ai_manager && tickCounter % AI_UPDATE_INTERVAL == 0) {
+        if (ai_manager->isCalculationCompleted()) {
+            auto results = ai_manager->getResults();
+            BrainEditor::updateMemory(results);
+            engine->applyAIResults(results);
+        }
+        if (tickCounter % AI_UPDATE_INTERVAL == 0) {
             std::vector<CreaturePhysicsInputs> data;
             
             engine->getCreatureAIInputs(data);
             ai_manager->requestCalculation(data);
-        }
-        if (ai_manager && ai_manager->isCalculationCompleted()) {
-            auto results = ai_manager->getResults();
-            BrainEditor::updateMemory(results);
-            engine->applyAIResults(results);
         }
         generationManager->onTick(tickCounter);
 
@@ -118,7 +118,6 @@ void PhysicsManager::run() {
         const auto processing_time = duration_cast<milliseconds>(
             high_resolution_clock::now() - current_time
         );
-
         const auto sleep_time = this->updateInterval - processing_time;
         // std::cout << sleep_time.count() << " ms" << std::endl;
         if (sleep_time > 0ms) {

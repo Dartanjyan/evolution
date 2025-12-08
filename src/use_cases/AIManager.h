@@ -32,7 +32,7 @@ public:
     void start();
     void stop();
     const std::vector<CreaturePhysicsInputs>& getResults();
-    void requestCalculation(std::vector<CreaturePhysicsInputs> data);  // Calculation request from PhysicsManager
+    void requestCalculation(std::vector<CreaturePhysicsInputs>& data);  // Calculation request from PhysicsManager
     bool isCalculationCompleted(); // Check if calculations are done
 };
 

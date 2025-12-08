@@ -36,7 +36,7 @@ void AIManager::stop() {
     }
 }
 
-void AIManager::requestCalculation(std::vector<CreaturePhysicsInputs> data) {
+void AIManager::requestCalculation(std::vector<CreaturePhysicsInputs>& data) {
     std::lock_guard<std::mutex> lock(mtx);
     currentData = std::move(data);
     calculationRequested = true;
