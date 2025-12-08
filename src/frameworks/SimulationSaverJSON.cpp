@@ -68,8 +68,15 @@ void SimulationSaverJSON::saveSimulation(SimulationSave save)
         });
     }
 
+    std::cout << "Saving simulation to simulation_save.json... ";
     std::ofstream file("simulation_save.json");
+    if (!file.is_open()) {
+        std::cerr << "Couldn't open file to save simulation!" << std::endl;
+        return;
+    }
     file << j.dump(2);
+    std::cout << "Done!" << std::endl;
+    file.close();
 }
 
 SimulationSave SimulationSaverJSON::loadSimulation() {

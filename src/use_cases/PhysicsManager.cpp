@@ -43,7 +43,7 @@ void PhysicsManager::stopInternal() {
 }
 
 void PhysicsManager::start() {
-    generationManager = std::make_unique<GenerationManager>(this, 20, 600);
+    generationManager = std::make_unique<GenerationManager>(this, 20, 60*10);
     if (!running.load()) {
         startInternal();
         physicsThread = std::thread(&PhysicsManager::run, this);
