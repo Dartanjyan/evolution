@@ -72,6 +72,7 @@ target_include_directories(evolution PRIVATE
     src/use_cases
     src/interfaces
     src/frameworks
+    src/frameworks/gui
     src/dto
     3rd_party/json/single_include
 )

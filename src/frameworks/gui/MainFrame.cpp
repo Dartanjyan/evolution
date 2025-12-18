@@ -2,6 +2,7 @@
 #include "MainMenuPanel.h"
 #include "SimulationPanel.h"
 #include "SettingsPanel.h"
+#include "SimulationLoadPanel.h"
 #include <iostream>
 
 MainFrame::MainFrame(PhysicsManager* physicsManager)
@@ -21,6 +22,13 @@ void MainFrame::ClearCurrentPanel() {
         currentPanel->Destroy();
         currentPanel = nullptr;
     }
+}
+
+void MainFrame::ShowSimulationLoadScreen() {
+    ClearCurrentPanel();
+    currentPanel = new SimulationLoadPanel(this);
+    GetSizer()->Add(currentPanel, 1, wxEXPAND);
+    Layout();
 }
 
 void MainFrame::ShowMenu() {

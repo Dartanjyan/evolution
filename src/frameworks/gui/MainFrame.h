@@ -10,6 +10,7 @@ public:
 
     void ShowMenu();
     void ShowSimulation();
+    void ShowSimulationLoadScreen();
     void ShowSettings();
 
 private:

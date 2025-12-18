@@ -12,7 +12,7 @@ private:
 
     PhysicsManager* physicsManager;
     void OnBackToMenu(wxCommandEvent& event);
-    void OnAdd(wxCommandEvent& event);
+    void OnLoad(wxCommandEvent& event);
     void OnSpeedChoice(wxCommandEvent& event);
 };
 

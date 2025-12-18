@@ -8,8 +8,9 @@ SimulationPanel::SimulationPanel(wxWindow* parent, PhysicsManager* physicsManage
 {
     DrawPanel *drawPanel = new DrawPanel(physicsManager, this, wxID_ANY);
     drawPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
-    
-    wxButton *addButton = new wxButton(this, ID_ADD_CREATURE, "+");
+
+    // TODO: Rename ID
+    wxButton *loadButton = new wxButton(this, ID_ADD_CREATURE, "Load");
     wxButton* backBtn = new wxButton(this, wxID_ANY, "Back to Menu");
 
     wxArrayString speeds;
@@ -26,7 +27,7 @@ SimulationPanel::SimulationPanel(wxWindow* parent, PhysicsManager* physicsManage
     
     wxBoxSizer* controlSizer = new wxBoxSizer(wxHORIZONTAL);
     controlSizer->Add(backBtn, 0);
-    controlSizer->Add(addButton, 0);
+    controlSizer->Add(loadButton, 0);
     controlSizer->Add(speedChoice, 0);
     
     wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
@@ -36,7 +37,7 @@ SimulationPanel::SimulationPanel(wxWindow* parent, PhysicsManager* physicsManage
     SetSizer(mainSizer);
 
     backBtn->Bind(wxEVT_BUTTON, &SimulationPanel::OnBackToMenu, this);
-    Bind(wxEVT_BUTTON, &SimulationPanel::OnAdd, this, ID_ADD_CREATURE);
+    Bind(wxEVT_BUTTON, &SimulationPanel::OnLoad, this, ID_ADD_CREATURE);
 }
 
 void SimulationPanel::OnSpeedChoice(wxCommandEvent& event) {
@@ -67,7 +68,7 @@ void SimulationPanel::OnBackToMenu(wxCommandEvent& event) {
     static_cast<MainFrame*>(GetParent())->ShowMenu();
 }
 
-void SimulationPanel::OnAdd(wxCommandEvent &event) {
+void SimulationPanel::OnLoad(wxCommandEvent &event) {
     for (int i=0; i<1; i++) {
         this->physicsManager->addCreature(Creature::createBasicCreature());
     }
