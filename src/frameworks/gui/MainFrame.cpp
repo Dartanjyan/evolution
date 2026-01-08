@@ -9,6 +9,8 @@ MainFrame::MainFrame(PhysicsManager* physicsManager)
     : wxFrame(nullptr, wxID_ANY, "Evolution by Alex", wxDefaultPosition, wxSize(800, 600)),
       physicsManager(physicsManager)
 {
+    SetSizerAndFit(new wxBoxSizer(wxVERTICAL));
+
     ShowMenu();
     Bind(wxEVT_CLOSE_WINDOW, [this](wxCloseEvent& evt) {
         wxTheApp->ExitMainLoop();
@@ -18,9 +20,8 @@ MainFrame::MainFrame(PhysicsManager* physicsManager)
 }
 
 void MainFrame::ClearCurrentPanel() {
-    if (currentPanel) {
-        currentPanel->Destroy();
-        currentPanel = nullptr;
+    if (GetSizer()) {
+        GetSizer()->Clear(true);
     }
 }
 
@@ -34,7 +35,6 @@ void MainFrame::ShowSimulationLoadScreen() {
 void MainFrame::ShowMenu() {
     ClearCurrentPanel();
     currentPanel = new MainMenuPanel(this);
-    SetSizerAndFit(new wxBoxSizer(wxVERTICAL));
     GetSizer()->Add(currentPanel, 1, wxEXPAND);
     Layout();
 }
