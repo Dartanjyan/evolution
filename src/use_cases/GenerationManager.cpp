@@ -50,20 +50,24 @@ void GenerationManager::endGeneration()
     std::mt19937 gen(rd());
     std::shuffle(creatures.begin(), creatures.end()-(creatures.size()/2), gen);
     
-    // 90% of better parent's genes
+    // 70% of better parent's genes
+    // Every weight has 5% of chance to be mutated
     // 0.1 mutation random distribution
     struct MutatorConfig config;
-    config.crossoverChance = 0.9;
-    config.mutationChance = 0.3;
+    config.crossoverChance = 0.7;
+    config.mutationChance = 0.05;
     config.mutationStrength = 0.1;
     
     BrainMutator mutator(config);
     std::vector<Brain *> newGenerationBrains {new Brain(*(bestCreature->getBrain()))};
 
-    for (unsigned i=0; i < creaturesPerGeneration-LEAVE_OLD_CREATURES-NEW_RANDOM_CREATURES; i++) {
+    unsigned int newChildren = creaturesPerGeneration;
+    newChildren -= (newChildren >= LEAVE_OLD_CREATURES ? LEAVE_OLD_CREATURES : 0);
+    newChildren -= (newChildren >= NEW_RANDOM_CREATURES ? NEW_RANDOM_CREATURES : 0);
+    for (unsigned i=0; i < newChildren; i++) {
         Brain* childBrain = mutator.createChildBrain(
             *(creatures[i]->getBrain()), 
-            *(creatures[i+1]->getBrain()),
+            *(creatures[newChildren > 1 ? i+1 : i]->getBrain()),
             BrainMutator::CrossoverMethod::PROPORTIONAL,
             BrainMutator::MutationMethod::CHANCE_FOR_EVERY_WEIGHT
         );
@@ -73,14 +77,16 @@ void GenerationManager::endGeneration()
     // std::cout << "New gen size is now " << newGenerationBrains.size() << " :)\n";
     
     // physicsManager->removeAllCreatures();
-    std::cout << "Rebooting physicsManager\n";
+    // std::cout << "Rebooting physicsManager\n";
     physicsManager->stopInternal();
     physicsManager->startInternal();
     for (auto b : newGenerationBrains) {
         physicsManager->addCreature(Creature::createBasicCreature(b));
     }
-    for (unsigned i=0; i < NEW_RANDOM_CREATURES; i++) {
-        physicsManager->addCreature(Creature::createBasicCreature());
+    if ((creaturesPerGeneration - newChildren - LEAVE_OLD_CREATURES) > 0) {
+        for (unsigned i=0; i < NEW_RANDOM_CREATURES; i++) {
+            physicsManager->addCreature(Creature::createBasicCreature());
+        }
     }
     
     generation++;

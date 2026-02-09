@@ -15,7 +15,7 @@ void AIManager::start() {
         running.store(true);
         calculator->initialize();
         aiThread = std::thread(&AIManager::run, this);
-        std::cout << "Created new AI thread\n";
+        // std::cout << "Created new AI thread\n";
     } else {
         std::cout << "AI thread already running\n";
     }
@@ -32,7 +32,7 @@ void AIManager::stop() {
         currentData.clear();
         calculationRequested = false;
         calculationCompleted = false;
-        std::cout<<"AI engine has been shut down\n";
+        // std::cout<<"AI engine has been shut down\n";
     }
 }
 
@@ -65,7 +65,7 @@ void AIManager::run() {
         
         calculationCompleted.store(true);
     }
-    std::cout << "AI thread exit\n";
+    // std::cout << "AI thread exit\n";
 }
 
 const std::vector<CreaturePhysicsInputs>& AIManager::getResults() {

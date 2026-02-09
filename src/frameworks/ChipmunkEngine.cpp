@@ -47,7 +47,7 @@ void ChipmunkEngine::initialize() {
     this->world_shapes.push_back(terrain);
     cpSpaceAddShape(space, terrain);
 
-    std::cout << "ChipmunkEngine initialized\n";
+    // std::cout << "ChipmunkEngine initialized\n";
 }
 
 void ChipmunkEngine::update(float dt) {
@@ -110,7 +110,7 @@ void ChipmunkEngine::shutdown() {
     cpSpaceFree(space);
     space = nullptr;
 
-    std::cout << "ChipmunkEngine has been shut down.\n";
+    // std::cout << "ChipmunkEngine has been shut down.\n";
 }
 
 cpShape* createShapeForBodyPart(cpBody* body, const BodyPart *bodyPart, cpVect bias) {
@@ -123,7 +123,7 @@ cpShape* createShapeForBodyPart(cpBody* body, const BodyPart *bodyPart, cpVect b
     cpShape* shape = nullptr;
     switch (vertices.size()) {
         case 0: {
-            throw std::runtime_error("DrawPanel::OnDraw(): shape must have at least 1 vertex\n");
+            throw std::runtime_error("[ChipmunkEngine] shape must have at least 1 vertex\n");
             break;
         }
         case 1: {
@@ -489,7 +489,8 @@ void ChipmunkEngine::getCreatures(std::vector<Creature *>& out)
 
 void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &data)
 {
-    const float MUSCLE_WORK_FITNESS_IMPACT = -0.003;
+    // TODO: A huge work on fitness calculating. Now it just doesn't work the desired way
+    const float MUSCLE_WORK_FITNESS_IMPACT = -0.003*0;
     const float X_DISTANCE_FITNESS_IMPACT = 0.15;
 
     for (const auto& d : data) {
@@ -515,10 +516,13 @@ void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &da
             // 
             // A little penalty for every muscle work
             //
-            d.creature->setFitness(d.creature->getFitness() - std::abs(old_rest - new_rest)*MUSCLE_WORK_FITNESS_IMPACT);
+            const float penalty = std::abs(old_rest - new_rest)*MUSCLE_WORK_FITNESS_IMPACT;
+            d.creature->setFitness(d.creature->getFitness() - penalty);
             // 
             // std::cout << "New rest: " << d.outputs[i] << "\n";
             // std::cout << "Rest diff: " << old_rest - new_rest << "\n";
+            // std::cout << "Fitness penalty: " << penalty << "\n";
+            // std::cout << "Fitness: " << d.creature->getFitness() << "\n";
         }
         
         if (!creature->bodies.empty()) {

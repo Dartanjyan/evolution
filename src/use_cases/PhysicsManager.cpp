@@ -43,12 +43,12 @@ void PhysicsManager::stopInternal() {
 }
 
 void PhysicsManager::start() {
-    generationManager = std::make_unique<GenerationManager>(this, 20, 60*10);
+    generationManager = std::make_unique<GenerationManager>(this, 10, 60*10);
     if (!running.load()) {
         startInternal();
         physicsThread = std::thread(&PhysicsManager::run, this);
         running.store(true);
-        std::cout << "Created new physics thread\n";
+        // std::cout << "Created new physics thread\n";
     } else {
         std::cout << "Physics thread already running\n";
     }
@@ -64,7 +64,7 @@ void PhysicsManager::stop() {
         engine->getCreatures(save.creatures);
         simulationSaver->saveSimulation(save);
         stopInternal();
-        std::cout<<"Physics engine has been shut down\n";
+        // std::cout<<"Physics engine has been shut down\n";
     }
     if (generationManager.get())
         generationManager.reset();
