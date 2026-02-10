@@ -50,13 +50,10 @@ void GenerationManager::endGeneration()
     std::mt19937 gen(rd());
     std::shuffle(creatures.begin(), creatures.end()-(creatures.size()/2), gen);
     
-    // 70% of better parent's genes
-    // Every weight has 5% of chance to be mutated
-    // 0.1 mutation random distribution
     struct MutatorConfig config;
-    config.crossoverChance = 0.7;
-    config.mutationChance = 0.05;
-    config.mutationStrength = 0.1;
+    config.crossoverChance = 0.8;  // percentage of better parent's genes
+    config.mutationChance = 0.05;  // chance for every weight to be mutated
+    config.mutationStrength = 0.05; // random uniform distribution
     
     BrainMutator mutator(config);
     std::vector<Brain *> newGenerationBrains {new Brain(*(bestCreature->getBrain()))};
@@ -77,6 +74,7 @@ void GenerationManager::endGeneration()
     // std::cout << "New gen size is now " << newGenerationBrains.size() << " :)\n";
     
     // physicsManager->removeAllCreatures();
+    
     // std::cout << "Rebooting physicsManager\n";
     physicsManager->stopInternal();
     physicsManager->startInternal();

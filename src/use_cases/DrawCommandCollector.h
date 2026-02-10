@@ -16,12 +16,12 @@ enum DrawCommandType {
     POLYGON
 };
 
-typedef struct Color {
+struct Color {
     uint8_t red, green, blue, alpha=255;
 
     Color(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha=255)
         : red(red), green(green), blue(blue), alpha(alpha) {};
-} Color;
+};
 
 struct DrawCommand {
     DrawCommandType type;

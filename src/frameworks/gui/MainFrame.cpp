@@ -16,7 +16,8 @@ MainFrame::MainFrame(PhysicsManager* physicsManager)
         wxTheApp->ExitMainLoop();
     });
 
-    SetMinSize(wxSize(600, 480));
+    // SetMinSize(wxSize(600, 480));
+    SetMinSize(wxSize(1600, 900));
 }
 
 void MainFrame::ClearCurrentPanel() {

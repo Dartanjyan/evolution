@@ -30,7 +30,7 @@ Brain::Brain(const std::vector<std::size_t>& layer_sizes,
 {
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::normal_distribution<> dist(0.5, 10);
+    std::normal_distribution<> dist(0.1, 10);
 
     size_t total_weights = 0;
     for (size_t i = 0; i < layer_sizes_.size() - 1; ++i) {
@@ -68,10 +68,10 @@ Brain::Brain(const std::vector<std::size_t>& layer_sizes,
     }
 }
 
-const std::vector<size_t>& Brain::getLayerSizes() const noexcept { return layer_sizes_; }
-const std::vector<std::vector<double>>& Brain::getWeights() const noexcept { return weights_; }
-const std::vector<double>& Brain::getBiases() const noexcept { return biases_; }
-const std::vector<double>& Brain::getMemory() const noexcept { return memory_; }
+const std::vector<size_t> Brain::getLayerSizes() const noexcept { return layer_sizes_; }
+const std::vector<std::vector<double>> Brain::getWeights() const noexcept { return weights_; }
+const std::vector<double> Brain::getBiases() const noexcept { return biases_; }
+const std::vector<double> Brain::getMemory() const noexcept { return memory_; }
 void Brain::setWeights(const std::vector<std::vector<double>>& new_weights) { weights_ = new_weights; }
 void Brain::setBiases (const std::vector<double>& new_biases) { biases_  = new_biases; }
 void Brain::setMemory(const std::vector<double> &new_memory) { memory_ = new_memory; }

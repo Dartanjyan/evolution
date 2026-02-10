@@ -44,12 +44,14 @@ void setPen(wxDC &dc, wxPen pen, bool force = false) {
 }
 
 void drawCircle(wxDC& dc, DrawCommand& command) {
-    dc.SetBrush(wxColour(command.color.red, command.color.green, command.color.blue, command.color.alpha));
+    wxColour col = wxColour(command.color.red, command.color.green, command.color.blue, command.color.alpha);
+    dc.SetBrush(col);
+    setPen(dc, wxPen(wxColour(0, 0, 0), 1));
     dc.DrawCircle(command.points[0].x, command.points[0].y, command.width);
 }
 
 void drawText(wxDC& dc, DrawCommand& command) {
-    dc.SetTextForeground(wxColor(command.color.red, command.color.green, command.color.blue, command.color.alpha));
+    dc.SetTextForeground(wxColour(command.color.red, command.color.green, command.color.blue, command.color.alpha));
     wxFont font(command.width, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     dc.SetFont(font);
     dc.DrawText(command.text, command.points[0].x, command.points[0].y);

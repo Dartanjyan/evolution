@@ -1,6 +1,8 @@
 #include <chrono>
 #include "DrawCommandCollector.h"
 
+#define DRAW_NEURAL_NETWORK 1
+
 DrawCommandCollector::DrawCommandCollector(PhysicsManager *physicsManager)
 : physicsManager(physicsManager)
 {
@@ -55,25 +57,54 @@ void DrawCommandCollector::stop() {
     std::cout << "DrawCommandCollector::stop(): Stopped successfully.\n";
 }
 
+#if DRAW_NEURAL_NETWORK
+template<typename T>
+constexpr T map_range(T x,
+                      T in_min, T in_max,
+                      T out_min, T out_max)
+{
+    return (x - in_min) * (out_max - out_min)
+           / (in_max - in_min)
+           + out_min;
+}
+#endif
+
 void DrawCommandCollector::updateBackBuffer()
 {
-    const Color world_shape_color = Color(79, 73, 85);
+    static const Color world_shape_color = Color(79, 73, 85);
 
-    Color poly_color = Color(170, 153, 137);
-    Color segment_color = Color(115, 126, 137);
-    Color circle_color = segment_color;
-    Color muscle_color = Color(255, 129, 110);
-    const int muscle_width = 4;
+    static const Color poly_color = Color(170, 153, 137);
+    static const Color segment_color = Color(115, 126, 137);
+    static const Color circle_color = segment_color;
+    static const Color muscle_color = Color(255, 129, 110);
+    static const int muscle_width = 4;
 
     std::vector<BodyObject> bodies {};
     std::vector<ShapeObject> shapes {};
     std::vector<ConstraintObject> constraints {};
     physicsManager->getRenderObjects(bodies, shapes, constraints);
 
-    std::vector<const ShapeObject*> circles, segments, polygons, world_circles, world_segments, world_polygons;
-    std::vector<const ConstraintObject*> constraints_objects;
+    std::vector<const ShapeObject *> circles, segments, polygons, world_circles, world_segments, world_polygons;
+    std::vector<const ConstraintObject *> constraints_objects;
 
     std::lock_guard<std::mutex> lock(bufferMutex);
+
+    #if DRAW_NEURAL_NETWORK
+    std::vector<Creature *> creatures;
+    physicsManager->getCreatures(creatures);
+    std::vector<std::size_t> layers;
+    int addToReserve;
+    if (creatures.size() > 0) {
+        layers = creatures.at(0)->getBrain()->getLayerSizes();
+    }
+    for (size_t i = 0; i < layers.size(); i++) {
+        addToReserve += layers[i];
+        if (i > 0) {
+            addToReserve += layers[i] * layers[i-1];
+        }
+    }
+    // NOTE: Probably not correct addToReserve calculated
+    #endif
 
     // Fill vectors do draw them with different colors.
     for (auto& s: shapes) {
@@ -105,15 +136,16 @@ void DrawCommandCollector::updateBackBuffer()
         }
     }
 
-
     // ===========Drawing=============
-    
     backBuffer->clear();
     backBuffer->reserve(
         circles.size() + segments.size() + polygons.size()
         + world_circles.size() + world_segments.size() + world_polygons.size()
         + constraints_objects.size()
         + 1     // FPS text
+        #if DRAW_NEURAL_NETWORK
+        + addToReserve
+        #endif
     );
 
     for (const auto *shape : world_polygons) {
@@ -186,7 +218,7 @@ void DrawCommandCollector::updateBackBuffer()
             backBuffer->emplace_back(DrawCommandType::POLYGON, poly_color, points);
         }
     }
-    // Segments
+    // Segments outline
     for (const auto *shape : segments) {
         const BodyObject* body = shape->body;
         const float angle = body->angle;
@@ -199,6 +231,7 @@ void DrawCommandCollector::updateBackBuffer()
 
         backBuffer->emplace_back(DrawCommandType::LINE, Color(0, 0, 0), points, radius-1);
     }
+    // Segments
     for (const auto *shape : segments) {
         const BodyObject* body = shape->body;
         const float angle = body->angle;
@@ -222,7 +255,6 @@ void DrawCommandCollector::updateBackBuffer()
     }
     
     // FPS counter
-    
     static auto lastTime = std::chrono::_V2::high_resolution_clock::now();
     static int frameCount = 0;
     static float fps = 0;
@@ -236,12 +268,92 @@ void DrawCommandCollector::updateBackBuffer()
         lastTime = now;
     }
 
-    struct DrawCommand command(DrawCommandType::TEXT, Color(100, 100, 100), std::vector<Vector2>{Vector2(10, 10)}, 12);  // 12 is font size
+    DrawCommand command(DrawCommandType::TEXT, Color(100, 100, 100), std::vector<Vector2>{Vector2(10, 10)}, 12);  // 12 is font size
     
-    char buf[40];
+    char buf[256];
     snprintf(buf, sizeof(buf), "FPS: %.1f\nGeneration: %u", fps, physicsManager->getGeneration());
     command.text = buf;
     backBuffer->emplace_back(command);
+
+    // TODO: Move to another function and variable in order to not render it every frame
+    // Neural network of the first creature
+    #if DRAW_NEURAL_NETWORK
+    if (creatures.size() > 4) {
+        Brain *brain = creatures[creatures.size()-3]->getBrain();
+        std::vector<size_t> layers = brain->getLayerSizes();
+        std::vector<std::vector<double>> weights = brain->getWeights();
+
+        double minWeight, maxWeight;
+        bool weightsInitialized = false;
+        for (auto vec : weights) {
+            for (auto w : vec) {
+                if (!weightsInitialized) {
+                    minWeight = w;
+                    maxWeight = w;
+                    weightsInitialized = true;
+                }
+                if (w > maxWeight) {
+                    maxWeight = w;
+                } else if (w < minWeight) {
+                    minWeight = w;
+                }
+            }
+        }
+
+        const Vector2 panel = panelSize.load();
+        const int minX = 0;
+        const int maxX = panel.x;
+        const int minY = 360;
+        const int maxY = panel.y;
+        const int stepX = (maxX - minX) / (layers.size() + 3);
+        
+        std::vector<Vector2> previousPositions1;
+        std::vector<Vector2> previousPositions2;
+        std::vector<Vector2>& previousPositionsFront = previousPositions1;
+        std::vector<Vector2>& previousPositionsBack = previousPositions2;
+        {
+            // Draw the first layer
+            const int posX = stepX * 1 + minX;
+            const int stepY = (maxY - minY) / (layers[0] + 2);
+            for (size_t j = 0; j < layers[0]; ++j) {
+                const int posY = stepY * (j+1) + minY;
+                backBuffer->emplace_back(DrawCommandType::CIRCLE, Color(178, 75, 23), Vector2(posX, posY), 5);
+                previousPositionsFront.emplace_back(posX, posY);
+            }
+        }
+
+        for (size_t l = 0; l + 1 < layers.size(); ++l) {
+            // For every layer except the least
+
+            const int posX = stepX * (l+2) + minX;
+            const int stepY = (maxY - minY) / (layers[l + 1] + 2);
+            for (size_t j = 0; j < layers[l + 1]; ++j) {
+                // For every neuron on layer
+
+                const int posY = stepY * (j+1) + minY;
+                
+                for (size_t i = 0; i < layers[l]; ++i) {
+                    // For every weight
+                    size_t idx = j * layers[l] + i;
+                    const double minWidth = 0.1;
+                    const double maxWidth = 3;
+
+                    for (const auto v : previousPositionsFront) {
+                        std::vector<Vector2> points { Vector2(posX, posY), v };
+                        uint8_t gray = map_range(weights[l][idx], minWeight, maxWeight, 0.0, 255.0);
+                        backBuffer->emplace_back(DrawCommandType::LINE, Color(gray, gray, gray, gray), points, map_range(weights[l][idx], minWeight, maxWeight, minWidth, maxWidth));
+                    }
+                }
+                backBuffer->emplace_back(DrawCommandType::CIRCLE, Color(178, 75, 23), Vector2(posX, posY), 5);
+                previousPositionsBack.emplace_back(posX, posY);
+            }
+            auto& tmp = previousPositionsFront;
+            previousPositionsFront = previousPositionsBack;
+            previousPositionsBack = tmp;
+            previousPositionsBack.clear();
+        }
+    }
+    #endif
 }
 
 void DrawCommandCollector::start()

@@ -306,7 +306,7 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
     std::lock_guard lock(data_mutex);
 
     // NOTE: Difference here is always 1 so far, so this may be optimized
-    std::map<unsigned, size_t> bodyPartIdToBodiesId;
+    std::map<unsigned, size_t> bodyPartIdToCpBodyId;
 
     size_t creatureCount = 0;
     for (auto& creature : chipmunkCreatures) {
@@ -331,7 +331,7 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             obj_body.initPosition = bodyPart->getBodyPosBias();
 
             bodies.push_back(obj_body);
-            bodyPartIdToBodiesId[obj_body.id] = bodies.size() - 1;
+            bodyPartIdToCpBodyId[obj_body.id] = bodies.size() - 1;
         }
     }
 
@@ -351,8 +351,8 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             obj_shape.radius = bodyPart->getRadius();
             obj_shape.vertices = bodyPart->getBiasedVertices();
 
-            auto it = bodyPartIdToBodiesId.find(bodyPart->getId());
-            if (it != bodyPartIdToBodiesId.end()) {
+            auto it = bodyPartIdToCpBodyId.find(bodyPart->getId());
+            if (it != bodyPartIdToCpBodyId.end()) {
                 obj_shape.body = &bodies.at(it->second);
             } else {
                 obj_shape.body = nullptr;
@@ -384,8 +384,8 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
                 
                 // partA
                 BodyPart* bodyPartA = static_cast<BodyPart*>(cpBodyGetUserData(cpConstraintGetBodyA(cp_constraint)));
-                auto itA = bodyPartIdToBodiesId.find(bodyPartA->getId());
-                if (itA != bodyPartIdToBodiesId.end()) {
+                auto itA = bodyPartIdToCpBodyId.find(bodyPartA->getId());
+                if (itA != bodyPartIdToCpBodyId.end()) {
                     obj_constraint.partA = &bodies.at(itA->second);
                 } else {
                     obj_constraint.partA = nullptr;
@@ -394,8 +394,8 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
 
                 // partB
                 BodyPart* bodyPartB = static_cast<BodyPart*>(cpBodyGetUserData(cpConstraintGetBodyB(cp_constraint)));
-                auto itB = bodyPartIdToBodiesId.find(bodyPartB->getId());
-                if (itB != bodyPartIdToBodiesId.end()) {
+                auto itB = bodyPartIdToCpBodyId.find(bodyPartB->getId());
+                if (itB != bodyPartIdToCpBodyId.end()) {
                     obj_constraint.partB = &bodies.at(itB->second);
                 } else {
                     obj_constraint.partB = nullptr;
@@ -490,7 +490,7 @@ void ChipmunkEngine::getCreatures(std::vector<Creature *>& out)
 void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &data)
 {
     // TODO: A huge work on fitness calculating. Now it just doesn't work the desired way
-    const float MUSCLE_WORK_FITNESS_IMPACT = -0.003*0;
+    const float MUSCLE_WORK_FITNESS_IMPACT = 0.0007;
     const float X_DISTANCE_FITNESS_IMPACT = 0.15;
 
     for (const auto& d : data) {
