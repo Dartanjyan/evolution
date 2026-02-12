@@ -1,7 +1,7 @@
 #include <chrono>
 #include "DrawCommandCollector.h"
 
-#define DRAW_NEURAL_NETWORK 1
+#define DRAW_NEURAL_NETWORK 0
 
 DrawCommandCollector::DrawCommandCollector(PhysicsManager *physicsManager)
 : physicsManager(physicsManager)

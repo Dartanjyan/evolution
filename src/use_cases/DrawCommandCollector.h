@@ -51,22 +51,31 @@ public:
 private:
     void run();
     void flip();
+    void flipStale();
     void updateBackBuffer();
 
     PhysicsManager* physicsManager;
     std::vector<DrawCommand> buffer1, buffer2;
+    std::vector<DrawCommand> staleBuffer1, staleBuffer2;
 
     std::vector<DrawCommand>* frontBuffer = &buffer1;
     std::vector<DrawCommand>* backBuffer = &buffer2;
+    // Stale buffers are not updated every frame
+    std::vector<DrawCommand>* frontStaleBuffer = &staleBuffer1;
+    std::vector<DrawCommand>* backStaleBuffer = &staleBuffer2;
 
     // Initially front buffer is also not ready
     std::atomic<bool> frontBufferReady;
     std::atomic<bool> backBufferReady;
+    std::atomic<bool> frontStaleBufferReady;
+    std::atomic<bool> backStaleBufferReady;
+
     std::atomic<bool> running;
     std::atomic<Vector2> panelSize;
 
     std::thread collectorThread;
     std::mutex bufferMutex;
+    std::mutex staleBufferMutex;
 };
 
 #endif // DRAWCOMMANDCOLLECTOR_H
