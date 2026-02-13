@@ -6,7 +6,7 @@
 #include <iostream>
 
 MainFrame::MainFrame(PhysicsManager* physicsManager)
-    : wxFrame(nullptr, wxID_ANY, "Evolution by Alex", wxDefaultPosition, wxSize(800, 600)),
+    : wxFrame(nullptr, wxID_ANY, "Evolution by Alex", wxDefaultPosition, wxSize(1024, 768)),
       physicsManager(physicsManager)
 {
     SetSizerAndFit(new wxBoxSizer(wxVERTICAL));
@@ -16,8 +16,8 @@ MainFrame::MainFrame(PhysicsManager* physicsManager)
         wxTheApp->ExitMainLoop();
     });
 
-    // SetMinSize(wxSize(600, 480));
-    SetMinSize(wxSize(1600, 900));
+    SetMinSize(wxSize(600, 480));
+    // SetMinSize(wxSize(1600, 900));
 }
 
 void MainFrame::ClearCurrentPanel() {

@@ -11,7 +11,7 @@ DrawPanel::DrawPanel(PhysicsManager* physicsManager, wxWindow* parent, wxWindowI
                      long style) 
     : wxPanel(parent, id, pos, size, style), physicsManager(physicsManager)
 {
-    drawCommandCollector = std::make_unique<DrawCommandCollector>(physicsManager);
+    drawCommandCollector = std::make_shared<DrawCommandCollector>(physicsManager);
     drawCommandCollector->start();
         
     SetBackgroundColour(wxColour(240, 240, 240));

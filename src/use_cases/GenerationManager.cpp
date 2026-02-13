@@ -1,9 +1,10 @@
 #include "GenerationManager.h"
 #include "PhysicsManager.h"
 #include "BrainMutator.h"
+#include "DrawCommandCollector.h"
 
-GenerationManager::GenerationManager(PhysicsManager *physicsManager, unsigned creaturesPerGeneration, unsigned long ticksPerGeneration)
-    : physicsManager(physicsManager), creaturesPerGeneration(creaturesPerGeneration), ticksPerGeneration(ticksPerGeneration), generation(0)
+GenerationManager::GenerationManager(PhysicsManager *physicsManager, std::shared_ptr<DrawCommandCollector> drawCommandCollector, unsigned creaturesPerGeneration, unsigned long ticksPerGeneration)
+    : physicsManager(physicsManager), drawCommandCollector(drawCommandCollector), creaturesPerGeneration(creaturesPerGeneration), ticksPerGeneration(ticksPerGeneration), generation(0)
 {
     for (unsigned int i=0; i<creaturesPerGeneration; ++i) {
         physicsManager->addCreature(Creature::createBasicCreature());
@@ -88,4 +89,6 @@ void GenerationManager::endGeneration()
     }
     
     generation++;
+
+    drawCommandCollector->updateScreenInfo(creatures);
 }

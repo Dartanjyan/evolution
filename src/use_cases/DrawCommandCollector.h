@@ -48,11 +48,17 @@ public:
     void stop();
     void getCommands(std::vector<DrawCommand>& commands);
     void setPanelSize(Vector2 newSize);
+    // Idk how to name this function.
+    // It updates stale buffers so that
+    // some information is not updated every frame
+    // like for example neural network visualization
+    void updateScreenInfo(const std::vector<Creature *>& creatures);
 private:
     void run();
     void flip();
     void flipStale();
     void updateBackBuffer();
+    void insertStaleBuffer();
 
     PhysicsManager* physicsManager;
     std::vector<DrawCommand> buffer1, buffer2;

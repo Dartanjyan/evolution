@@ -2,6 +2,7 @@
 #include <chrono>
 #include "AIManager.h"
 #include "BrainEditor.h"
+#include "DrawCommandCollector.h"
 
 PhysicsManager::PhysicsManager(std::unique_ptr<IPhysicsEngine> engine, std::unique_ptr<IAICalculator> ai_calculator, std::unique_ptr<ISimulationSaver> simulationSaver)
     : engine(std::move(engine)), running(false), simulationSaver(std::move(simulationSaver)), tickCounter(0), updateInterval(std::chrono::milliseconds(16))
@@ -43,6 +44,7 @@ void PhysicsManager::stopInternal() {
 }
 
 void PhysicsManager::start() {
+    // TODO: drawCommandCollector in tge constructor
     generationManager = std::make_unique<GenerationManager>(this, 10, 60*10);
     if (!running.load()) {
         startInternal();

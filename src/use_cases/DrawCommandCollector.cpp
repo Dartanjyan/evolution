@@ -1,13 +1,15 @@
 #include <chrono>
 #include "DrawCommandCollector.h"
 
-#define DRAW_NEURAL_NETWORK 0
+#define DRAW_NEURAL_NETWORK 1
 
 DrawCommandCollector::DrawCommandCollector(PhysicsManager *physicsManager)
 : physicsManager(physicsManager)
 {
     backBufferReady.store(false);
     frontBufferReady.store(false);
+    backStaleBufferReady.store(false);
+    frontStaleBufferReady.store(false);
 
     physicsManager->start();
 }
@@ -49,6 +51,19 @@ void DrawCommandCollector::flip()
     backBufferReady.store(false);
 }
 
+void DrawCommandCollector::flipStale()
+{
+    std::lock_guard<std::mutex> lock(staleBufferMutex);
+
+    // Swap frames
+    auto* tmp = frontStaleBuffer;
+    frontStaleBuffer = backStaleBuffer;
+    backStaleBuffer = tmp;
+    
+    // Request render
+    backStaleBufferReady.store(false);
+}
+
 void DrawCommandCollector::stop() {
     running.store(false);
     if (collectorThread.joinable())
@@ -68,6 +83,97 @@ constexpr T map_range(T x,
            + out_min;
 }
 #endif
+
+void DrawCommandCollector::updateScreenInfo(const std::vector<Creature *>& creatures)
+{
+    std::lock_guard<std::mutex> lock(staleBufferMutex);
+    // Neural network of the first creature
+    #if DRAW_NEURAL_NETWORK
+    if (creatures.size() > 4) {
+        Brain *brain = creatures[creatures.size()-3]->getBrain();
+        std::vector<size_t> layers = brain->getLayerSizes();
+        std::vector<std::vector<double>> weights = brain->getWeights();
+
+        double minWeight, maxWeight;
+        bool weightsInitialized = false;
+        for (auto vec : weights) {
+            for (auto w : vec) {
+                if (!weightsInitialized) {
+                    minWeight = w;
+                    maxWeight = w;
+                    weightsInitialized = true;
+                }
+                if (w > maxWeight) {
+                    maxWeight = w;
+                } else if (w < minWeight) {
+                    minWeight = w;
+                }
+            }
+        }
+
+        const Vector2 panel = panelSize.load();
+        const int minX = 0;
+        const int maxX = panel.x;
+        const int minY = 360;
+        const int maxY = panel.y;
+        const int stepX = (maxX - minX) / (layers.size() + 3);
+        
+        std::vector<Vector2> previousPositions1;
+        std::vector<Vector2> previousPositions2;
+        std::vector<Vector2>& previousPositionsFront = previousPositions1;
+        std::vector<Vector2>& previousPositionsBack = previousPositions2;
+        {
+            // Draw the first layer
+            const int posX = stepX * 1 + minX;
+            const int stepY = (maxY - minY) / (layers[0] + 2);
+            for (size_t j = 0; j < layers[0]; ++j) {
+                const int posY = stepY * (j+1) + minY;
+                backBuffer->emplace_back(DrawCommandType::CIRCLE, Color(178, 75, 23), Vector2(posX, posY), 5);
+                previousPositionsFront.emplace_back(posX, posY);
+            }
+        }
+
+        for (size_t l = 0; l + 1 < layers.size(); ++l) {
+            // For every layer except the least
+
+            const int posX = stepX * (l+2) + minX;
+            const int stepY = (maxY - minY) / (layers[l + 1] + 2);
+            for (size_t j = 0; j < layers[l + 1]; ++j) {
+                // For every neuron on layer
+
+                const int posY = stepY * (j+1) + minY;
+                
+                for (size_t i = 0; i < layers[l]; ++i) {
+                    // For every weight
+                    size_t idx = j * layers[l] + i;
+                    const double minWidth = 0.1;
+                    const double maxWidth = 3;
+
+                    for (const auto v : previousPositionsFront) {
+                        std::vector<Vector2> points { Vector2(posX, posY), v };
+                        uint8_t gray = map_range(weights[l][idx], minWeight, maxWeight, 0.0, 255.0);
+                        backBuffer->emplace_back(DrawCommandType::LINE, Color(gray, gray, gray, gray), points, map_range(weights[l][idx], minWeight, maxWeight, minWidth, maxWidth));
+                    }
+                }
+                backBuffer->emplace_back(DrawCommandType::CIRCLE, Color(178, 75, 23), Vector2(posX, posY), 5);
+                previousPositionsBack.emplace_back(posX, posY);
+            }
+            auto& tmp = previousPositionsFront;
+            previousPositionsFront = previousPositionsBack;
+            previousPositionsBack = tmp;
+            previousPositionsBack.clear();
+        }
+    }
+    #endif // DRAW_NEURAL_NETWORK
+
+    backStaleBufferReady.store(true);
+}
+
+void DrawCommandCollector::insertStaleBuffer()
+{
+    std::lock_guard<std::mutex> lock(staleBufferMutex);
+    backBuffer->insert(backBuffer->end(), frontStaleBuffer->begin(), frontStaleBuffer->end());
+}
 
 void DrawCommandCollector::updateBackBuffer()
 {
@@ -275,85 +381,9 @@ void DrawCommandCollector::updateBackBuffer()
     command.text = buf;
     backBuffer->emplace_back(command);
 
-    // TODO: Move to another function and variable in order to not render it every frame
-    // Neural network of the first creature
-    #if DRAW_NEURAL_NETWORK
-    if (creatures.size() > 4) {
-        Brain *brain = creatures[creatures.size()-3]->getBrain();
-        std::vector<size_t> layers = brain->getLayerSizes();
-        std::vector<std::vector<double>> weights = brain->getWeights();
+    insertStaleBuffer();
 
-        double minWeight, maxWeight;
-        bool weightsInitialized = false;
-        for (auto vec : weights) {
-            for (auto w : vec) {
-                if (!weightsInitialized) {
-                    minWeight = w;
-                    maxWeight = w;
-                    weightsInitialized = true;
-                }
-                if (w > maxWeight) {
-                    maxWeight = w;
-                } else if (w < minWeight) {
-                    minWeight = w;
-                }
-            }
-        }
-
-        const Vector2 panel = panelSize.load();
-        const int minX = 0;
-        const int maxX = panel.x;
-        const int minY = 360;
-        const int maxY = panel.y;
-        const int stepX = (maxX - minX) / (layers.size() + 3);
-        
-        std::vector<Vector2> previousPositions1;
-        std::vector<Vector2> previousPositions2;
-        std::vector<Vector2>& previousPositionsFront = previousPositions1;
-        std::vector<Vector2>& previousPositionsBack = previousPositions2;
-        {
-            // Draw the first layer
-            const int posX = stepX * 1 + minX;
-            const int stepY = (maxY - minY) / (layers[0] + 2);
-            for (size_t j = 0; j < layers[0]; ++j) {
-                const int posY = stepY * (j+1) + minY;
-                backBuffer->emplace_back(DrawCommandType::CIRCLE, Color(178, 75, 23), Vector2(posX, posY), 5);
-                previousPositionsFront.emplace_back(posX, posY);
-            }
-        }
-
-        for (size_t l = 0; l + 1 < layers.size(); ++l) {
-            // For every layer except the least
-
-            const int posX = stepX * (l+2) + minX;
-            const int stepY = (maxY - minY) / (layers[l + 1] + 2);
-            for (size_t j = 0; j < layers[l + 1]; ++j) {
-                // For every neuron on layer
-
-                const int posY = stepY * (j+1) + minY;
-                
-                for (size_t i = 0; i < layers[l]; ++i) {
-                    // For every weight
-                    size_t idx = j * layers[l] + i;
-                    const double minWidth = 0.1;
-                    const double maxWidth = 3;
-
-                    for (const auto v : previousPositionsFront) {
-                        std::vector<Vector2> points { Vector2(posX, posY), v };
-                        uint8_t gray = map_range(weights[l][idx], minWeight, maxWeight, 0.0, 255.0);
-                        backBuffer->emplace_back(DrawCommandType::LINE, Color(gray, gray, gray, gray), points, map_range(weights[l][idx], minWeight, maxWeight, minWidth, maxWidth));
-                    }
-                }
-                backBuffer->emplace_back(DrawCommandType::CIRCLE, Color(178, 75, 23), Vector2(posX, posY), 5);
-                previousPositionsBack.emplace_back(posX, posY);
-            }
-            auto& tmp = previousPositionsFront;
-            previousPositionsFront = previousPositionsBack;
-            previousPositionsBack = tmp;
-            previousPositionsBack.clear();
-        }
-    }
-    #endif
+    backBufferReady.store(true);
 }
 
 void DrawCommandCollector::start()
@@ -377,7 +407,6 @@ void DrawCommandCollector::run()
     while (running.load()) {
         if (!backBufferReady.load()) {
             updateBackBuffer();
-            backBufferReady.store(true);
         } else {
             std::this_thread::sleep_for(std::chrono::milliseconds(10));
         }

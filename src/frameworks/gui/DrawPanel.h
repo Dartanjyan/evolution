@@ -24,7 +24,7 @@ private:
     PhysicsManager* physicsManager;
     wxTimer* timer;
 
-    std::unique_ptr<DrawCommandCollector> drawCommandCollector;
+    std::shared_ptr<DrawCommandCollector> drawCommandCollector;
 };
 
 #endif
