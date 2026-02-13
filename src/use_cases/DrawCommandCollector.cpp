@@ -11,7 +11,7 @@ DrawCommandCollector::DrawCommandCollector(PhysicsManager *physicsManager)
     backStaleBufferReady.store(false);
     frontStaleBufferReady.store(false);
 
-    physicsManager->start();
+    physicsManager->start(this);
 }
 
 DrawCommandCollector::~DrawCommandCollector()
@@ -53,8 +53,6 @@ void DrawCommandCollector::flip()
 
 void DrawCommandCollector::flipStale()
 {
-    std::lock_guard<std::mutex> lock(staleBufferMutex);
-
     // Swap frames
     auto* tmp = frontStaleBuffer;
     frontStaleBuffer = backStaleBuffer;
@@ -84,8 +82,9 @@ constexpr T map_range(T x,
 }
 #endif
 
-void DrawCommandCollector::updateScreenInfo(const std::vector<Creature *>& creatures)
+void DrawCommandCollector::updateScreenInfo()
 {
+    std::cout << "DrawCommandCollector::updateScreenInfo() called!\n";
     std::lock_guard<std::mutex> lock(staleBufferMutex);
     // Neural network of the first creature
     #if DRAW_NEURAL_NETWORK
@@ -128,7 +127,7 @@ void DrawCommandCollector::updateScreenInfo(const std::vector<Creature *>& creat
             const int stepY = (maxY - minY) / (layers[0] + 2);
             for (size_t j = 0; j < layers[0]; ++j) {
                 const int posY = stepY * (j+1) + minY;
-                backBuffer->emplace_back(DrawCommandType::CIRCLE, Color(178, 75, 23), Vector2(posX, posY), 5);
+                backStaleBuffer->emplace_back(DrawCommandType::CIRCLE, Color(178, 75, 23), Vector2(posX, posY), 5);
                 previousPositionsFront.emplace_back(posX, posY);
             }
         }
@@ -152,10 +151,10 @@ void DrawCommandCollector::updateScreenInfo(const std::vector<Creature *>& creat
                     for (const auto v : previousPositionsFront) {
                         std::vector<Vector2> points { Vector2(posX, posY), v };
                         uint8_t gray = map_range(weights[l][idx], minWeight, maxWeight, 0.0, 255.0);
-                        backBuffer->emplace_back(DrawCommandType::LINE, Color(gray, gray, gray, gray), points, map_range(weights[l][idx], minWeight, maxWeight, minWidth, maxWidth));
+                        backStaleBuffer->emplace_back(DrawCommandType::LINE, Color(gray, gray, gray, gray), points, map_range(weights[l][idx], minWeight, maxWeight, minWidth, maxWidth));
                     }
                 }
-                backBuffer->emplace_back(DrawCommandType::CIRCLE, Color(178, 75, 23), Vector2(posX, posY), 5);
+                backStaleBuffer->emplace_back(DrawCommandType::CIRCLE, Color(178, 75, 23), Vector2(posX, posY), 5);
                 previousPositionsBack.emplace_back(posX, posY);
             }
             auto& tmp = previousPositionsFront;
@@ -166,7 +165,12 @@ void DrawCommandCollector::updateScreenInfo(const std::vector<Creature *>& creat
     }
     #endif // DRAW_NEURAL_NETWORK
 
-    backStaleBufferReady.store(true);
+    flipStale();
+}
+
+void DrawCommandCollector::setCreatures(const std::vector<Creature *> &new_creatures)
+{
+    creatures = new_creatures;
 }
 
 void DrawCommandCollector::insertStaleBuffer()

@@ -19,7 +19,7 @@ void PhysicsManager::getRenderObjects(std::vector<BodyObject> &bodies, std::vect
 
 void PhysicsManager::removeCreature(Creature *creature) { engine->removeCreature(creature->getId()); }
 
-void PhysicsManager::getCreatures(std::vector<Creature *> &out) {
+void PhysicsManager::getCreatures(std::vector<Creature *> &out) const {
     // NOTE: Might be not thread safe..?
     engine->getCreatures(out);
 }
@@ -43,9 +43,8 @@ void PhysicsManager::stopInternal() {
     }
 }
 
-void PhysicsManager::start() {
-    // TODO: drawCommandCollector in tge constructor
-    generationManager = std::make_unique<GenerationManager>(this, 10, 60*10);
+void PhysicsManager::start(DrawCommandCollector* drawCommandCollector) {
+    generationManager = std::make_unique<GenerationManager>(this, drawCommandCollector, 10, 60*10);
     if (!running.load()) {
         startInternal();
         physicsThread = std::thread(&PhysicsManager::run, this);
@@ -141,6 +140,6 @@ void PhysicsManager::setUpdateTimeScale(float scale)
     std::cout << "Time scale: " << scale << ", interval = " << updateInterval << "\n";
 }
 
-unsigned int PhysicsManager::getGeneration() {
+unsigned int PhysicsManager::getGeneration() const {
     return generationManager ? generationManager->getGeneration() : 0;
 }

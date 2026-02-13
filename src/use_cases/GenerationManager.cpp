@@ -3,13 +3,37 @@
 #include "BrainMutator.h"
 #include "DrawCommandCollector.h"
 
-GenerationManager::GenerationManager(PhysicsManager *physicsManager, std::shared_ptr<DrawCommandCollector> drawCommandCollector, unsigned creaturesPerGeneration, unsigned long ticksPerGeneration)
+GenerationManager::GenerationManager(PhysicsManager *physicsManager, DrawCommandCollector* drawCommandCollector, unsigned creaturesPerGeneration, unsigned long ticksPerGeneration)
     : physicsManager(physicsManager), drawCommandCollector(drawCommandCollector), creaturesPerGeneration(creaturesPerGeneration), ticksPerGeneration(ticksPerGeneration), generation(0)
 {
     for (unsigned int i=0; i<creaturesPerGeneration; ++i) {
         physicsManager->addCreature(Creature::createBasicCreature());
     }
+
+    updateScreenInfo();
+
     std::cout << "Created GenerationManager\n";
+}
+
+void GenerationManager::updateScreenInfo() {
+    std::cout << "GenerationManager::updateScreenInfo() called!\n";
+    
+    if (!physicsManager) {
+        std::cout << "physicsManager = nullptr ..?\n";
+        return;
+    }
+    if (!drawCommandCollector) {
+        std::cout << "drawCommandCollector = nullptr ..?\n";
+        return;
+    }
+    
+    std::vector<Creature *> creatures;
+    physicsManager->getCreatures(creatures);
+    if (creatures.size() > 0) {
+        int stop = 0;
+    }
+    drawCommandCollector->setCreatures(creatures);
+    drawCommandCollector->updateScreenInfo();
 }
 
 GenerationManager::~GenerationManager()
@@ -28,6 +52,8 @@ const unsigned LEAVE_OLD_CREATURES = 1;
 const unsigned NEW_RANDOM_CREATURES = 2;
 void GenerationManager::endGeneration()
 {
+    updateScreenInfo();
+    
     std::cout << "=== End of generation " << generation << " ===" << std::endl;
     
     std::vector<Creature *> creatures;
@@ -89,6 +115,4 @@ void GenerationManager::endGeneration()
     }
     
     generation++;
-
-    drawCommandCollector->updateScreenInfo(creatures);
 }

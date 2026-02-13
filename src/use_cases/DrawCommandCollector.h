@@ -52,7 +52,9 @@ public:
     // It updates stale buffers so that
     // some information is not updated every frame
     // like for example neural network visualization
-    void updateScreenInfo(const std::vector<Creature *>& creatures);
+    void updateScreenInfo();
+
+    void setCreatures(const std::vector<Creature *>& new_creatures);
 private:
     void run();
     void flip();
@@ -82,6 +84,8 @@ private:
     std::thread collectorThread;
     std::mutex bufferMutex;
     std::mutex staleBufferMutex;
+
+    std::vector<Creature *> creatures;
 };
 
 #endif // DRAWCOMMANDCOLLECTOR_H
