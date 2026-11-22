@@ -1,0 +1,21 @@
+#include "BrainEditor.h"
+
+void BrainEditor::updateMemory(std::vector<CreaturePhysicsInputs> &data)
+{
+    for (auto &d : data) {
+        Brain* brain = d.creature->getBrain();
+        if (brain == nullptr) {
+            std::cout << "BrainEditor.cpp::updateMemory: Creature "<<d.creature->getId()<<" has no brain\n";
+            continue;
+        }
+        if (d.outputs.size() < brain->getMemory().size()) {
+            std::cout << "BrainEditor.cpp::updateMemory: Not enough outputs to update memory of Creature "<<d.creature->getId()<<" (got "<<d.outputs.size()<<", expected "<<brain->getMemory().size()<<")\n";
+            continue;
+        }
+        
+        const std::vector<double> new_memory(d.outputs.end() - brain->getMemory().size(), d.outputs.end());
+        const std::vector<double> new_outputs(d.outputs.begin(), d.outputs.end() - brain->getMemory().size());
+        d.outputs = std::move(new_outputs);
+        brain->setMemory(new_memory);
+    }
+}
