@@ -84,14 +84,14 @@ void ChipmunkEngine::removeCreature(unsigned creature_id)
 
 void ChipmunkEngine::removeAllCreatures()
 {
-    for (const auto& pair : chipmunkCreatures) {
-        removeCreature(pair.first);
+    while (!chipmunkCreatures.empty()) {
+        removeCreature(chipmunkCreatures.begin()->first);
     }
     chipmunkCreatures.clear();
 }
 
 void ChipmunkEngine::shutdown() {
-    std::lock_guard lock(data_mutex);
+    std::lock_guard<std::mutex> lock(data_mutex);
 
     removeAllCreatures();
 
@@ -303,7 +303,7 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
     std::vector<ShapeObject> &shapes, 
     std::vector<ConstraintObject> &constraints)
 {
-    std::lock_guard lock(data_mutex);
+    std::lock_guard<std::mutex> lock(data_mutex);
 
     // NOTE: Difference here is always 1 so far, so this may be optimized
     std::map<unsigned, size_t> bodyPartIdToCpBodyId;

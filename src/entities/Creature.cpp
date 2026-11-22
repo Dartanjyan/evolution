@@ -268,12 +268,12 @@ Creature* Creature::createBasicCreature(Brain* brain)
         Vector2(90, 20)*scale+bias, 
         Vector2(150, 10)*scale+bias, 
         rest, stiffness, damping);
-    Constraint* m9 = new Constraint(
-        body, ll1,
-        ConstraintType::MUSCLE, 
-        Vector2(90, 40)*scale+bias, 
-        Vector2(60, 30)*scale+bias, 
-        rest, stiffness, damping);
+    // Constraint* m9 = new Constraint(
+    //     body, ll1,
+    //     ConstraintType::MUSCLE, 
+    //     Vector2(90, 40)*scale+bias, 
+    //     Vector2(60, 30)*scale+bias, 
+    //     rest, stiffness, damping);
     
     std::vector<BodyPart*> bodyParts = {body, ll1, ll2, ll3, rl1, rl2, rl3, t1, h1};
     std::vector<Constraint*> constraints = {j1, j2, j3, j4, j5, j6, j7, j8, m1, m2, m3, m4, m5, m6, m7, m8};
