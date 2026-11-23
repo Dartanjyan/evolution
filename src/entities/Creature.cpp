@@ -280,16 +280,16 @@ Creature* Creature::createBasicCreature(Brain* brain)
     
     
     if (brain == nullptr) {
-        int joints = 8;
-        int muscles = 8;
-        int eyes = 0;
-        int memory = 4;
-        std::size_t input_layer = 2 + joints*2 + eyes*5 + memory;
-        std::size_t output_layer = muscles + memory;
+        constexpr int joints = 8;
+        constexpr int muscles = 8;
+        constexpr int eyes = 0;
+        constexpr int memory = 4;
+        constexpr std::size_t input_layer = 2 + joints*2 + eyes*5 + memory;
+        constexpr std::size_t output_layer = muscles + memory;
         // std::cout << "Creature input size "<<input_layer<<", output size "<<output_layer<<"\n";
         brain = new Brain({
                     input_layer,
-                    (input_layer + output_layer)/(std::size_t)2*(std::size_t)1.5,
+                    (input_layer + output_layer)/(std::size_t)2*(std::size_t)1,
                     output_layer
                 }, 
                 memory);
