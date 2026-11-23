@@ -30,7 +30,13 @@ build-win/
 # System files
 .DS_Store
 Thumbs.db
+
+# My files
 new.tar.xz
 *.swp
 whole.txt
 archive.zip
+perf.data
+profile.perf-folded
+perf.svg
+*.old
