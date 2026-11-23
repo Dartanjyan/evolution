@@ -11,12 +11,6 @@ BrainMutator::BrainMutator(MutatorConfig config)
 Brain* BrainMutator::createChildBrain(const Brain& parent1, const Brain& parent2, 
                                      CrossoverMethod crossover_method, 
                                      MutationMethod mutation_method) {
-    
-    // if (!validateBrainStructure(parent1, parent2)) {
-    //     std::cerr << "Brain structures don't match! Using parent1 as fallback.\n";
-    //     return new Brain(parent1);
-    // }
-
     Brain* child_brain = nullptr;
     
     // Применяем выбранный алгоритм скрещивания

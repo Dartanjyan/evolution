@@ -34,6 +34,7 @@ public:
     float getFitness() const { return fitness; }
     
     void setFitness(float value) { fitness = value; }
+    void increaseFitness(float value) { fitness += value; }
     void replaceBrain(Brain* new_brain);
     
     void addConstraint(Constraint* constraint);

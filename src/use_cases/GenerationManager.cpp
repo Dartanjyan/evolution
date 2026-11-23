@@ -16,7 +16,7 @@ GenerationManager::GenerationManager(PhysicsManager *physicsManager, DrawCommand
 }
 
 void GenerationManager::updateScreenInfo() {
-    std::cout << "GenerationManager::updateScreenInfo() called!\n";
+    // std::cout << "GenerationManager::updateScreenInfo() called!\n";
     
     if (!physicsManager) {
         std::cout << "physicsManager = nullptr ..?\n";
@@ -99,10 +99,6 @@ void GenerationManager::endGeneration()
         );
         newGenerationBrains.emplace_back(childBrain);
     }
-    
-    // std::cout << "New gen size is now " << newGenerationBrains.size() << " :)\n";
-    
-    // physicsManager->removeAllCreatures();
     
     // std::cout << "Rebooting physicsManager\n";
     physicsManager->stopInternal();

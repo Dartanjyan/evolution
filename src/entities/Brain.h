@@ -13,6 +13,7 @@ public:
         const std::vector<std::vector<double>>& weights = {}, 
         const std::vector<double>& biases = {}
     );
+    Brain(const Brain &other);
 
     unsigned getId() { return id; }
     const std::vector<std::size_t> getLayerSizes() const noexcept;

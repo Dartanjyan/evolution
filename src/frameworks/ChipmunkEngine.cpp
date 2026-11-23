@@ -4,9 +4,9 @@
 #define CATEGORY_ENTITY  0b0001
 #define CATEGORY_TERRAIN 0b0010
 
-ChipmunkCreature* ChipmunkEngine::findChipmunkCreatureForCreature(Creature *creature) const
+ChipmunkCreature* ChipmunkEngine::findChipmunkCreatureWithId(unsigned int creatureId) const
 {
-    auto it = chipmunkCreatures.find(creature->getId());
+    auto it = chipmunkCreatures.find(creatureId);
     if (it != chipmunkCreatures.end()) {
         return it->second;
     } else {
@@ -490,17 +490,17 @@ void ChipmunkEngine::getCreatures(std::vector<Creature *>& out)
 void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &data)
 {
     // TODO: A huge work on fitness calculating. Now it just doesn't work the desired way
-    const float MUSCLE_WORK_FITNESS_IMPACT = 0.0007;
-    const float X_DISTANCE_FITNESS_IMPACT = 0.15;
+    const float MUSCLE_WORK_FITNESS_IMPACT = 0.0005f;
+    const float X_DISTANCE_FITNESS_IMPACT = 0.5f;
 
-    for (const auto& d : data) {
-        ChipmunkCreature *creature = findChipmunkCreatureForCreature(d.creature);
+    for (const auto& cpCreatureAIData : data) {
+        ChipmunkCreature *creature = findChipmunkCreatureWithId(cpCreatureAIData.creature->getId());
         if (creature == nullptr)
             continue;
         
         auto muscles = creature->creature->getMuscles();
-        if (d.outputs.size() != muscles.size()) {
-            std::cout << "ChipmunkEngine::applyAIResults: Got incompatible output size to muscle amount (got "<<d.outputs.size()<<", expected "<<muscles.size()<<")\n";
+        if (cpCreatureAIData.outputs.size() != muscles.size()) {
+            std::cout << "ChipmunkEngine::applyAIResults: Got incompatible output size to muscle amount (got "<<cpCreatureAIData.outputs.size()<<", expected "<<muscles.size()<<")\n";
             continue;
         }
         
@@ -509,7 +509,7 @@ void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &da
             cpConstraint* chipmunkMuscle = creature->constraints[muscle->getId()];
 
             float old_rest = cpDampedSpringGetRestLength(chipmunkMuscle);
-            float new_rest = /*muscle->clampRest(*/d.outputs[i] * muscle->getNeutralSize()/*)*/ * 6;
+            float new_rest = /*muscle->clampRest(*/cpCreatureAIData.outputs[i] * muscle->getNeutralSize()/*)*/ * 6;
             cpDampedSpringSetRestLength(chipmunkMuscle, new_rest);
 
             // TODO: Отношение пройденного расстояния к затраченной энергии.
@@ -517,32 +517,30 @@ void ChipmunkEngine::applyAIResults(const std::vector<CreaturePhysicsInputs> &da
             // A little penalty for every muscle work
             //
             const float penalty = std::abs(old_rest - new_rest)*MUSCLE_WORK_FITNESS_IMPACT;
-            d.creature->setFitness(d.creature->getFitness() - penalty);
+            cpCreatureAIData.creature->setFitness(cpCreatureAIData.creature->getFitness() - penalty);
             // 
-            // std::cout << "New rest: " << d.outputs[i] << "\n";
+            // std::cout << "New rest: " << cpCreatureAIData.outputs[i] << "\n";
             // std::cout << "Rest diff: " << old_rest - new_rest << "\n";
             // std::cout << "Fitness penalty: " << penalty << "\n";
-            // std::cout << "Fitness: " << d.creature->getFitness() << "\n";
+            // std::cout << "Fitness: " << cpCreatureAIData.creature->getFitness() << "\n";
         }
         
         if (!creature->bodies.empty()) {
             auto firstBodyIt = creature->bodies.begin();
             cpBody* firstBody = firstBodyIt->second;
             auto cpPos = cpBodyGetPosition(firstBody);
-            switch (creature->posInitialized)
-            {
+            switch (creature->posInitialized) {
             case false:
                 creature->posInitialized = true;
                 creature->lastPos = Vector2(cpPos.x, cpPos.y);
                 break;
             default:
                 auto pos = Vector2(cpPos.x, cpPos.y);
-                Vector2 distance = creature->lastPos - pos;
-                creature->creature->setFitness(creature->creature->getFitness() + distance.x*X_DISTANCE_FITNESS_IMPACT);
+                float distance = pos.x - creature->lastPos.x;
+                creature->creature->increaseFitness(distance*X_DISTANCE_FITNESS_IMPACT);
                 creature->lastPos = pos;
                 break;
             }
-            // creature->creature->setFitness(cpPos.x*X_DISTANCE_FITNESS_IMPACT);
         }
     }
 }

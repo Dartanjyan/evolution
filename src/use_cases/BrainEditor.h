@@ -4,7 +4,7 @@
 #include "CreaturePhysicsInputs.h"
 
 namespace BrainEditor {
-    // Save new memory to the every creature's brain
+    // Save new memory to every creature's brain
     void updateMemory(std::vector<CreaturePhysicsInputs> &data);
 };
 

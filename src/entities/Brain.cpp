@@ -68,6 +68,15 @@ Brain::Brain(const std::vector<std::size_t>& layer_sizes,
     }
 }
 
+Brain::Brain(const Brain &other)
+    : id(Brain::newId()), 
+    layer_sizes_(other.layer_sizes_),
+    weights_(other.weights_),
+    biases_(other.biases_),
+    memory_(std::vector<double>(other.getMemory().size(), 0))
+{
+}
+
 const std::vector<size_t> Brain::getLayerSizes() const noexcept { return layer_sizes_; }
 const std::vector<std::vector<double>> Brain::getWeights() const noexcept { return weights_; }
 const std::vector<double> Brain::getBiases() const noexcept { return biases_; }

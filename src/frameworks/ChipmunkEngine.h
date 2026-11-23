@@ -22,7 +22,7 @@ private:
     std::vector<cpShape*> world_shapes;
     std::vector<cpBody*> world_bodies;
 
-    ChipmunkCreature* findChipmunkCreatureForCreature(Creature* creature) const;
+    ChipmunkCreature* findChipmunkCreatureWithId(unsigned int creatureId) const;
 
 public:
     ChipmunkEngine();
