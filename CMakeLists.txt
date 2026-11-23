@@ -6,6 +6,11 @@ add_compile_options(
     -fstack-protector-strong
     -g
     -std=c++20
+    -pg
+)
+
+add_link_options(
+    -pg
 )
 
 set(3RD_PARTY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/3rd_party")

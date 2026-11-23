@@ -3,6 +3,7 @@
 
 #include <wx/wx.h>
 #include "PhysicsManager.h"
+#include "DrawPanel.h"
 
 class SimulationPanel : public wxPanel {
 public:
@@ -14,6 +15,9 @@ private:
     void OnBackToMenu(wxCommandEvent& event);
     void OnLoad(wxCommandEvent& event);
     void OnSpeedChoice(wxCommandEvent& event);
+
+    void OnUpdateButton(wxCommandEvent& event);
+    DrawPanel *drawPanel;
 };
 
 #endif // SIMULATION_PANEL_H

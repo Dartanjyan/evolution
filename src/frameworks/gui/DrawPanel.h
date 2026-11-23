@@ -16,6 +16,8 @@ public:
               const wxSize& size = wxDefaultSize,
               long style = wxFULL_REPAINT_ON_RESIZE);
     ~DrawPanel();
+
+    void OnUpdateBtn();
 private:
     void OnPaint(wxPaintEvent& event);
     // void OnPaint1(wxPaintEvent& event);

@@ -6,12 +6,14 @@
 SimulationPanel::SimulationPanel(wxWindow* parent, PhysicsManager* physicsManager)
     : wxPanel(parent, wxID_ANY), physicsManager(physicsManager)
 {
-    DrawPanel *drawPanel = new DrawPanel(physicsManager, this, wxID_ANY);
+    drawPanel = new DrawPanel(physicsManager, this, wxID_ANY);
     drawPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
     // TODO: Rename ID
     wxButton *loadButton = new wxButton(this, ID_ADD_CREATURE, "Load");
-    wxButton* backBtn = new wxButton(this, wxID_ANY, "Back to Menu");
+    wxButton *backBtn = new wxButton(this, wxID_ANY, "Back to Menu");
+    wxButton *updateBtn = new wxButton(this, wxID_ANY, "Update");
+    updateBtn->Bind(wxEVT_BUTTON, &SimulationPanel::OnUpdateButton, this);
 
     wxArrayString speeds;
     speeds.Add("0.25x");
@@ -28,6 +30,7 @@ SimulationPanel::SimulationPanel(wxWindow* parent, PhysicsManager* physicsManage
     wxBoxSizer* controlSizer = new wxBoxSizer(wxHORIZONTAL);
     controlSizer->Add(backBtn, 0);
     controlSizer->Add(loadButton, 0);
+    controlSizer->Add(updateBtn, 0);
     controlSizer->Add(speedChoice, 0);
     
     wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
@@ -61,6 +64,11 @@ void SimulationPanel::OnSpeedChoice(wxCommandEvent& event) {
     }
 
     physicsManager->setUpdateTimeScale(scale);
+}
+
+void SimulationPanel::OnUpdateButton(wxCommandEvent &event)
+{
+    drawPanel->OnUpdateBtn();
 }
 
 void SimulationPanel::OnBackToMenu(wxCommandEvent& event) {

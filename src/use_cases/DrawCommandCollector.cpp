@@ -1,15 +1,15 @@
 #include <chrono>
 #include "DrawCommandCollector.h"
 
-#define DRAW_NEURAL_NETWORK 0
-
 DrawCommandCollector::DrawCommandCollector(PhysicsManager *physicsManager)
 : physicsManager(physicsManager)
 {
     backBufferReady.store(false);
     frontBufferReady.store(false);
+    #if DRAW_NEURAL_NETWORK
     backStaleBufferReady.store(false);
     frontStaleBufferReady.store(false);
+    #endif
 
     physicsManager->start(this);
 }
@@ -51,6 +51,7 @@ void DrawCommandCollector::flip()
     backBufferReady.store(false);
 }
 
+#if DRAW_NEURAL_NETWORK
 void DrawCommandCollector::flipStale()
 {
     // Swap frames
@@ -60,7 +61,9 @@ void DrawCommandCollector::flipStale()
     
     // Request render
     backStaleBufferReady.store(false);
+    backStaleBuffer->clear();
 }
+#endif
 
 void DrawCommandCollector::stop() {
     running.store(false);
@@ -80,19 +83,18 @@ constexpr T map_range(T x,
            / (in_max - in_min)
            + out_min;
 }
-#endif
 
 void DrawCommandCollector::updateScreenInfo()
 {
     std::cout << "DrawCommandCollector::updateScreenInfo() called!\n";
     std::lock_guard<std::mutex> lock(staleBufferMutex);
+    
     // Neural network of the first creature
-    #if DRAW_NEURAL_NETWORK
     if (creatures.size() > 4) {
         Brain *brain = creatures[creatures.size()-3]->getBrain();
         std::vector<size_t> layers = brain->getLayerSizes();
         std::vector<std::vector<double>> weights = brain->getWeights();
-
+        
         double minWeight, maxWeight;
         bool weightsInitialized = false;
         for (auto vec : weights) {
@@ -109,7 +111,7 @@ void DrawCommandCollector::updateScreenInfo()
                 }
             }
         }
-
+        
         const Vector2 panel = panelSize.load();
         const int minX = 0;
         const int maxX = panel.x;
@@ -131,15 +133,15 @@ void DrawCommandCollector::updateScreenInfo()
                 previousPositionsFront.emplace_back(posX, posY);
             }
         }
-
+        
         for (size_t l = 0; l + 1 < layers.size(); ++l) {
             // For every layer except the least
-
+            
             const int posX = stepX * (l+2) + minX;
             const int stepY = (maxY - minY) / (layers[l + 1] + 2);
             for (size_t j = 0; j < layers[l + 1]; ++j) {
                 // For every neuron on layer
-
+                
                 const int posY = stepY * (j+1) + minY;
                 
                 for (size_t i = 0; i < layers[l]; ++i) {
@@ -147,7 +149,7 @@ void DrawCommandCollector::updateScreenInfo()
                     size_t idx = j * layers[l] + i;
                     const double minWidth = 0.1;
                     const double maxWidth = 3;
-
+                    
                     for (const auto v : previousPositionsFront) {
                         std::vector<Vector2> points { Vector2(posX, posY), v };
                         uint8_t gray = map_range(weights[l][idx], minWeight, maxWeight, 0.0, 255.0);
@@ -163,21 +165,23 @@ void DrawCommandCollector::updateScreenInfo()
             previousPositionsBack.clear();
         }
     }
-    #endif // DRAW_NEURAL_NETWORK
-
-    flipStale();
+    
+    std::ranges::sort(backStaleBuffer->begin(), backStaleBuffer->end(), 
+    [] (const DrawCommand& a, const DrawCommand& b) -> bool {
+        return a.type > b.type;
+    }
+);
+flipStale();
 }
 
-void DrawCommandCollector::setCreatures(const std::vector<Creature *> &new_creatures)
-{
-    creatures = new_creatures;
-}
 
 void DrawCommandCollector::insertStaleBuffer()
 {
     std::lock_guard<std::mutex> lock(staleBufferMutex);
     backBuffer->insert(backBuffer->end(), frontStaleBuffer->begin(), frontStaleBuffer->end());
 }
+
+#endif
 
 void DrawCommandCollector::updateBackBuffer()
 {
@@ -385,9 +389,16 @@ void DrawCommandCollector::updateBackBuffer()
     command.text = buf;
     backBuffer->emplace_back(command);
 
+    #if DRAW_NEURAL_NETWORK
     insertStaleBuffer();
+    #endif
 
     backBufferReady.store(true);
+}
+
+void DrawCommandCollector::setCreatures(const std::vector<Creature *> &new_creatures)
+{
+    creatures = new_creatures;
 }
 
 void DrawCommandCollector::start()
@@ -407,7 +418,7 @@ void DrawCommandCollector::run()
     updateBackBuffer();
     flip();
     frontBufferReady.store(true);
-
+    
     while (running.load()) {
         if (!backBufferReady.load()) {
             updateBackBuffer();

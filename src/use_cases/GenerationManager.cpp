@@ -33,7 +33,9 @@ void GenerationManager::updateScreenInfo() {
         int stop = 0;
     }
     drawCommandCollector->setCreatures(creatures);
+    #if DRAW_NEURAL_NETWORK
     drawCommandCollector->updateScreenInfo();
+    #endif
 }
 
 GenerationManager::~GenerationManager()
