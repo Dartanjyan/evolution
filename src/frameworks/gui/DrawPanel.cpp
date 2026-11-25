@@ -36,10 +36,10 @@ DrawPanel::~DrawPanel()
 
 void DrawPanel::OnUpdateBtn()
 {
+    #if DRAW_NEURAL_NETWORK
     std::vector<Creature *> creatures;
     physicsManager->getCreatures(creatures);
     drawCommandCollector->setCreatures(creatures);
-    #if DRAW_NEURAL_NETWORK
     drawCommandCollector->updateScreenInfo();
     #endif
 }

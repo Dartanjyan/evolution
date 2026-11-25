@@ -8,6 +8,7 @@
 #include <set>
 #include <chrono>
 #include <condition_variable>
+#include <mutex>
 #include "IPhysicsEngine.h"
 #include "IAICalculator.h"
 #include "AIManager.h"
@@ -20,6 +21,7 @@ private:
     void run();
 
     std::queue<Creature*> creaturesQueue;
+    std::mutex creaturesQueueMutex;
 
     std::unique_ptr<IPhysicsEngine> engine;
     std::unique_ptr<GenerationManager> generationManager;
@@ -31,6 +33,8 @@ private:
     std::unique_ptr<ISimulationSaver> simulationSaver;
 
     unsigned long tickCounter;
+    // true while a request sent to the AI thread has not been applied yet (touched only by the physics thread)
+    bool aiRequestPending = false;
 
     std::chrono::milliseconds updateInterval;
 public:
@@ -49,7 +53,7 @@ public:
         std::vector<ConstraintObject>& constraints) const;
 
     // Add new creature to the adding queue
-    void addCreature(Creature* creature) { creaturesQueue.push(creature); }
+    void addCreature(Creature* creature);
     void removeCreature(Creature* creature);
     void removeAllCreatures();
 

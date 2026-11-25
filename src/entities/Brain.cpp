@@ -18,7 +18,9 @@ Brain::Brain() :
 
 // layer_sizes is {input, h1, h2, ..., output}
 //
-// Each vector in weights is plained matrix of weights. If weights.size() must be equal to layer_sizes.size() - 1
+// Each vector in weights is plained matrix of weights: weights[i] holds layer_sizes[i] * layer_sizes[i + 1] values.
+// weights.size() must be equal to layer_sizes.size() - 1.
+// biases holds one value per layer (without the input one), so biases.size() must be equal to layer_sizes.size() - 1 too.
 //
 
 Brain::Brain(const std::vector<std::size_t>& layer_sizes,
@@ -28,6 +30,11 @@ Brain::Brain(const std::vector<std::size_t>& layer_sizes,
              )
   : id(Brain::newId()), layer_sizes_(layer_sizes), weights_(weights), biases_(biases), memory_(std::vector<double>(memory, 0))
 {
+    if (layer_sizes_.empty()) {
+        // layer_sizes_.size() - 1 below would wrap around to a huge number
+        throw std::runtime_error("Brain must have at least one layer");
+    }
+
     std::random_device rd;
     std::mt19937 gen(rd());
     std::normal_distribution<> dist(0, 0.5);
@@ -62,18 +69,26 @@ Brain::Brain(const std::vector<std::size_t>& layer_sizes,
         }
     }
     // If weights and biases are given then check if they match layer sizes
-    else if (total_weights != weights_.size() || 
-             biases_.size() != (layer_sizes_.size() - 1)) {
-        throw std::runtime_error("Invalid weights/biases dimensions");
+    else {
+        // (The old check compared the total number of weights with weights_.size(), which is only the
+        // number of layers, so it threw for ANY given weights - e.g. when a saved brain is loaded.)
+        bool valid = weights_.size() == layer_sizes_.size() - 1 &&
+                     biases_.size()  == layer_sizes_.size() - 1;
+        for (size_t i = 0; valid && i < weights_.size(); ++i) {
+            valid = weights_[i].size() == layer_sizes_[i] * layer_sizes_[i + 1];
+        }
+        if (!valid) {
+            throw std::runtime_error("Invalid weights/biases dimensions");
+        }
     }
 }
 
-Brain::Brain(const Brain &other)
-    : id(Brain::newId()), 
-    layer_sizes_(other.layer_sizes_),
-    weights_(other.weights_),
-    biases_(other.biases_),
-    memory_(std::vector<double>(other.getMemory().size(), 0))
+Brain::Brain(const Brain& other)
+    : id(Brain::newId()),
+      layer_sizes_(other.layer_sizes_),
+      weights_(other.weights_),
+      biases_(other.biases_),
+      memory_(other.memory_.size(), 0.0)
 {
 }
 

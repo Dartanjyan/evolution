@@ -1,3 +1,4 @@
+#include <cmath>
 #include <vector>
 #include "CPUAICalculator.h"
 
@@ -25,6 +26,21 @@ void CPUAICalculator::calculate(std::vector<CreaturePhysicsInputs>& data) {
         auto layer_sizes = brain->getLayerSizes();
         auto memory = brain->getMemory();
         
+        // The indexing below trusts these sizes. If they do not match (e.g. the engine gives a different
+        // number of inputs than the brain was built for) the matrix products would read past the end of
+        // the weights, so such a creature gets no outputs instead of undefined behaviour.
+        bool shapes_ok = !layer_sizes.empty() &&
+                         weights.size() + 1 == layer_sizes.size() &&
+                         biases.size() == weights.size() &&
+                         d.inputs.size() == layer_sizes[0];
+        for (size_t layer = 0; shapes_ok && layer < weights.size(); ++layer) {
+            shapes_ok = weights[layer].size() == layer_sizes[layer] * layer_sizes[layer + 1];
+        }
+        if (!shapes_ok) {
+            d.outputs.clear();
+            continue;
+        }
+
         std::vector<double> current_layer = d.inputs;
         
         // Forward pass through all layers

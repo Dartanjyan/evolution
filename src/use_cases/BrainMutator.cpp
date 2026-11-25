@@ -228,7 +228,7 @@ void BrainMutator::mutateRandomWeights(Brain& brain) {
 
 // Мутация: определенный процент весов мутирует
 void BrainMutator::mutatePercentageWeights(Brain& brain) {
-    std::normal_distribution<double> change_dist(0.0, config.mutationChance);
+    std::normal_distribution<double> change_dist(0.0, config.mutationStrength);
     
     auto weights = brain.getWeights();
     auto biases = brain.getBiases();

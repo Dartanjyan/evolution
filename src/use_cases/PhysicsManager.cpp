@@ -37,22 +37,23 @@ void PhysicsManager::startInternal() {
 void PhysicsManager::stopInternal() {
     if (ai_manager.get() != nullptr)
         ai_manager->stop();
+    aiRequestPending = false; // AIManager::stop() has dropped the request together with its data
     engine->shutdown();
-    while (!creaturesQueue.empty()) {
-        creaturesQueue.pop();
-    }
 }
 
 void PhysicsManager::start(DrawCommandCollector* drawCommandCollector) {
-    generationManager = std::make_unique<GenerationManager>(this, drawCommandCollector, 10, 60*10);
-    if (!running.load()) {
-        startInternal();
-        physicsThread = std::thread(&PhysicsManager::run, this);
-        running.store(true);
-        // std::cout << "Created new physics thread\n";
-    } else {
+    if (running.load()) {
         std::cout << "Physics thread already running\n";
+        return;
     }
+    generationManager = std::make_unique<GenerationManager>(this, drawCommandCollector, 10, 60*10);
+    startInternal();
+    // `running` has to be true BEFORE the thread starts: run() begins with `while (running.load())`,
+    // so setting the flag after std::thread() lets the new thread see `false` and exit immediately
+    // (the simulation then never ticks: no creatures appear, nothing evolves).
+    running.store(true);
+    physicsThread = std::thread(&PhysicsManager::run, this);
+    // std::cout << "Created new physics thread\n";
 }
 
 void PhysicsManager::stop() {
@@ -63,8 +64,14 @@ void PhysicsManager::stop() {
         SimulationSave save;
         save.generation = generationManager->getGeneration();
         engine->getCreatures(save.creatures);
-        simulationSaver->saveSimulation(save);
+        if (!save.creatures.empty())
+            simulationSaver->saveSimulation(save);
         stopInternal();
+        std::lock_guard<std::mutex> lock(creaturesQueueMutex);
+        while (!creaturesQueue.empty()) {
+            delete creaturesQueue.front();
+            creaturesQueue.pop();
+        }
         // std::cout<<"Physics engine has been shut down\n";
     }
     if (generationManager.get())
@@ -87,32 +94,39 @@ void PhysicsManager::run() {
 
     tickCounter = 0;
     const int AI_UPDATE_INTERVAL = 10;
+    std::queue<Creature*> pendingCreatures;
 
     while (running.load()) {
         current_time = high_resolution_clock::now();
         elapsed_time = current_time - previous_time;
         previous_time = current_time;
         
-        if (ai_manager->isCalculationCompleted()) {
-            auto results = ai_manager->getResults();
+        // Apply AI results on the tick after submission, independent of worker timing.
+        if (aiRequestPending) {
+            aiRequestPending = false;
+            auto results = ai_manager->waitForResults();
             BrainEditor::updateMemory(results);
             engine->applyAIResults(results);
         }
+        generationManager->onTick(tickCounter);
         if (tickCounter % AI_UPDATE_INTERVAL == 0) {
             std::vector<CreaturePhysicsInputs> data;
             
             engine->getCreatureAIInputs(data);
-            ai_manager->requestCalculation(data);
+            if (!data.empty())
+                aiRequestPending = ai_manager->requestCalculation(data);
         }
-        generationManager->onTick(tickCounter);
-
         const float dt = 0.01f;
         engine->update(dt);
 
         // Handle all pending creature additions in this frame
-        while (!creaturesQueue.empty()) {
-            engine->addCreature(creaturesQueue.front());
-            creaturesQueue.pop();
+        {
+            std::lock_guard<std::mutex> lock(creaturesQueueMutex);
+            pendingCreatures.swap(creaturesQueue);
+        }
+        while (!pendingCreatures.empty()) {
+            engine->addCreature(pendingCreatures.front());
+            pendingCreatures.pop();
         }
 
         // Update rate regulation
@@ -127,6 +141,12 @@ void PhysicsManager::run() {
 
         tickCounter++;
     }
+}
+
+void PhysicsManager::addCreature(Creature* creature)
+{
+    std::lock_guard<std::mutex> lock(creaturesQueueMutex);
+    creaturesQueue.push(creature);
 }
 
 void PhysicsManager::setUpdateTimeScale(float scale)
