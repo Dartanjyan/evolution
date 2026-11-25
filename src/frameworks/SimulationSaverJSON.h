@@ -8,7 +8,7 @@ public:
     SimulationSaverJSON();
 
     void saveSimulation(SimulationSave save) override;
-    SimulationSave loadSimulation() override;
+    LoadedSimulation loadSimulation() override;
 };
 
 #endif

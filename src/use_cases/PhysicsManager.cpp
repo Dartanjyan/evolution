@@ -1,5 +1,6 @@
 #include "PhysicsManager.h"
 #include <chrono>
+#include <stdexcept>
 #include "AIManager.h"
 #include "BrainEditor.h"
 #include "DrawCommandCollector.h"
@@ -48,12 +49,44 @@ void PhysicsManager::start(DrawCommandCollector* drawCommandCollector) {
     }
     generationManager = std::make_unique<GenerationManager>(this, drawCommandCollector, 10, 60*10);
     startInternal();
+    tickCounter = 0;
+    startThread();
+}
+
+void PhysicsManager::startThread() {
     // `running` has to be true BEFORE the thread starts: run() begins with `while (running.load())`,
     // so setting the flag after std::thread() lets the new thread see `false` and exit immediately
     // (the simulation then never ticks: no creatures appear, nothing evolves).
     running.store(true);
     physicsThread = std::thread(&PhysicsManager::run, this);
     // std::cout << "Created new physics thread\n";
+}
+
+void PhysicsManager::loadSimulation() {
+    if (!running.load())
+        throw std::logic_error("The simulation is not running");
+
+    running.store(false);
+    physicsThread.join();
+
+    LoadedSimulation save;
+    try {
+        save = simulationSaver->loadSimulation();
+    } catch (...) {
+        startThread();
+        throw;
+    }
+
+    clearCreaturesQueue();
+    stopInternal();
+    startInternal();
+    for (auto& creature : save.creatures) {
+        engine->addCreature(creature.get());
+        creature.release();
+    }
+    generationManager->restoreGeneration(save.generation, save.creatures.size());
+    tickCounter = 0;
+    startThread();
 }
 
 void PhysicsManager::stop() {
@@ -67,15 +100,19 @@ void PhysicsManager::stop() {
         if (!save.creatures.empty())
             simulationSaver->saveSimulation(save);
         stopInternal();
-        std::lock_guard<std::mutex> lock(creaturesQueueMutex);
-        while (!creaturesQueue.empty()) {
-            delete creaturesQueue.front();
-            creaturesQueue.pop();
-        }
+        clearCreaturesQueue();
         // std::cout<<"Physics engine has been shut down\n";
     }
     if (generationManager.get())
         generationManager.reset();
+}
+
+void PhysicsManager::clearCreaturesQueue() {
+    std::lock_guard<std::mutex> lock(creaturesQueueMutex);
+    while (!creaturesQueue.empty()) {
+        delete creaturesQueue.front();
+        creaturesQueue.pop();
+    }
 }
 
 void PhysicsManager::removeAllCreatures() { 
@@ -92,7 +129,6 @@ void PhysicsManager::run() {
     std::chrono::_V2::system_clock::time_point current_time;
     std::chrono::nanoseconds elapsed_time;
 
-    tickCounter = 0;
     const int AI_UPDATE_INTERVAL = 10;
     std::queue<Creature*> pendingCreatures;
 

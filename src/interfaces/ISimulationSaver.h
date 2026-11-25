@@ -8,7 +8,7 @@ public:
     virtual ~ISimulationSaver() = default;
     
     virtual void saveSimulation(SimulationSave save) = 0;
-    virtual SimulationSave loadSimulation() = 0;
+    virtual LoadedSimulation loadSimulation() = 0;
 };
 
 #endif

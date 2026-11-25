@@ -26,7 +26,7 @@ private:
     float friction;
     float elasticity;
     bool is_sensor_part;
-    bool is_sight_part;
+    bool is_sight_part = false;
 
     static unsigned last_id;
     static unsigned newId();
@@ -67,6 +67,7 @@ public:
     void setElasticity(float elasticity) { this->elasticity = elasticity; }
 
     void setSensor(bool isSensor) { this->is_sensor_part = isSensor; }
+    void setSightPart(bool isSightPart) { this->is_sight_part = isSightPart; }
     void setVertices(const std::vector<Vector2>& new_vertices) { this->vertices = new_vertices; }
     void setRadius(float radius) { this->radius = radius; }
     void setParent(BodyPart* new_parent) { this->parent = new_parent; }

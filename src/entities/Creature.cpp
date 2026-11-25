@@ -156,6 +156,52 @@ const BodyPart *Creature::getBodyPartById(unsigned id) const
     return nullptr;
 }
 
+std::unique_ptr<Creature> Creature::cloneWithBrain(std::unique_ptr<Brain> brain) const
+{
+    std::map<const BodyPart*, BodyPart*> copiedParts;
+    const auto copyPart = [&copiedParts](const auto& copyPart, const BodyPart* source, BodyPart* parent)
+        -> std::unique_ptr<BodyPart> {
+        auto part = std::make_unique<BodyPart>(parent, source->getVertices(), source->isSensor(),
+            source->getRadius(), source->getDensity(), source->getFriction(), source->getElasticity());
+        part->setBodyPosBias(source->getBodyPosBias());
+        part->setSightPart(source->isSightPart());
+        copiedParts.emplace(source, part.get());
+        for (const auto* child : source->getChildren()) {
+            auto copy = copyPart(copyPart, child, part.get());
+            part->addChild(copy.get());
+            copy.release();
+        }
+        return part;
+    };
+
+    std::vector<std::unique_ptr<BodyPart>> ownedParts;
+    std::vector<BodyPart*> roots;
+    for (const auto* part : bodyParts) {
+        ownedParts.push_back(copyPart(copyPart, part, nullptr));
+        roots.push_back(ownedParts.back().get());
+    }
+
+    std::vector<std::unique_ptr<Constraint>> ownedConstraints;
+    std::vector<Constraint*> links;
+    for (const auto* source : constraints) {
+        auto link = std::make_unique<Constraint>(copiedParts.at(source->getPartA()),
+            copiedParts.at(source->getPartB()), source->getType(), source->getAnchorA(),
+            source->getAnchorB(), source->getRest(), source->getStiffness(), source->getDamping(),
+            source->getCollideConnected());
+        link->setRestLimits(source->getNeutralSize(), source->getMinRest(), source->getMaxRest());
+        links.push_back(link.get());
+        ownedConstraints.push_back(std::move(link));
+    }
+
+    auto creature = std::make_unique<Creature>(roots, links, brain.get());
+    for (auto& part : ownedParts)
+        part.release();
+    for (auto& link : ownedConstraints)
+        link.release();
+    brain.release();
+    return creature;
+}
+
 Creature* Creature::createBasicCreature(Brain* brain)
 {
     /*
@@ -327,7 +373,7 @@ std::vector<Constraint*> Creature::getMuscles() const {
 std::vector<BodyPart*> Creature::getSightParts() const {
     std::vector<BodyPart*> eyes;
     for (auto* bp : getAllBodyParts()) {
-        if (bp->isSensor())
+        if (bp->isSightPart())
             eyes.push_back(bp);
     }
     return eyes;

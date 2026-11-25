@@ -64,6 +64,7 @@ public:
     void setDamping(float value) { damping = value; }
     void setCollideConnected(bool value) { collideConnected = value; }
     void setType(ConstraintType value) { type = value; }
+    void setRestLimits(float neutral, float minimum, float maximum);
 
     static unsigned newId();
     static void resetId();

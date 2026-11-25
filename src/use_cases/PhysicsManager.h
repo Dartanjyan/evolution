@@ -19,6 +19,8 @@
 class PhysicsManager {
 private:
     void run();
+    void startThread();
+    void clearCreaturesQueue();
 
     std::queue<Creature*> creaturesQueue;
     std::mutex creaturesQueueMutex;
@@ -44,6 +46,7 @@ public:
     // physics thread
     void start(DrawCommandCollector* drawCommandCollector);
     void stop();
+    void loadSimulation();
     void stopInternal();
     void startInternal();
 

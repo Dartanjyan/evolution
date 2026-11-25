@@ -1,7 +1,7 @@
 #ifndef GENERATION_MANAGER_H
 #define GENERATION_MANAGER_H
 
-#include <memory>
+#include <atomic>
 
 // #include "PhysicsManager.h"
 class PhysicsManager;
@@ -14,7 +14,8 @@ public:
     ~GenerationManager();
     
     void onTick(unsigned long tick);
-    unsigned getGeneration() const { return generation; }
+    unsigned getGeneration() const { return generation.load(); }
+    void restoreGeneration(unsigned number, unsigned populationSize);
     
     void updateScreenInfo();
     bool screenInfoInitialized = false;
@@ -24,7 +25,7 @@ private:
 
     unsigned creaturesPerGeneration;
     unsigned long ticksPerGeneration;
-    unsigned generation;
+    std::atomic<unsigned> generation;
 
     void endGeneration();
 };

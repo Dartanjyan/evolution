@@ -47,6 +47,13 @@ void GenerationManager::onTick(unsigned long tick)
     }
 }
 
+void GenerationManager::restoreGeneration(unsigned number, unsigned populationSize)
+{
+    generation.store(number);
+    creaturesPerGeneration = populationSize;
+    updateScreenInfo();
+}
+
 // How many of the best creatures go to the next generation as exact copies (elitism)
 const unsigned LEAVE_OLD_CREATURES = 1;
 // How many brand-new random creatures are added every generation (diversity)
@@ -114,10 +121,12 @@ void GenerationManager::endGeneration()
     const unsigned newcomers = creaturesPerGeneration > eliteCount + NEW_RANDOM_CREATURES ? NEW_RANDOM_CREATURES : 0;
     const unsigned newChildren = creaturesPerGeneration - eliteCount - newcomers;
 
-    std::vector<Brain *> newGenerationBrains;
+    const auto& bodyTemplate = *creatures.front();
+    std::vector<std::unique_ptr<Creature>> newGeneration;
+    newGeneration.reserve(creaturesPerGeneration);
 
     for (unsigned i=0; i < eliteCount; i++) {
-        newGenerationBrains.emplace_back(new Brain(*creatures[i]->getBrain()));
+        newGeneration.push_back(bodyTemplate.cloneWithBrain(std::make_unique<Brain>(*creatures[i]->getBrain())));
     }
 
     // Selection: only the better half of the population breeds (truncation selection).
@@ -138,22 +147,25 @@ void GenerationManager::endGeneration()
         // so it must be the better one, i.e. the one with the smaller index.
         if (b < a)
             std::swap(a, b);
-        Brain* childBrain = mutator.createChildBrain(
+        std::unique_ptr<Brain> childBrain(mutator.createChildBrain(
             *(creatures[a]->getBrain()),
             *(creatures[b]->getBrain()),
             BrainMutator::CrossoverMethod::PROPORTIONAL,
             BrainMutator::MutationMethod::CHANCE_FOR_EVERY_WEIGHT
-        );
-        newGenerationBrains.emplace_back(childBrain);
+        ));
+        newGeneration.push_back(bodyTemplate.cloneWithBrain(std::move(childBrain)));
+    }
+    for (unsigned i=0; i < newcomers; i++) {
+        const auto* brain = bodyTemplate.getBrain();
+        newGeneration.push_back(bodyTemplate.cloneWithBrain(
+            std::make_unique<Brain>(brain->getLayerSizes(), brain->getMemory().size())));
     }
     
     physicsManager->stopInternal();
     physicsManager->startInternal();
-    for (auto b : newGenerationBrains) {
-        physicsManager->addCreature(Creature::createBasicCreature(b));
-    }
-    for (unsigned i=0; i < newcomers; i++) {
-        physicsManager->addCreature(Creature::createBasicCreature());
+    for (auto& creature : newGeneration) {
+        physicsManager->addCreature(creature.get());
+        creature.release();
     }
     
     generation++;

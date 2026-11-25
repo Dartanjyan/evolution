@@ -1,6 +1,7 @@
 #include "SimulationPanel.h"
 #include "MainFrame.h"
 #include "DrawPanel.h"
+#include <exception>
 #include <wx/dcbuffer.h>
 
 SimulationPanel::SimulationPanel(wxWindow* parent, PhysicsManager* physicsManager)
@@ -9,8 +10,7 @@ SimulationPanel::SimulationPanel(wxWindow* parent, PhysicsManager* physicsManage
     drawPanel = new DrawPanel(physicsManager, this, wxID_ANY);
     drawPanel->SetBackgroundStyle(wxBG_STYLE_PAINT);
 
-    // TODO: Rename ID
-    wxButton *loadButton = new wxButton(this, ID_ADD_CREATURE, "Load");
+    wxButton *loadButton = new wxButton(this, wxID_ANY, "Load");
     wxButton *backBtn = new wxButton(this, wxID_ANY, "Back to Menu");
     wxButton *updateBtn = new wxButton(this, wxID_ANY, "Update");
     updateBtn->Bind(wxEVT_BUTTON, &SimulationPanel::OnUpdateButton, this);
@@ -40,7 +40,7 @@ SimulationPanel::SimulationPanel(wxWindow* parent, PhysicsManager* physicsManage
     SetSizer(mainSizer);
 
     backBtn->Bind(wxEVT_BUTTON, &SimulationPanel::OnBackToMenu, this);
-    Bind(wxEVT_BUTTON, &SimulationPanel::OnLoad, this, ID_ADD_CREATURE);
+    loadButton->Bind(wxEVT_BUTTON, &SimulationPanel::OnLoad, this);
 }
 
 void SimulationPanel::OnSpeedChoice(wxCommandEvent& event) {
@@ -72,13 +72,15 @@ void SimulationPanel::OnUpdateButton(wxCommandEvent &event)
 }
 
 void SimulationPanel::OnBackToMenu(wxCommandEvent& event) {
-    physicsManager->stop();
     static_cast<MainFrame*>(GetParent())->ShowMenu();
 }
 
 void SimulationPanel::OnLoad(wxCommandEvent &event) {
-    for (int i=0; i<1; i++) {
-        this->physicsManager->addCreature(Creature::createBasicCreature());
+    try {
+        physicsManager->loadSimulation();
+    } catch (const std::exception& error) {
+        wxMessageBox(wxString::FromUTF8(error.what()), "Could not load simulation_save.json",
+                     wxOK | wxICON_ERROR, this);
     }
 }
 

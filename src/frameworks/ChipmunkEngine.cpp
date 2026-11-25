@@ -337,6 +337,10 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
         }
     }
 
+    if (!world_shapes.empty()) {
+        bodies.emplace_back(0, Vector2(0, 0), 0, 0, Vector2(0, 0));
+    }
+
     creatureCount = 0;
     for (auto& creature : chipmunkCreatures) {
         if (creatureCount++ >= MAX_PROCESSED_CREATURES) 
@@ -353,7 +357,7 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
             obj_shape.radius = bodyPart->getRadius();
             obj_shape.vertices = bodyPart->getBiasedVertices();
 
-            auto it = bodyPartIdToCpBodyId.find(bodyPart->getId());
+            auto it = bodyPartIdToCpBodyId.find(bodyPart->getRootParent()->getId());
             if (it != bodyPartIdToCpBodyId.end()) {
                 obj_shape.body = &bodies.at(it->second);
             } else {
@@ -415,12 +419,6 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
     }
     
     if (world_shapes.size() > 0) {
-        BodyObject terrain_body;
-        terrain_body.id= 0;
-        terrain_body.angle = 0;
-        terrain_body.position = Vector2(0, 0);
-        bodies.push_back(terrain_body);
-    
         ShapeObject terrain_shape;
         terrain_shape.body = &bodies.back();
         terrain_shape.id = 0;

@@ -2,6 +2,7 @@
 #ifndef CREATURE_H
 #define CREATURE_H
 
+#include <memory>
 #include <vector>
 #include "BodyPart.h"
 #include "Constraint.h"
@@ -56,6 +57,7 @@ public:
     // void applyAIResults(std::vector<float> results);
 
     static Creature* createBasicCreature(Brain* brain = nullptr);
+    std::unique_ptr<Creature> cloneWithBrain(std::unique_ptr<Brain> brain) const;
     
     static unsigned newId();
     static void resetId();
