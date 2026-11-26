@@ -10,7 +10,7 @@
 #define CATEGORY_TERRAIN 0b0010
 
 namespace {
-constexpr cpFloat TERRAIN_HALF_WIDTH = 1500;
+constexpr cpFloat TERRAIN_HALF_WIDTH = 3000;
 constexpr cpFloat TERRAIN_Y = 350;
 constexpr cpFloat TERRAIN_RADIUS = 5;
 constexpr int SUBSTEPS = 3;
