@@ -47,7 +47,7 @@ void PhysicsManager::start(DrawCommandCollector* drawCommandCollector) {
         std::cout << "Physics thread already running\n";
         return;
     }
-    generationManager = std::make_unique<GenerationManager>(this, drawCommandCollector, 10, 60*10);
+    generationManager = std::make_unique<GenerationManager>(this, drawCommandCollector, 50, 60*10);
     startInternal();
     tickCounter = 0;
     startThread();

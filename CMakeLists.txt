@@ -68,10 +68,11 @@ else()
 endif()
 
 # --- Исходники ---
+find_package(Threads REQUIRED)
 file(GLOB_RECURSE SRC_FILES "src/*.cpp")
 add_executable(evolution ${SRC_FILES})
 
-target_link_libraries(evolution ${wxWidgets_LIBRARIES} chipmunk)
+target_link_libraries(evolution ${wxWidgets_LIBRARIES} chipmunk Threads::Threads)
 target_include_directories(evolution PRIVATE
     src/entities
     src/use_cases

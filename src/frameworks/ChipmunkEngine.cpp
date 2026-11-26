@@ -1,30 +1,31 @@
 #include "ChipmunkEngine.h"
+#include <algorithm>
 #include <memory>
+#include <semaphore>
+#include <span>
+#include <stdexcept>
+#include <thread>
 
 #define CATEGORY_ENTITY  0b0001
 #define CATEGORY_TERRAIN 0b0010
 
-ChipmunkCreature* ChipmunkEngine::findChipmunkCreatureWithId(unsigned int creatureId) const
-{
-    auto it = chipmunkCreatures.find(creatureId);
-    if (it != chipmunkCreatures.end()) {
-        return it->second;
-    } else {
-        return nullptr;
+namespace {
+constexpr cpFloat TERRAIN_HALF_WIDTH = 1500;
+constexpr cpFloat TERRAIN_Y = 350;
+constexpr cpFloat TERRAIN_RADIUS = 5;
+constexpr int SUBSTEPS = 3;
+constexpr unsigned MAX_PHYSICS_THREADS = 8;
+
+void stepSpaces(std::span<cpSpace* const> spaces, cpFloat dt) {
+    for (cpSpace* space : spaces) {
+        for (int i = 0; i < SUBSTEPS; ++i) {
+            cpSpaceStep(space, dt);
+        }
     }
 }
-
-ChipmunkEngine::ChipmunkEngine() : space(nullptr) {}
-
-ChipmunkEngine::~ChipmunkEngine() {
-    if (space != nullptr) {
-        shutdown();
-    }
 }
 
-void ChipmunkEngine::initialize() {
-    std::lock_guard<std::mutex> lock(data_mutex);
-    this->space = cpSpaceNew();
+ChipmunkCreature::ChipmunkCreature() : space(cpSpaceNew()) {
     cpSpaceSetGravity(space, cpv(0, 981*1.5));
     cpSpaceSetSleepTimeThreshold(space, 0.5);
 
@@ -35,84 +36,125 @@ void ChipmunkEngine::initialize() {
     // cpSpaceSetCollisionBias(space, cpfpow(1.0f - 0.1f, 60.0f));
     cpSpaceSetCollisionBias(space, cpfpow(1.0f - 0.1f, 1200000.0f));
 
-    // Creating terrain
-    cpFloat x = 1500;
-    cpFloat y = 350;
-    cpVect a = cpv(-x, y);
-    cpVect b = cpv(x, y);
-    cpBody* body = cpSpaceGetStaticBody(space);
-    cpShape* terrain = cpSegmentShapeNew(body, a, b, 5.0);
+    terrain = cpSegmentShapeNew(cpSpaceGetStaticBody(space),
+        cpv(-TERRAIN_HALF_WIDTH, TERRAIN_Y), cpv(TERRAIN_HALF_WIDTH, TERRAIN_Y), TERRAIN_RADIUS);
     cpShapeSetFriction(terrain, 0.8);
     cpShapeSetElasticity(terrain, 0.5);
     cpShapeSetFilter(terrain, cpShapeFilterNew(0, CATEGORY_TERRAIN, CATEGORY_ENTITY));
-    this->world_shapes.push_back(terrain);
     cpSpaceAddShape(space, terrain);
+}
 
-    // std::cout << "ChipmunkEngine initialized\n";
+ChipmunkCreature::~ChipmunkCreature() {
+    for (auto& constraint : constraints) {
+        cpSpaceRemoveConstraint(space, constraint.second);
+        cpConstraintFree(constraint.second);
+    }
+    for (auto& shape : shapes) {
+        cpSpaceRemoveShape(space, shape.second);
+        cpShapeFree(shape.second);
+    }
+    for (auto& body : bodies) {
+        cpSpaceRemoveBody(space, body.second);
+        cpBodyFree(body.second);
+    }
+    cpSpaceRemoveShape(space, terrain);
+    cpShapeFree(terrain);
+    cpSpaceFree(space);
+}
+
+struct ChipmunkEngine::PhysicsWorker {
+    std::span<cpSpace* const> spaces;
+    cpFloat dt;
+    std::binary_semaphore workReady{0};
+    std::binary_semaphore workDone{0};
+    std::jthread thread{[this](std::stop_token stop) {
+        for (;;) {
+            workReady.acquire();
+            if (stop.stop_requested())
+                return;
+            stepSpaces(spaces, dt);
+            workDone.release();
+        }
+    }};
+
+    ~PhysicsWorker() {
+        thread.request_stop();
+        workReady.release();
+    }
+
+    void startStep(std::span<cpSpace* const> batch, cpFloat subDt) {
+        spaces = batch;
+        dt = subDt;
+        workReady.release();
+    }
+};
+
+ChipmunkCreature* ChipmunkEngine::findChipmunkCreatureWithId(unsigned int creatureId) const {
+    auto it = chipmunkCreatures.find(creatureId);
+    return it == chipmunkCreatures.end() ? nullptr : it->second.get();
+}
+
+ChipmunkEngine::ChipmunkEngine()
+    : maxThreads(std::clamp(std::thread::hardware_concurrency(), 1u, MAX_PHYSICS_THREADS)) {}
+
+ChipmunkEngine::~ChipmunkEngine() { shutdown(); }
+
+void ChipmunkEngine::initialize() {
+    std::lock_guard<std::mutex> lock(data_mutex);
+    initialized = true;
 }
 
 void ChipmunkEngine::update(float dt) {
     std::lock_guard<std::mutex> lock(data_mutex);
-    const int STEPS = 3;
-    const float sub_dt = dt / STEPS;
-    for (int i = 0; i < STEPS; ++i) {
-        cpSpaceStep(space, sub_dt);
-    }
-}
-
-void ChipmunkEngine::removeCreature(unsigned creature_id)
-{
-    ChipmunkCreature* creature = chipmunkCreatures[creature_id];
-    if (creature == nullptr) {
+    if (chipmunkCreatures.empty())
         return;
+
+    // Entity shapes collide only with terrain, so each space can be stepped independently.
+    spacesToStep.clear();
+    spacesToStep.reserve(chipmunkCreatures.size());
+    for (const auto& [id, creature] : chipmunkCreatures) {
+        spacesToStep.push_back(creature->space);
     }
-    for (auto& constraint : creature->constraints) {
-        cpSpaceRemoveConstraint(space, constraint.second);
-        cpConstraintFree(constraint.second);
+
+    const std::span<cpSpace* const> spaces = spacesToStep;
+    const size_t threadCount = std::min<size_t>(spaces.size(), maxThreads);
+    const size_t workerCount = threadCount - 1;
+    const float subDt = dt / SUBSTEPS;
+    while (workers.size() < workerCount) {
+        workers.push_back(std::make_unique<PhysicsWorker>());
     }
-    for (auto& shape : creature->shapes) {
-        cpSpaceRemoveShape(space, shape.second);
-        cpShapeFree(shape.second);
+
+    const size_t creaturesPerThread = spaces.size() / threadCount;
+    const size_t extraCreatures = spaces.size() % threadCount;
+    size_t begin = creaturesPerThread;
+    // Give each worker at most one extra creature and keep the first batch for the simulation thread.
+    for (size_t i = 0; i < workerCount; ++i) {
+        const size_t count = creaturesPerThread + (i < extraCreatures);
+        workers[i]->startStep(spaces.subspan(begin, count), subDt);
+        begin += count;
     }
-    for (auto& body : creature->bodies) {
-        cpSpaceRemoveBody(space, body.second);
-        cpBodyFree(body.second);
+    stepSpaces(spaces.first(creaturesPerThread), subDt);
+    for (size_t i = 0; i < workerCount; ++i) {
+        workers[i]->workDone.acquire();
     }
-    delete creature->creature;
-    delete creature;
-    chipmunkCreatures.erase(creature_id);
-    // std::cout << "Removed creature " << creature_id << "\n";
 }
 
-void ChipmunkEngine::removeAllCreatures()
-{
-    while (!chipmunkCreatures.empty()) {
-        removeCreature(chipmunkCreatures.begin()->first);
-    }
+void ChipmunkEngine::removeCreature(unsigned creature_id) {
+    std::lock_guard<std::mutex> lock(data_mutex);
+    chipmunkCreatures.erase(creature_id);
+}
+
+void ChipmunkEngine::removeAllCreatures() {
+    std::lock_guard<std::mutex> lock(data_mutex);
     chipmunkCreatures.clear();
 }
 
 void ChipmunkEngine::shutdown() {
     std::lock_guard<std::mutex> lock(data_mutex);
-
-    removeAllCreatures();
-
-    for (auto& shape : world_shapes) {
-        cpSpaceRemoveShape(space, shape);
-        cpShapeFree(shape);
-    }
-    world_shapes.clear();
-
-    for (auto& body : world_bodies) {
-        cpSpaceRemoveBody(space, body);
-        cpBodyFree(body);
-    }
-    world_bodies.clear();
-
-    cpSpaceFree(space);
-    space = nullptr;
-
-    // std::cout << "ChipmunkEngine has been shut down.\n";
+    workers.clear();
+    spacesToStep.clear();
+    chipmunkCreatures.clear();
+    initialized = false;
 }
 
 cpShape* createShapeForBodyPart(cpBody* body, const BodyPart *bodyPart, cpVect bias) {
@@ -151,14 +193,19 @@ cpShape* createShapeForBodyPart(cpBody* body, const BodyPart *bodyPart, cpVect b
     return shape;
 }
 
-void ChipmunkEngine::addShapeToChipmunkCreature(cpBody* body, BodyPart* bodyPart, unsigned creature_id, cpVect bias) {
+static void addShapeToChipmunkCreature(ChipmunkCreature& creature, cpBody* body, BodyPart* bodyPart, cpVect bias) {
     cpShape* shape = createShapeForBodyPart(body, bodyPart, bias);
-    cpSpaceAddShape(space, shape);
-    this->chipmunkCreatures[creature_id]->shapes[bodyPart->getId()] = shape;
+    cpSpaceAddShape(creature.space, shape);
+    creature.shapes[bodyPart->getId()] = shape;
     bodyPart->setBodyPosBias(Vector2(bias.x, bias.y));
 }
 
-void ChipmunkEngine::addBodyPart(unsigned creature_id, BodyPart *bodyPart)
+void ChipmunkEngine::addBodyPart(unsigned creature_id, BodyPart* bodyPart) {
+    std::lock_guard<std::mutex> lock(data_mutex);
+    addBodyPart(*chipmunkCreatures.at(creature_id), bodyPart);
+}
+
+void ChipmunkEngine::addBodyPart(ChipmunkCreature& creature, BodyPart* bodyPart)
 {
     const float mass = bodyPart->getMass();
     auto vertices = bodyPart->getVertices();
@@ -207,22 +254,27 @@ void ChipmunkEngine::addBodyPart(unsigned creature_id, BodyPart *bodyPart)
     cpBody* cp_body = cpBodyNew(mass, moment);
     cpBodySetUserData(cp_body, (void*)bodyPart);
     cpBodySetPosition(cp_body, body_pos);
-    cpSpaceAddBody(space, cp_body);
-    this->chipmunkCreatures[creature_id]->bodies[bodyPart->getId()] = cp_body;
+    cpSpaceAddBody(creature.space, cp_body);
+    creature.bodies[bodyPart->getId()] = cp_body;
 
     // Add shape
-    this->addShapeToChipmunkCreature(cp_body, bodyPart, creature_id, bias);
+    addShapeToChipmunkCreature(creature, cp_body, bodyPart, bias);
 
     // Adding shapes if bodyPart has children
     for (auto& child : bodyPart->getAllChildren()) {
-        this->addShapeToChipmunkCreature(cp_body, child, creature_id, bias);
+        addShapeToChipmunkCreature(creature, cp_body, child, bias);
     }
 }
 
-void ChipmunkEngine::addConstraint(unsigned creature_id, Constraint *constraint)
+void ChipmunkEngine::addConstraint(unsigned creature_id, Constraint* constraint) {
+    std::lock_guard<std::mutex> lock(data_mutex);
+    addConstraint(*chipmunkCreatures.at(creature_id), constraint);
+}
+
+void ChipmunkEngine::addConstraint(ChipmunkCreature& creature, Constraint* constraint)
 {
-    cpBody* bodyA = this->chipmunkCreatures[creature_id]->bodies[constraint->getPartA()->getId()];
-    cpBody* bodyB = this->chipmunkCreatures[creature_id]->bodies[constraint->getPartB()->getId()];
+    cpBody* bodyA = creature.bodies.at(constraint->getPartA()->getId());
+    cpBody* bodyB = creature.bodies.at(constraint->getPartB()->getId());
 
     cpVect anchorA = cpv(constraint->getAnchorA().x, constraint->getAnchorA().y);
     cpVect anchorB = cpv(constraint->getAnchorB().x, constraint->getAnchorB().y);
@@ -245,39 +297,44 @@ void ChipmunkEngine::addConstraint(unsigned creature_id, Constraint *constraint)
     
     cpConstraintSetErrorBias(cp_constraint, cpfpow(1.0 - 0.01, 1200000));
     cpConstraintSetCollideBodies(cp_constraint, constraint->getCollideConnected());
-    this->chipmunkCreatures[creature_id]->constraints[constraint->getId()] = cp_constraint;
+    creature.constraints[constraint->getId()] = cp_constraint;
     cpConstraintSetUserData(cp_constraint, (void*)constraint);
-    cpSpaceAddConstraint(space, cp_constraint);
+    cpSpaceAddConstraint(creature.space, cp_constraint);
 }
 
 void ChipmunkEngine::addCreature(Creature *creature)
 {
     std::lock_guard<std::mutex> lock(data_mutex);
 
-    ChipmunkCreature* chimpmunkCreature = new ChipmunkCreature();
-    chimpmunkCreature->creature = creature;
-    chipmunkCreatures[creature->getId()] = chimpmunkCreature;
+    const auto id = creature->getId();
+    if (const auto* existing = findChipmunkCreatureWithId(id)) {
+        if (existing->creature.get() == creature)
+            return;
+        throw std::invalid_argument("A creature with this ID is already registered");
+    }
 
+    auto physics = std::make_unique<ChipmunkCreature>();
     for (auto& bodyPart : creature->getMainBodyParts()) {
-        addBodyPart(creature->getId(), bodyPart);
+        addBodyPart(*physics, bodyPart);
     }
     for (auto& constraint : creature->getConstraints()) {
-        // I don't need constraints for now
-        // break;
-        addConstraint(creature->getId(), constraint);
+        addConstraint(*physics, constraint);
     }
+    const auto it = chipmunkCreatures.emplace(id, std::move(physics)).first;
+    it->second->creature.reset(creature);
 }
 
 // NOTE: Maybe not useful
 void ChipmunkEngine::removeBodyPart(unsigned creature_id, BodyPart *bodyPart)
 {
+    std::lock_guard<std::mutex> lock(data_mutex);
     auto it = chipmunkCreatures.find(creature_id);
     if (it != chipmunkCreatures.end()) {
-        ChipmunkCreature* chimpmunkCreature = it->second;
+        ChipmunkCreature* chimpmunkCreature = it->second.get();
         auto bodyIt = chimpmunkCreature->bodies.find(bodyPart->getId());
         if (bodyIt != chimpmunkCreature->bodies.end()) {
             cpBody* body = bodyIt->second;
-            cpSpaceRemoveBody(space, body);
+            cpSpaceRemoveBody(chimpmunkCreature->space, body);
             cpBodyFree(body);
             chimpmunkCreature->bodies.erase(bodyIt);
         }
@@ -287,13 +344,14 @@ void ChipmunkEngine::removeBodyPart(unsigned creature_id, BodyPart *bodyPart)
 // NOTE: Maybe not useful
 void ChipmunkEngine::removeConstraint(unsigned creature_id, Constraint *constraint)
 {
+    std::lock_guard<std::mutex> lock(data_mutex);
     auto it = chipmunkCreatures.find(creature_id);
     if (it != chipmunkCreatures.end()) {
-        ChipmunkCreature* chimpmunkCreature = it->second;
+        ChipmunkCreature* chimpmunkCreature = it->second.get();
         auto constraintIt = chimpmunkCreature->constraints.find(constraint->getId());
         if (constraintIt != chimpmunkCreature->constraints.end()) {
             cpConstraint* constraint = constraintIt->second;
-            cpSpaceRemoveConstraint(space, constraint);
+            cpSpaceRemoveConstraint(chimpmunkCreature->space, constraint);
             cpConstraintFree(constraint);
             chimpmunkCreature->constraints.erase(constraintIt);
         }
@@ -337,7 +395,7 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
         }
     }
 
-    if (!world_shapes.empty()) {
+    if (initialized) {
         bodies.emplace_back(0, Vector2(0, 0), 0, 0, Vector2(0, 0));
     }
 
@@ -418,15 +476,14 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
         }
     }
     
-    if (world_shapes.size() > 0) {
+    if (initialized) {
         ShapeObject terrain_shape;
         terrain_shape.body = &bodies.back();
         terrain_shape.id = 0;
         terrain_shape.radius=20;
         terrain_shape.isWorldObj = true;
-        cpBB terrBB = cpShapeGetBB(world_shapes[0]);
-        float y = (terrBB.b+terrBB.t)/2;
-        terrain_shape.vertices = {Vector2(terrBB.l, y), Vector2(terrBB.r, y)};
+        constexpr auto extent = TERRAIN_HALF_WIDTH + TERRAIN_RADIUS;
+        terrain_shape.vertices = {Vector2(-extent, TERRAIN_Y), Vector2(extent, TERRAIN_Y)};
         
         terrain_shape.initShapeType();
         shapes.push_back(terrain_shape);
@@ -434,6 +491,7 @@ void ChipmunkEngine::getRenderObjects(std::vector<BodyObject> &bodies,
 }
 
 void ChipmunkEngine::getCreatureAIInputs(std::vector<CreaturePhysicsInputs>& out) {
+    std::lock_guard<std::mutex> lock(data_mutex);
     // root part angle sin and cos
     // each joint's relative angle between two connected body parts - sin and cos
     // for each sight part: 5 raycasts
@@ -446,7 +504,7 @@ void ChipmunkEngine::getCreatureAIInputs(std::vector<CreaturePhysicsInputs>& out
     out.reserve(chipmunkCreatures.size());
     for (auto& creature_pair : chipmunkCreatures) {
         CreaturePhysicsInputs data;
-        data.creature = creature_pair.second->creature;
+        data.creature = creature_pair.second->creature.get();
 
         std::vector<Constraint*> joints = data.creature->getJoints();
         std::vector<BodyPart*> eyes = data.creature->getSightParts();
@@ -482,8 +540,9 @@ void ChipmunkEngine::getCreatureAIInputs(std::vector<CreaturePhysicsInputs>& out
 
 void ChipmunkEngine::getCreatures(std::vector<Creature *>& out)
 {
+    std::lock_guard<std::mutex> lock(data_mutex);
     for (auto& creaturePair : chipmunkCreatures) {
-        out.emplace_back(creaturePair.second->creature);
+        out.emplace_back(creaturePair.second->creature.get());
     }
 }
 

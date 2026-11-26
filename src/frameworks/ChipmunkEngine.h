@@ -13,16 +13,20 @@
 
 class ChipmunkEngine : public IPhysicsEngine {
 private:
-    cpSpace* space;
-    std::map<unsigned, ChipmunkCreature*> chipmunkCreatures;
-    
-    // A mutex to protect std::map<unsigned, ChipmunkCreature*> chipmunkCreatures
+    struct PhysicsWorker;
+
+    bool initialized = false;
+    std::map<unsigned, std::unique_ptr<ChipmunkCreature>> chipmunkCreatures;
+    std::vector<std::unique_ptr<PhysicsWorker>> workers;
+    std::vector<cpSpace*> spacesToStep;
+    const unsigned maxThreads;
+
+    // Keep space mutations and render snapshots outside the parallel step.
     std::mutex data_mutex;
-    
-    std::vector<cpShape*> world_shapes;
-    std::vector<cpBody*> world_bodies;
 
     ChipmunkCreature* findChipmunkCreatureWithId(unsigned int creatureId) const;
+    void addBodyPart(ChipmunkCreature& creature, BodyPart* bodyPart);
+    void addConstraint(ChipmunkCreature& creature, Constraint* constraint);
 
 public:
     ChipmunkEngine();
@@ -31,8 +35,6 @@ public:
     void initialize() override;
     void update(float dt) override;
     void shutdown() override;
-
-    void addShapeToChipmunkCreature(cpBody *body, BodyPart *bodyPart, unsigned creature_id, cpVect bias);
 
     void addBodyPart(unsigned creature_id, BodyPart *bodyPart) override;
     void addConstraint(unsigned creature_id, Constraint* constraint) override;
